@@ -1,0 +1,48 @@
+NIKOLA / VECTOIQ: HISTORY AND TERMINAL STATUS
+
+The example remains in our ten-record dataset. A failed Yahoo download does not
+mean the historical recommendation should disappear from the study.
+
+What is confirmed
+- The video date in our supplied notes is 8 May 2020, when VectoIQ common stock
+  traded as VTIQ. The symbol changed to NKLA on 4 June 2020 after the merger.
+- Nikola filed for Chapter 11 on 19 February 2025.
+- FINRA's 24 December 2025 notice confirms a liquidation plan effective on
+  12 December 2025, cancelling existing equity interests without a distribution
+  for those interests. The confirmed terminal value of the common stock is zero.
+- We retain this documented corporate outcome separately from market quotes.
+  The exact market-processing date is not inferred from the plan's legal date.
+
+Historical-source search
+- Yahoo Finance did not return a history under NKLA, NKLAQ or VTIQ.
+- CompaniesMarketCap's public chart exposes only 82 sampled observations. It
+  does not give the exact next-trading-day entry after the video. These samples
+  have not been substituted for daily prices or interpolated into a daily chart.
+- ChartExchange's Nasdaq page returned daily observations starting in September
+  2023 in the retrieved page; its OTC page also has 2025 quotes. We have not
+  recovered a complete, consistently adjusted series starting in May 2020.
+
+How the results currently handle the case
+- The case-status table shows the historical-data limitation and terminal share
+  value of USD 0.
+- Fixed-horizon returns, drawdown and a continuous chart remain uncomputed.
+- No obsolete last quote is carried forward as a current market value.
+- Once a complete series is recovered, ticker continuity and the 2024 reverse
+  split need checking. The video's USD 200 target uses its original share basis;
+  comparing it directly with a reverse-split-adjusted history would be wrong.
+- Potential separate legal compensation claims are outside stock-price returns.
+
+Primary sources
+VTIQ to NKLA symbol change:
+https://www.nasdaqtrader.com/TraderNews.aspx?id=ECA2020-100
+Bankruptcy filing:
+https://www.sec.gov/Archives/edgar/data/1731289/000173128925000004/nkla-20250218.htm
+FINRA cancellation notice:
+https://www.finra.org/sites/default/files/2025-12/UPC-125-2025-NKLAQ.pdf
+Company annual report including liquidation treatment and reverse-split history:
+https://www.sec.gov/Archives/edgar/data/1731289/000173128925000065/nkla-20241231.htm
+
+Historical pages investigated
+https://companiesmarketcap.com/nikola-motor-company/stock-price-history/
+https://chartexchange.com/symbol/nasdaq-nkla/historical/
+https://chartexchange.com/symbol/otc-nklaq/historical/

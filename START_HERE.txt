@@ -1,0 +1,33 @@
+REALITY CHECK - ERSTE MVP-VERSION
+
+1. Die ZIP-Datei vollstaendig entpacken.
+2. Ein Terminal im entpackten Ordner Reality_Check_MVP oeffnen.
+3. Die benoetigten Pakete installieren:
+
+   python -m pip install -r requirements.txt
+
+4. Die App starten:
+
+   python -m streamlit run app.py
+
+5. Die im Terminal angezeigte lokale Adresse im Browser oeffnen.
+
+Auf manchen Systemen heisst der Python-Befehl python3 statt python.
+Getestet wurde mit Python 3.12.
+
+Die App laeuft lokal auf deinem Computer. Eine oeffentliche Website ist damit
+noch nicht eingerichtet. Du brauchst fuer diese Version keinen API-Key.
+
+Es gibt zwei Ansichten:
+- TikTok examples: unsere zehn erfassten Empfehlungen. Neun besitzen eine
+  Kursauswertung; Nikola zeigt die bestaetigte Aktienannullierung und Datenluecke.
+- Your own case: selbst Ticker, Videodatum und optional eine Prognose eingeben.
+
+Die vorhandenen Beispiele koennen die mitgelieferten Kursdaten nutzen.
+Manuelle Eingaben und Update prices benoetigen Internetzugang zu Yahoo Finance.
+Der jeweilige Datenstand wird auf der Seite angezeigt.
+
+Mehr TikToks hinzufuegen:
+Neue Zeilen in predictions.csv ergaenzen und die Seite neu laden. Eine Zeile pro
+Video und Asset. case_id muss eindeutig sein oder kann fuer neue Zeilen leer
+bleiben; dann erzeugt die App die ID aus Videolink und Asset. Details: README.txt.

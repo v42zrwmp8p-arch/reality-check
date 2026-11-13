@@ -1,0 +1,30 @@
+{
+  "project": "Reality Check MVP",
+  "delivery": "local Streamlit application",
+  "publicly_deployed": false,
+  "saved_price_cutoff": "2026-11-12",
+  "examples": 10,
+  "calculated_examples": 9,
+  "requirements": {
+    "streamlit": "1.67.0",
+    "pandas": "3.1.1",
+    "yfinance": "1.8.0"
+  },
+  "price_source": "Yahoo Finance via yfinance",
+  "original_claims_source": "User-supplied TikTok notes",
+  "case_identity": "Unique case per video and asset",
+  "browser_visual_qa": "Unavailable: preview relay missing",
+  "file_sha256": {
+    "prices/BTC-USD.csv": "084baf3e1b68857d4fe205196e55826c86247f36f903ada82a00932d7d61fbd4",
+    "prices/CROX.csv": "5b9a5ed3ccffd941c2f0832bc5f53f5ff62bbd1d5685bb5fd0e6c7d522bd2e8a",
+    "prices/HD.csv": "a781f0acadff0a1cd06377d8017251f090f9edf745731c1c2c088794d0d7be40",
+    "prices/HERO10778-USD.csv": "2badbe253fa606cf3faeff5126cba26fb347cab750347821aa8ae923b15d76cc",
+    "prices/KDA-USD.csv": "7d056fdb9e3b79c93fcfa1d54021b44af56b19b58cd1298961ff21a632007a9a",
+    "prices/LOW.csv": "596eb1999b37d29ffb8f6e3243aa1b0d2510b7830248066d8fdeaf5eb6c2fbbf",
+    "prices/MRVL.csv": "3c689c0320f52da4b399f18858b60383a2bfe30f108a84808e7318deb06cdd6e",
+    "prices/MTV-USD.csv": "5a30229c12bdfb6518fb884c9037029b8b21331490ee73edcee79e690ac36d9a",
+    "prices/MU.csv": "a09d617401768a8c86e45187aa7850f094fd3401b39eeb5c39e06630405e02dd",
+    "prices/SPY.csv": "6387019c6cdd6cfa6de6e2d1f5fa059948b3098bdedaa8d6db40383b803f215f",
+    "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41"
+  }
+}

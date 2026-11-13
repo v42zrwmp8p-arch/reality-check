@@ -1,0 +1,15 @@
+{
+  "asset": "Nikola / VectoIQ",
+  "publication_date": "2020-05-08",
+  "history_status": "Incomplete: daily series from original entry not recovered",
+  "chapter_11_date": "2025-02-19",
+  "plan_effective_date": "2025-12-12",
+  "terminal_share_value_usd": 0,
+  "terminal_status": "Common stock cancelled without distribution for existing equity interests",
+  "terminal_value_as_of": "2026-11-12",
+  "fixed_horizon_returns": null,
+  "drawdown": null,
+  "historical_chart": null,
+  "source": "https://www.finra.org/sites/default/files/2025-12/UPC-125-2025-NKLAQ.pdf",
+  "notes": "Legal plan date is distinct from exchange processing. No synthetic daily prices or last-quote carry-forward. Separate compensation claims are outside stock-price returns."
+}

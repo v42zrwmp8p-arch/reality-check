@@ -1,0 +1,24 @@
+MVP VALIDATION
+
+Passed
+- All ten curated views render without a Streamlit AppTest exception.
+- Nine asset views display four metrics and a fixed-horizon table.
+- Nikola displays its documented terminal share value and historical-data gap.
+- A real manual AAPL request downloaded prices and displayed results.
+- Invalid ticker syntax and a negative price target produce input messages.
+- Return, percentage-point difference and maximum-drawdown arithmetic.
+- Calendar-month anniversaries and exclusion of unelapsed horizons.
+- Target timing, stated deadlines and split-event review.
+- Loading a twenty-row table with unique cases, including repeated assets.
+- A second Marvell case does not inherit the first case's USD 142 target.
+- Different publication dates for the same stock produce separate entry dates
+  and results.
+- Batch analysis produces nine calculated cases and retains Nikola's status.
+
+Verification limit
+The environment's integrated browser-preview relay was unavailable. Browser
+screenshots, visual layout and browser-level chart interactions have not been
+verified here. Functional UI checks used Streamlit's official AppTest API.
+
+Delivery scope
+Locally runnable Streamlit source and saved examples. Not publicly deployed.
