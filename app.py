@@ -11,7 +11,7 @@ from analysis_core import positive_number
 from charts import comparison_chart
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.6"
+APP_VERSION = "2026-11-14.7"
 tiktok_mode = import_flow(APP_VERSION)
 
 ROOT = Path(__file__).resolve().parent
@@ -52,7 +52,7 @@ def show_recommendation(row):
         st.caption(" · ".join(reach))
     link = row.get("video_url", "")
     if urlparse(link).scheme in {"http", "https"}:
-        st.link_button("Original video", link)
+        st.link_button("Original post", link)
 
 
 def show_nikola():
@@ -141,8 +141,8 @@ def show_method():
         st.write("A price multiple uses either the simulated entry close or an explicitly supplied creator reference. For example, 2× means a 100% price gain and 10× means a 900% gain.")
         st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication.")
         st.caption("Market data: Yahoo Finance via yfinance. Videos are linked, not hosted. Trading costs and taxes are excluded.")
-        st.caption("Imports use speech recognition and sampled OCR. Review names, tickers and dates. Publication dates use UTC.")
-        st.caption("If a video has already been analysed, the app can reuse the saved result for up to 24 hours.")
+        st.caption("Video imports use speech and sampled screen text. Photo imports read the images and caption. Review names, tickers and dates. Publication dates use UTC.")
+        st.caption("If a post has already been analysed, the app can reuse the saved result for up to 24 hours.")
         st.caption("Edits stay private and media files are deleted after processing. Groq usage limits apply.")
         st.caption("App version: " + APP_VERSION)
 

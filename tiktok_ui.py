@@ -12,7 +12,7 @@ from case_analysis import analyse_case
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-14.6"
+IMPORT_VERSION = "2026-11-14.7"
 
 
 def service_key():
@@ -100,6 +100,8 @@ def import_report(state):
     """Export only public-source diagnostics, never keys, tasks or private edits."""
     return {"import_version": IMPORT_VERSION, "analysis_version": state.get("import_version"),
             "engine": state.get("engine"), "video_url": state["url"],
+            "post_url": state["url"], "source_kind": state.get("source_kind", "video"),
+            "photo_text": state.get("photo_text"), "photo_count": state.get("photo_count"),
             "status": state.get("status"), "error": state.get("error"),
             "failed_stage": state.get("failed_stage"),
             "provider_error": state.get("provider_error"), "compatibility_mode": state.get("compatibility_mode", False),
@@ -111,8 +113,9 @@ def import_report(state):
 
 
 def transcript_section(state):
-    with st.expander("Transcript"):
-        st.text(state.get("transcript") or "No speech was detected.")
+    photo = state.get("source_kind") == "photo"
+    with st.expander("Extracted text" if photo else "Transcript"):
+        st.text((state.get("source_text") or state.get("transcript")) or ("No readable text was detected." if photo else "No speech was detected."))
     diagnostic_section(state)
 
 
@@ -192,6 +195,7 @@ def review_fields(state):
         units = ["days", "weeks", "months", "years"]
         horizon_unit = b.selectbox("Time-frame unit", units, index=units.index(draft["horizon_unit"]) if duration_valid else 2, key=prefix + "unit")
     values = {"asset": asset, "symbol": symbol, "asset_type": kind, "publication_date": published,
+              "source_kind": state.get("source_kind", "video"),
               "creator": creator, "claim": claim, "target_type": target_type, "target_value": target_value,
               "target_approximate": target_approximate,
               "reference_type": reference_type, "reference_price": reference_price, "currency": currency,
@@ -203,18 +207,18 @@ def review_fields(state):
 
 def tiktok_mode(histories, show_results, show_nikola):
     st.subheader("Import a TikTok recommendation")
-    st.caption("Paste a TikTok link and review the detected recommendations. Maximum video length: 3 minutes.")
-    link = st.text_input("TikTok video link", placeholder="https://www.tiktok.com/@creator/video/…", key="tt_link")
+    st.caption("Paste a video or photo link. Videos: up to 3 minutes. Photo posts: up to 15 images.")
+    link = st.text_input("TikTok post link", placeholder="https://www.tiktok.com/@creator/…", key="tt_link")
     key = service_key()
     if not key:
-        st.info("The video import service has not been connected yet. The app owner needs to complete its setup. The other two modes are ready to use.")
+        st.info("The TikTok import service has not been connected yet. The app owner needs to complete its setup. The other two modes are ready to use.")
     state = st.session_state.get("tt_import")
     if state and state.get("engine") != ENGINE_VERSION:
         clear_import()
         state = None
     same = bool(state and _same_link(link, state["url"]))
     busy_or_ready = same and (state["status"] in {"pending", "completed"} or time.time() < state.get("retry_at", 0))
-    if st.button("Analyse video", type="primary", disabled=not key or busy_or_ready, key="tt_analyse"):
+    if st.button("Analyse post", type="primary", disabled=not key or busy_or_ready, key="tt_analyse"):
         try:
             url = clean_tiktok_url(link)
             start_import(url, key)
@@ -224,29 +228,31 @@ def tiktok_mode(histories, show_results, show_nikola):
     if not state:
         return
     if not same:
-        st.info("Press Analyse video to load the changed link.")
+        st.info("Press Analyse post to load the changed link.")
         return
     st.button("Clear this import", key="tt_clear", on_click=clear_import, args=(True,),
               help="Clears the link, results and your edits.")
     job_status(state)
     if state["status"] != "completed":
-        if state.get("transcript"):
+        if state.get("source_text") or state.get("transcript"):
             transcript_section(state)
         elif state["status"] == "error":
             diagnostic_section(state)
         return
-    st.link_button("Original video", state["url"])
+    st.link_button("Original post", state["url"])
     if state.get("reused"):
-        st.caption("Loaded a saved analysis of this video.")
+        st.caption("Loaded a saved analysis of this post.")
     transcript_section(state)
     count = len(state["drafts"])
-    if count:
+    if state.get("source_kind") == "photo":
+        st.caption(f"{state.get('photo_count', 0)} photos · {count} recommendation{'s' if count != 1 else ''} found")
+    elif count:
         st.caption(f"{count} recommendation{'s' if count != 1 else ''} found")
     a, b = st.columns(2)
     a.button("Add a recommendation", key="tt_add", on_click=add_recommendation)
     can_refresh = time.time() >= state["task"].created + 30
     if b.button("Check extraction again", key="tt_refresh", disabled=not key,
-                help="Rechecks the existing transcript without transcribing the video again."):
+                help="Rechecks the existing text without downloading or reading the post again."):
         if not can_refresh:
             st.info(f"Try again in {max(1, int(state['task'].created + 30 - time.time()))} seconds.")
         else:

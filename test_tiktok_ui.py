@@ -109,7 +109,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertTrue(at.button(key="tt_analyse").disabled)
         captions = [item.value for item in at.caption]
         words = " ".join(captions + [item.value for item in at.markdown])
-        self.assertIn("If a video has already been analysed, the app can reuse the saved result for up to 24 hours.", captions)
+        self.assertIn("If a post has already been analysed, the app can reuse the saved result for up to 24 hours.", captions)
         for removed in ["A forecast without a deadline is not labelled false", "Vague time frames are retained as text", "The curated collection is illustrative"]:
             self.assertNotIn(removed, words)
         self.assertEqual(at.radio(key="mode").options, ["TikTok Case Database", "Import TikTok", "Manual Entry"])
@@ -146,7 +146,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertTrue(any("Fixture transcript" in x.value for x in at.text))
         self.assertNotIn("Sampled screen text", [x.label for x in at.expander])
         self.assertIn("Import details", [x.label for x in at.expander])
-        self.assertTrue(any("Import version: 2026-11-14.6" == x.value for x in at.caption))
+        self.assertTrue(any("Import version: 2026-11-14.7" == x.value for x in at.caption))
         at.date_input(key="tt_review_0_published").set_value(None).run()
         at.button(key="tt_calculate").click().run()
         self.assertTrue(any("publication date" in x.value for x in at.error))

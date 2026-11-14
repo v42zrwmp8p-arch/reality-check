@@ -19,13 +19,14 @@ import yt_dlp
 
 from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url
 from asset_resolution import complete_drafts
+from photo_import import read_photo_post
 
-IMPORT_VERSION = "2026-11-14.6"
+IMPORT_VERSION = "2026-11-14.7"
 
 MAX_SECONDS = 180
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_FRAMES = 16
-ENGINE_VERSION = "groq-whisper-ocr-v6"
+ENGINE_VERSION = "groq-whisper-ocr-v7"
 # A release reload must not duplicate the queue or release another semaphore.
 if "_POOL" not in globals():
     _POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="video-import")
@@ -158,23 +159,32 @@ def _process(task, url, api_key):
     try:
         client = GroqClient(api_key)
         client.compatibility_mode = bool(data.get("compatibility_mode"))
-        if "transcript" not in data:
-            task.progress = "Retrieving the public TikTok video…"
+        data.setdefault("source_kind", "photo" if "/photo/" in urlsplit(url).path else "video")
+        if "source_text" not in data and "transcript" in data:
+            data["source_text"] = data["transcript"]
+        if "source_text" not in data:
             with tempfile.TemporaryDirectory(prefix="reality-check-") as folder:
-                video, data["metadata"] = read_video(url, folder)
-                task.progress = "Reading sampled on-screen text…"
-                data["screen_text"], data["screen_note"] = read_screen_text(video, data["metadata"]["duration"], folder)
-                task.progress = "Transcribing the speech with Groq…"
-                audio = prepare_audio(video, folder)
-                data["transcript"] = client.transcribe(audio)
-            # Original video/audio/frames are deleted even when a stage fails.
+                if data["source_kind"] == "photo":
+                    task.progress = "Retrieving the public TikTok photos…"
+                    text, data["metadata"] = read_photo_post(url, folder, lambda value: setattr(task, "progress", value))
+                    data.update(source_text=text, photo_text=text, photo_count=data["metadata"]["photo_count"], screen_text="")
+                else:
+                    task.progress = "Retrieving the public TikTok video…"
+                    video, data["metadata"] = read_video(url, folder)
+                    task.progress = "Reading sampled on-screen text…"
+                    data["screen_text"], data["screen_note"] = read_screen_text(video, data["metadata"]["duration"], folder)
+                    task.progress = "Transcribing the speech with Groq…"
+                    audio = prepare_audio(video, folder)
+                    data["transcript"] = client.transcribe(audio)
+                    data["source_text"] = data["transcript"]
+            # Every original video/audio/frame/photo file is temporary.
         task.progress = "Identifying the investment predictions…"
         data["import_version"] = IMPORT_VERSION
-        if not data["transcript"].strip() and not data.get("screen_text", "").strip():
+        if not data["source_text"].strip() and not data.get("screen_text", "").strip():
             data["drafts"] = []
         else:
             if "raw_drafts" not in data:
-                data["raw_drafts"] = client.extract(data["transcript"], data.get("screen_text", ""))
+                data["raw_drafts"] = client.extract(data["source_text"], data.get("screen_text", ""), source_kind=data["source_kind"])
                 checks = getattr(client, "extraction_checks", [])
                 data["extraction_checks"] = deepcopy(checks) if isinstance(checks, list) else []
             task.progress = "Matching names to tickers…"
@@ -200,7 +210,7 @@ def _process(task, url, api_key):
             data["extraction_checks"] = deepcopy(checks)
         data["failed_stage"] = task.progress
         task.retry_at = time.time() + 30
-        return {"ok": False, "error": "The video analysis did not complete. Please try again later or use manual input.", "retry_after": None, "data": deepcopy(data)}
+        return {"ok": False, "error": "The post analysis did not complete. Please try again later or use Manual Entry.", "retry_after": None, "data": deepcopy(data)}
 
 
 def submit_import(url, api_key, *, refresh=False):
@@ -221,7 +231,7 @@ def submit_import(url, api_key, *, refresh=False):
                     or (existing.future.result()["ok"] and (not refresh or now < existing.created + 30))):
                 return existing, True
         if not _SLOTS.acquire(blocking=False):
-            raise ImportProblem("Several video analyses are already queued. Please try again shortly.")
+            raise ImportProblem("Several post analyses are already queued. Please try again shortly.")
         task = ImportTask(existing.checkpoint if existing else None)
         if refresh:
             for field in ["raw_drafts", "drafts", "analysed_at", "extraction_checks", "failed_stage", "provider_error"]:

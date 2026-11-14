@@ -28,11 +28,13 @@ def response(data, status=200):
 class ImportChecks(unittest.TestCase):
     def test_video_links_and_tracking_cleanup(self):
         self.assertEqual(clean_tiktok_url(VIDEO + "?tracking=remove#ignored"), VIDEO)
+        photo = "https://www.tiktok.com/@a/photo/12345"
+        self.assertEqual(clean_tiktok_url(photo + "?tracking=remove"), photo)
         self.assertEqual(clean_tiktok_url("https://vm.tiktok.com/ABC123/"), "https://vm.tiktok.com/ABC123")
         for url in ["http://www.tiktok.com/@a/video/12345", "https://tiktok.com.evil.test/@a/video/12345",
                     "https://user:password@www.tiktok.com/@a/video/12345", "https://127.0.0.1/video",
                     "https://www.tiktok.com/@a", "https://www.tiktok.com:8443/@a/video/12345",
-                    "https://www.tiktok.com/@a/photo/12345", "https://www.tiktok.com@evil.test/video/12345"]:
+                    "https://www.tiktok.com/@a/photo/not-an-id", "https://www.tiktok.com@evil.test/video/12345"]:
             with self.subTest(url=url), self.assertRaises(ImportProblem):
                 clean_tiktok_url(url)
 

@@ -14,7 +14,8 @@
     "yt-dlp": "2026.10.26",
     "pytesseract": "0.3.13",
     "Pillow": "13.0.0",
-    "jsonschema": "4.26.0"
+    "jsonschema": "4.26.0",
+    "gallery-dl": "1.32.20"
   },
   "price_source": "Yahoo Finance via yfinance",
   "original_claims_source": "User-supplied TikTok notes",
@@ -37,19 +38,19 @@
   "target_schema": "Explicit none/price/multiple with entry or creator reference and target_approximate flag",
   "forecast_deadline": "Exact date or structured duration from publication",
   "tiktok_import": {
-    "provider": "Direct public TikTok retrieval + Groq + local sampled Tesseract OCR",
+    "provider": "Direct public TikTok video/photo retrieval + Groq + local Tesseract OCR",
     "secret_name": "GROQ_API_KEY",
     "live_provider_verified": false,
     "speech_model": "whisper-large-v3-turbo",
     "prediction_model": "openai/gpt-oss-20b",
     "paid_fallback": false,
-    "limits": "180 seconds, 50 MB, 16 sampled OCR frames, 2 active / 8 total tasks",
+    "limits": "Videos: 180 seconds, 50 MB, 16 sampled OCR frames. Photos: 15 images, 8 MB/image, 50 MB total, 12000 text characters. 2 active / 8 total tasks.",
     "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change",
-    "engine_version": "groq-whisper-ocr-v6",
+    "engine_version": "groq-whisper-ocr-v7",
     "identifier_handling": "Known identifiers; spelling and bounded Yahoo-search suggestions require review",
     "empty_result_handling": "Explicit supported-list recovery; otherwise one additional model check",
-    "recheck": "Explicit extraction-only recheck with 30-second cooldown; original transcript/OCR reused",
+    "recheck": "Explicit extraction-only recheck with 30-second cooldown; source transcript/OCR reused for video and photo posts",
     "creator": "Canonical video handle preferred; numeric UIDs hidden",
     "screen_text_visible": false,
     "clear_import": "Clears link, result and edits; shared source cache retained",
@@ -61,7 +62,24 @@
     "format_recovery": "One JSON Object Mode attempt after HTTP 400 chat error; same model/source; local schema validation; no retries of other HTTP errors",
     "error_diagnostics": "HTTP status and whitelisted provider details, connection key redacted",
     "latest_live_failure": "Stockdads report is request_failed with HTTP-400-mapped message; original provider error details absent, exact cause unconfirmed",
-    "etf_support": "ETF is an explicit type across extraction/review/manual/CSV/search. Generic literal ETF-ticker source recovery; no per-video ticker list."
+    "etf_support": "ETF is an explicit type across extraction/review/manual/CSV/search. Generic literal ETF-ticker source recovery; no per-video ticker list.",
+    "photo_import": "Full /photo/ links; gallery-dl 1.32.20 anonymous metadata and supplied CDN image URLs, English OCR of every image plus caption. Same Groq extraction and review; no background audio or image display.",
+    "photo_live_media_test": {
+      "url": "https://www.tiktok.com/@drewhelpss/photo/7453626334099590406",
+      "photos": 5,
+      "source_text_characters": 1937,
+      "ocr_tickers": [
+        "PLTR",
+        "AVGO",
+        "SOUN",
+        "TSLA"
+      ],
+      "publication_utc": "2024-12-29T00:37:05+00:00",
+      "temporary_media_deleted": true,
+      "live_groq_classification_tested": false,
+      "streamlit_host_tested": false
+    },
+    "photo_share_links": "Full /photo/ URLs supported; shortened photo share links not verified."
   },
   "system_dependencies": [
     "ffmpeg",
@@ -75,7 +93,7 @@
     "Manual Entry"
   ],
   "validation": {
-    "tests_passed": 70,
+    "tests_passed": 79,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -83,9 +101,10 @@
     "mixed_release_regression": "Stale helper reload, matching function identities, queue preserved, no reload on ordinary reruns",
     "diagnostic_report": "Exact extraction request JSON, returned content, response ID, parsing status and counts; excludes credentials/headers/tasks/private edits; available after extraction errors",
     "recorded_amc_replay": "Actual user-provided source/model output replayed through extraction, recovery and ticker resolution; approx 6x with USD 2.25 reference and preserved condition",
-    "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call"
+    "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
+    "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video."
   },
-  "app_version": "2026-11-14.6",
+  "app_version": "2026-11-14.7",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",

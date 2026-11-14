@@ -3,7 +3,7 @@ import importlib
 from threading import RLock
 
 _LOCK = RLock()
-MODULES = ("asset_resolution", "target_extraction", "tiktok_import", "video_pipeline", "tiktok_ui")
+MODULES = ("asset_resolution", "target_extraction", "tiktok_import", "photo_import", "video_pipeline", "tiktok_ui")
 
 
 def import_flow(expected_version):
