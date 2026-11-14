@@ -1,5 +1,22 @@
 MVP VALIDATION
 
+Feature update: TikTok link import
+- 23 tests passed: ten existing calculation/data checks, eight import boundary
+  checks and five Streamlit AppTest import/regression checks.
+- All Supadata responses in these tests are simulated fixtures. No live API key
+  was available and no real video was submitted to the provider during QA.
+- Checked URL restrictions, metadata with missing dates, independent targets
+  for multiple assets, currency and horizon validation, and provider errors.
+- Checked extraction-job progress, paused/resumed jobs without another paid
+  extraction request, empty results, missing setup, edited inputs, calculation
+  using saved market prices, and an optional asynchronous transcript.
+- Changing price target to a multiple does not reuse the old price as a factor.
+- Session clearing removes imported details/results/transcript. A separate
+  session does not receive another session's import. No shared import cache is used.
+- All ten original curated views still render; manual input remains available.
+- No feature flag or automatic expiration was introduced. The import can be
+  removed later as a separate code change.
+
 Feature update: explicit targets and forecast deadlines
 - Ten focused unit tests passed with Python 3.12.
 - All ten curated views passed Streamlit AppTest checks.
@@ -40,3 +57,5 @@ AppTest API; static chart rendering was checked separately.
 Delivery scope
 Streamlit source and saved examples in the connected GitHub repository.
 The deployed Streamlit app has not been verified here; its URL was not supplied.
+Real TikTok availability, extraction quality and provider credit consumption
+remain unverified until the owner configures a key and runs real examples.

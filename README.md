@@ -1,8 +1,8 @@
 # Reality Check
 
 A Python prototype that compares a TikTok investment recommendation with what
-happened afterwards. Choose a curated example or enter a USD stock/crypto ticker
-and publication date. The app shows a full-history chart, cumulative returns,
+happened afterwards. Choose a curated example, enter a USD stock/crypto ticker
+and publication date, or import a public TikTok link for review. The app shows a full-history chart, cumulative returns,
 benchmark differences, drawdown and fixed holding periods.
 
 ## Deploy online
@@ -23,12 +23,66 @@ link after deployment. Changes pushed to the connected branch update the app.
 | Main file path | `app.py` |
 | Python version, under Advanced settings | `3.12` |
 
-5. Click **Deploy**. No app API key or secrets file is required for this prototype.
+5. Click **Deploy**. The curated and manual modes do not require an app API key.
+   The TikTok import connection is configured separately below.
 6. Use the app's sharing settings to choose its viewers. A private source
    repository does not require making the source code public to share the app.
 
 The GitHub repository and the running app are separate: uploading the source
 does not itself publish the website.
+
+## Connect TikTok import
+
+**Import TikTok** is a normal third app mode, with no feature toggle. It needs
+a Supadata account and API key. In Streamlit Community Cloud, open your app's
+**Settings → Secrets**, add the following and save:
+
+```toml
+SUPADATA_API_KEY = "replace-with-your-supadata-key"
+```
+
+Keep the actual key in Streamlit's secrets, not in GitHub or a chat message.
+For local use, the same setting can go in an untracked `.streamlit/secrets.toml`
+or the `SUPADATA_API_KEY` environment variable. Visitors need neither an API
+key nor a Supadata account. Without the key, the new mode explains that its
+connection is missing; the original two modes remain usable.
+
+Paste a public TikTok video/share URL and press **Analyse video**. The server
+requests platform metadata, then starts an audio/visual extraction job using an
+explicit output schema. Processing progress is checked automatically while the
+session is open. If a request fails or takes longer than three minutes,
+**Check analysis progress** resumes that job rather than creating another one.
+New import requests consume the project's provider credits. The adapter spaces
+requests by at least 1.1 seconds; a shared provider quota can still be exhausted.
+
+Review the detected recommendations and choose one asset at a time. Dates and
+creator identity come from metadata; a missing date must be entered. Suggested
+tickers, currencies, targets, reference prices and horizons remain editable.
+Vague horizons do not acquire an invented deadline. This version supports long
+stock/crypto comparisons and upside forecasts, not short/option strategies.
+The checked case uses the existing shared investment calculations.
+
+**Get transcript** is optional and consumes additional provider credits. It
+uses existing captions where available and otherwise requests speech
+transcription. It supports both immediate responses and processing jobs.
+Extraction also considers visible text, so the investment draft does not rely
+solely on audio or on the optional transcript.
+
+Imports and transcripts are held in the current session, not written to the
+curated CSV or shared disk cache. **Clear this import** removes the session
+copy, including the displayed results and transcript. It does not cancel or
+delete a job already held by Supadata, whose retention terms apply separately.
+A checked case can be downloaded as JSON; the app does not rehost the video.
+
+The integration has been tested with simulated API responses, not a live
+Supadata account. Actual link access, extraction accuracy, account entitlement
+and credit usage still require a real-key test. Technical integration does not
+establish copyright, platform or data-protection permission for a given use.
+The planned course prototype runs for two weeks; there is no automatic expiry.
+
+The import is isolated in `tiktok_import.py` and `tiktok_ui.py`. To remove it
+later, remove its import, mode option and call from `app.py`, then those two
+modules and their tests. This preserves later changes to unrelated features.
 
 ## Add more examples
 
@@ -90,11 +144,12 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_mvp.py
+python -m unittest test_mvp.py test_tiktok_import.py test_tiktok_ui.py
 ```
 
 All ten curated views and the manual target/reference/deadline flows passed
-Streamlit AppTest checks. The table was tested with twenty records. Charts
+Streamlit AppTest checks. The import has additional API-boundary and AppTest
+checks with clearly labelled test fixtures. The table was tested with twenty records. Charts
 with elapsed and future deadlines were rendered for visual inspection.
 A live-browser QA pass was not available in the development environment. See `TEST_REPORT.txt` and
 `README.txt` for details, and `NIKOLA_NOTES.txt` for the historical-source search.

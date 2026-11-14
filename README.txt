@@ -1,13 +1,25 @@
 REALITY CHECK - STREAMLIT MVP
 
 What is included
-A local Python app with two flows: curated TikTok examples and manual input.
+A Python app with three flows: curated TikTok examples, manual input and a
+Supadata-backed TikTok link import with editable extracted recommendations.
 Nine of the ten curated assets have daily-price comparisons. Nikola remains
 visible with a documented cancellation outcome and an explicit historical gap.
 
 The layout is intentionally simple: recommendation, full-period chart, four
-metrics, fixed-horizon table and a separate price-target check. No videos are
-uploaded, transcribed or rehosted by this version.
+metrics, fixed-horizon table and a separate price-target check. Imported public
+videos are processed by Supadata; optional speech transcription is available.
+The app does not rehost videos or automatically add imports to its database.
+
+TikTok import setup
+Add SUPADATA_API_KEY to the deployed app's Settings -> Secrets. See README.md
+for the exact TOML setting and workflow. The actual key must not be committed
+to GitHub. There is no import enable/disable toggle. Missing connection details
+affect only the import mode. Visitors do not need their own provider account.
+The planned two-week course usage does not have an automatic expiration timer.
+The new API and UI flows were tested with simulated provider responses; a real
+video/provider run still requires the owner's key. Legal permissions for the
+retrieval and processing are not established by the implementation.
 
 Start
 python -m pip install -r requirements.txt
@@ -119,10 +131,14 @@ market_data.py         Example-table loading, symbol handling and price retrieva
 case_analysis.py       Combines the data into one case's results
 analysis_core.py       Return, drawdown, horizon and explicit target functions
 charts.py              Full-history chart and covered-deadline annotations
+tiktok_import.py       Supadata requests, extraction schema and reviewed-input validation
+tiktok_ui.py           Link import, job progress, editable review and optional transcript
 analyse_examples.py    Batch CSV/JSON outputs using the same functions as the app
 predictions.csv        Expandable curated database
 prices/*.csv           Original saved daily observations
 test_mvp.py            Focused checks of calculations and adding more examples
+test_tiktok_import.py  API/error/input checks with simulated responses
+test_tiktok_ui.py      Functional import UI checks with simulated responses
 
 The same functions can be imported into the report notebook. A final notebook
 and the course's PDF deliverable have not been created in this MVP step.
@@ -132,7 +148,7 @@ python analyse_examples.py
 python analyse_examples.py --refresh
 
 Run focused checks
-python -m unittest test_mvp.py
+python -m unittest test_mvp.py test_tiktok_import.py test_tiktok_ui.py
 
 Validation
 All ten curated views passed Streamlit AppTest checks. The nine price cases

@@ -9,6 +9,7 @@ from market_data import load_examples, provider_symbol, download_history, get_ca
 from case_analysis import analyse_case
 from analysis_core import positive_number
 from charts import comparison_chart
+from tiktok_ui import tiktok_mode
 
 ROOT = Path(__file__).resolve().parent
 st.set_page_config(page_title="Reality Check", layout="wide", initial_sidebar_state="collapsed")
@@ -234,10 +235,12 @@ def manual_mode():
 
 st.title("Reality Check")
 st.write("See what happened after the recommendation.")
-mode = st.radio("Mode", ["TikTok examples", "Your own case"], horizontal=True, label_visibility="collapsed", key="mode")
+mode = st.radio("Mode", ["TikTok examples", "Your own case", "Import TikTok"], horizontal=True, label_visibility="collapsed", key="mode")
 st.divider()
 if mode == "TikTok examples":
     example_mode()
-else:
+elif mode == "Your own case":
     manual_mode()
+else:
+    tiktok_mode(histories, show_results, show_nikola)
 show_method()
