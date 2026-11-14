@@ -3,6 +3,7 @@ from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 import tempfile
+import json
 from unittest.mock import patch
 import unittest
 
@@ -23,15 +24,11 @@ def no_network(*args):raise AssertionError('all active numeric cases should use 
 
 
 class IconicCaseChecks(unittest.TestCase):
-    def test_only_requested_original_cases_and_iconic_additions_are_active(self):
+    def test_only_iconic_additions_are_active(self):
         rows=load_examples();by_symbol={row['symbol']:row for row in rows}
-        self.assertEqual(set(by_symbol),{'GME','COIN','TSLA','BTC-USD','BSC','NKLA','HERO','KDA','MTV'})
-        self.assertEqual(by_symbol['NKLA']['asset'],'Nikola Motors')
+        self.assertEqual(set(by_symbol),{'GME','COIN','TSLA','BTC-USD','BSC'})
         self.assertEqual(by_symbol['BSC']['case_type'],'context')
-        for symbol in ('HERO','KDA','MTV'):
-            self.assertEqual(by_symbol[symbol]['target_type'],'multiple')
-            self.assertEqual(by_symbol[symbol]['target_value'],10)
-        self.assertFalse({'HD','LOW','CROX','MRVL','TSM','MU'} & set(by_symbol))
+        self.assertFalse({'HD','LOW','CROX','MRVL','TSM','MU','NKLA','HERO','KDA','MTV'} & set(by_symbol))
 
     def test_cathie_target_has_verified_share_basis_and_explicit_year_end_convention(self):
         row=next(row for row in load_examples() if row['case_id']==CATHIE)
@@ -82,6 +79,16 @@ class IconicCaseChecks(unittest.TestCase):
         self.assertTrue(any('Context case' in item.value for item in at.info))
         self.assertNotIn('curated_track',[item.key for item in at.button])
         self.assertTrue(any('Statement 2008-03-11' in item.value for item in at.caption))
+        charts=at.get('vega_lite_chart')
+        self.assertEqual(len(charts),1)
+        spec=json.loads(charts[0].proto.spec)
+        self.assertEqual(spec['layer'][0]['encoding']['y']['title'],'Share price (USD)')
+        all_rows=[record for rows in spec.get('datasets',{}).values() for record in rows]
+        all_rows += [record for layer in spec['layer'] for record in layer.get('data',{}).get('values',[])]
+        self.assertTrue(any(row.get('Date')=='2008-03-11' and row.get('Label')=='Cramer statement' for row in all_rows))
+        closes=[row for row in all_rows if 'Close' in row]
+        self.assertTrue(any(row['Date']=='2008-03-17' and row['Close']==4.81 for row in closes))
+        self.assertFalse(any(row['Close']==2 for row in closes))
         download.assert_not_called()
 
     @patch('tracker_ui._storage')
@@ -100,7 +107,7 @@ class IconicCaseChecks(unittest.TestCase):
         self.assertTrue(any('Evaluation date: 2025-12-31' in item.value for item in at.caption))
         self.assertFalse(any('Manual split adjustment required' in item.value for item in at.markdown))
 
-    def test_batch_skips_bear_context_and_nikola_and_calculates_seven_cases(self):
+    def test_batch_skips_bear_context_and_calculates_four_cases(self):
         import analyse_examples
         def histories(row,force_live=False):return get_comparison_histories(row,False,fetch=no_network)
         with tempfile.TemporaryDirectory() as folder:
@@ -109,8 +116,8 @@ class IconicCaseChecks(unittest.TestCase):
             path=Path(folder)/'results'
             summary=pd.read_csv(path/'current_summary.csv')
             status=pd.read_csv(path/'case_status.csv')
-            self.assertEqual(len(summary),7)
-            self.assertEqual(len(status),9)
+            self.assertEqual(len(summary),4)
+            self.assertEqual(len(status),5)
             self.assertIn('Context case',status.loc[status['case_id']==BEAR,'status'].iloc[0])
             self.assertFalse((path/BEAR/'summary.json').exists())
 

@@ -35,7 +35,7 @@ class SpecialCaseChecks(unittest.TestCase):
             self.assertEqual(summary['latest_close_date'],'2026-11-12')
             self.assertEqual(data['source'],'Saved data snapshot')
             self.assertGreater(len(chart),100)
-        self.assertEqual(len(rows),9)
+        self.assertEqual(len(rows),5)
 
     def test_pompliano_gain_is_separate_from_a_missed_deadline_target(self):
         row=next(row for row in load_examples() if row['case_id']==IDS[2])
@@ -76,7 +76,7 @@ class SpecialCaseChecks(unittest.TestCase):
         at=app();at.radio(key='mode').set_value('Case Database').run()
         self.assertFalse(at.exception);self.assertFalse(at.error)
         self.assertEqual(at.selectbox(key='case_selector').value,IDS[0])
-        self.assertEqual(len(at.selectbox(key='case_selector').options),9)
+        self.assertEqual(len(at.selectbox(key='case_selector').options),5)
         self.assertIn('Source excerpt',[item.label for item in at.expander])
         for case_id in IDS[1:]:
             at.selectbox(key='case_selector').set_value(case_id).run()

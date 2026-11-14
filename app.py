@@ -7,12 +7,12 @@ import pandas as pd
 import streamlit as st
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.13"
+APP_VERSION = "2026-11-14.14"
 tiktok_mode = import_flow(APP_VERSION)
 from market_data import load_examples, provider_symbol, download_history, get_comparison_histories, comparison_symbols
 from case_analysis import analyse_comparisons
 from analysis_core import positive_number
-from charts import comparison_chart
+from charts import comparison_chart, context_price_chart
 from tracker_ui import sync_tracker, storage_message, track_button, tracker_mode
 
 ROOT = Path(__file__).resolve().parent
@@ -223,6 +223,11 @@ def example_mode():
     row = by_id[case_id]
     show_recommendation(row)
     if row.get("case_type") == "context":
+        if row["case_id"] == "cramer-bear-stearns-context-20080311":
+            history = json.loads((ROOT / "bear_stearns_history.json").read_text(encoding="utf-8"))
+            st.altair_chart(context_price_chart(history["closes"], row["publication_date"]), width="stretch")
+            st.caption("Reported closing prices, 10–17 March 2008 · USD")
+            st.link_button("Historical price source", history["source_url"])
         st.info("Context case: no share-price return is calculated for this statement.")
         return
     if row["symbol"] in {"VTIQ / NKLA", "VTIQ", "NKLA", "NKLAQ"}:

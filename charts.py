@@ -2,7 +2,25 @@
 import altair as alt
 import pandas as pd
 
-IMPORT_VERSION = "2026-11-14.13"
+IMPORT_VERSION = "2026-11-14.14"
+
+
+def context_price_chart(closes, statement_date):
+    """Reported nominal closes around a statement, without a simulated trade."""
+    base = alt.Chart(alt.Data(values=closes)).encode(
+        x=alt.X("Date:T", title="Date", scale=alt.Scale(type="utc"),
+                axis=alt.Axis(tickCount=6, format="%d %b", labelOverlap=True)),
+        y=alt.Y("Close:Q", title="Share price (USD)", scale=alt.Scale(zero=True)),
+        tooltip=[alt.Tooltip("Date:T", title="Closing date", format="%d %b %Y"),
+                 alt.Tooltip("Close:Q", title="USD", format=".2f")])
+    marker = alt.Chart(alt.Data(values=[{"Date": statement_date, "Label": "Cramer statement"}]))
+    return alt.layer(
+        base.mark_line(color="#23685A", strokeWidth=2),
+        base.mark_point(color="#23685A", filled=True, size=65),
+        marker.mark_rule(color="#343B37", strokeDash=[6, 4]).encode(x="Date:T"),
+        marker.mark_text(align="left", dx=6, fontSize=11, color="#343B37").encode(
+            x="Date:T", y=alt.value(12), text="Label:N")
+    ).properties(height=340)
 
 
 def comparison_chart(normalized, asset_label, benchmark_label, deadline_result, additional_labels=None):

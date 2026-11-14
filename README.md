@@ -11,7 +11,7 @@ is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.13` checks that Streamlit's entry script and all twelve
+Release `2026-11-14.14` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
@@ -35,10 +35,10 @@ from these runtime and simulated-response tests.
 
 ## Iconic market calls
 
-Release `2026-11-14.13` focuses **Case Database** on selected memorable market
+Release `2026-11-14.14` focuses **Case Database** on selected memorable market
 calls, with the heading **Iconic market calls**. The database remains the last
 navigation item; new visits still start with Import TikTok. Automatic import
-still supports TikTok only. The nine active cases are:
+still supports TikTok only. The five active cases are:
 
 - Roaring Kitty / GameStop, 4 August 2020: the dated original YouTube description
   explicitly states a bullish view. No numeric target or exact horizon is
@@ -60,13 +60,15 @@ still supports TikTok only. The nine active cases are:
   customer funds. No share-price forecast, simulated equity return or tracker
   entry is inferred. A contemporary 17 March report corroborates the statement
   date; it is distinct from the linked interview's publication date.
-- Nikola Motors: the retained original case, with the separate cancelled-share
-  status and documented historical-price gap.
-- Metahero, Kadena and MultiVAC: the three retained original crypto predictions,
-  each with the supplied 10x target.
+  A separate historical chart shows six reported daily closes from 10 to
+  17 March 2008, with the statement date marked. The source is the court
+  opinion's reported historical prices; the 11 March close is also checked
+  against contemporary Bloomberg coverage. These are nominal USD prices,
+  without a simulated trade, benchmark or prediction verdict. The USD 2
+  takeover offer is not plotted as if it were a stock-market closing price.
 
-Home Depot, Lowe's, Crocs, Marvell, TSM and Micron were removed from the active
-CSV. The original ten-row dataset is retained only in
+All ten original cases, including Nikola Motors, Metahero, Kadena and MultiVAC,
+were removed from the active CSV. The original ten-row dataset is retained only in
 `test_fixtures/original_predictions.csv`, with its price files, for regression
 checks. Existing personal tracker records are not deleted.
 
@@ -74,15 +76,15 @@ These are hypothetical investments after the public statement, not reconstructio
 of the creators' own trades, option positions or portfolio profit. Each case has
 an original source link, a short excerpt and an explanation of its learning point.
 Sources and verification notes are recorded in `case_sources.json`. Historical
-follower/view counts are left blank rather than invented. Other examples retain
-the supplied counts. The selected cases do not constitute a representative sample.
+follower/view counts are left blank rather than invented. The selected cases
+do not constitute a representative sample.
 
-Saved Yahoo Finance chart observations were added for TSLA. All thirteen
-pre-update price files remain byte-identical. The earlier release added GME
+The previous release added saved Yahoo Finance chart observations for TSLA.
+All fourteen pre-update price CSVs remain byte-identical. The earlier release added GME
 and COIN and prepended older rows to BTC-USD and SPY without changing any
 existing observation. Current hashes are recorded in `project_info.json`.
-Seven active cases have saved comparisons through 12 November 2026; Nikola
-is status-only and Bear Stearns is context-only.
+Four active cases have saved comparisons through 12 November 2026. Bear Stearns
+uses its separate historical-context data in `bear_stearns_history.json`.
 
 The Cathie record explicitly lists the reviewed split date and ratio. Target
 evaluation proceeds only if those events exactly match the observed history;
@@ -91,8 +93,8 @@ This metadata and the evaluation convention survive saving to My Tracker.
 The normal import/manual target calculation is unchanged.
 
 All 119 tests pass, including active-case membership, source/date consistency,
-split safety, context-only handling, stale database selection recovery, all nine
-database views, tracker preservation and seven-case batch export. Automated
+split safety, context-only handling and chart, stale database selection recovery,
+all five database views, tracker preservation and four-case batch export. Automated
 requests use saved data or simulated responses. Hosted rendering has not been
 independently verified here.
 
@@ -428,9 +430,9 @@ An exact deadline can be recorded in `deadline`. Alternatively, supply
 publication.
 Vague statements such as next few weeks are preserved without an invented date.
 
-The collection has nine records. Seven have saved daily comparisons through
-12 November 2026. Nikola Motors shows its cancellation outcome and historical
-data gap. Bear Stearns is a context-only statement with no stock return.
+The collection has five records. Four have saved daily comparisons through
+12 November 2026. Bear Stearns shows a historical-context chart around the
+statement, without a simulated stock return.
 Calculated examples work from their saved snapshot; new cases and
 **Update prices** request data from Yahoo.
 
@@ -475,7 +477,7 @@ python analyse_examples.py
 python -m unittest test_iconic_cases.py test_special_cases.py test_dual_crypto.py test_bitcoin_benchmark.py test_tracker.py test_photo_import.py test_etf_import.py test_format_recovery.py test_target_extraction.py test_import_runtime.py test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py
 ```
 
-All nine curated views and the manual target/reference/deadline flows passed
+All five curated views and the manual target/reference/deadline flows passed
 Streamlit AppTest checks. The import has additional API-boundary and AppTest
 checks with clearly labelled test fixtures. The table was tested with twenty records. Charts
 with elapsed and future deadlines were rendered for visual inspection.

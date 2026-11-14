@@ -1,6 +1,30 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.13
+Current release: 2026-11-14.14
+Full suite: 119 tests passed with Python 3.12 in 27.484 seconds.
+Database and historical chart update:
+- All original supplied TikTok cases are removed from the active database,
+  including Nikola Motors and the three altcoins. Five sourced cases remain:
+  GME, COIN, TSLA, BTC and Bear Stearns. Four have saved comparisons; the fifth
+  retains context-only handling. Previous personal tracker records survive.
+- Bear Stearns now shows six reported daily closing prices from 10-17 March
+  2008, in nominal USD, with a marker on the March 11 statement date. Sources
+  are the court opinion's historical price account plus a contemporary Bloomberg
+  cross-check of March 11. Source links and exact values are recorded separately
+  in bear_stearns_history.json. This is not a full-history market-data feed.
+- The USD 2 takeover offer is not inserted as an exchange closing price. There
+  is no simulated equity trade, benchmark, return verdict or price-provider
+  request for this context case. The statement's customer-funds context stays.
+- The context UI check confirms the actual Vega-Lite output, nominal USD axis,
+  dated marker and closing point; it rejects the offer-price substitution.
+  Retired-selection recovery, five-view database smoke, four-case batch output,
+  Cathie split review and tracker/import/manual flows all pass.
+- All fourteen prior price CSVs remain byte-identical. Crypto import/manual
+  support and both crypto benchmarks are retained; only curated rows removed.
+- Release .14 uses the existing twelve-helper guard; engine v8 and source cache
+  unchanged. No live Groq call or hosted-browser verification performed.
+
+Previous release 2026-11-14.13 checks:
 Full suite: 119 tests passed with Python 3.12 in 31.517 seconds.
 Iconic collection update:
 - Nine active cases: GME, COIN, TSLA, BTC, Bear Stearns, Nikola Motors,

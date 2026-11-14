@@ -21,7 +21,7 @@ from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url
 from asset_resolution import complete_drafts
 from photo_import import read_photo_post
 
-IMPORT_VERSION = "2026-11-14.13"
+IMPORT_VERSION = "2026-11-14.14"
 
 MAX_SECONDS = 180
 MAX_VIDEO_BYTES = 50 * 1024 * 1024

@@ -10,7 +10,7 @@ from analysis_core import positive_number, resolve_deadline, resolve_target, val
 from case_analysis import analyse_comparisons, comparison_dates
 from market_data import provider_symbol
 
-IMPORT_VERSION = "2026-11-14.13"
+IMPORT_VERSION = "2026-11-14.14"
 SCHEMA_VERSION = 1
 MAX_ITEMS = 100
 MAX_BYTES = 512 * 1024

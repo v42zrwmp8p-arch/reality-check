@@ -1,0 +1,19 @@
+{
+  "case_id": "cramer-bear-stearns-context-20080311",
+  "asset": "Bear Stearns",
+  "currency": "USD",
+  "series_type": "Reported daily closing prices; historical context only",
+  "source_url": "https://law.justia.com/cases/federal/district-courts/new-york/nysdce/1:2007cv10453/316881/89/",
+  "source_title": "Cohen v. Bear Stearns, SDNY opinion, 19 January 2011",
+  "source_pages": "69-70, 118 and 178-179",
+  "march_11_cross_check": "https://fcic-static.law.stanford.edu/cdn_media/fcic-docs/2008-03-11%20Yalman%20Onaran%20Art%20BS%20Investor%20Lewis%20May%20Increase%20His%20Stake.pdf",
+  "verification": "Closing prices reported in the court opinion, with March 11 also corroborated by contemporaneous Bloomberg reporting archived by the Financial Crisis Inquiry Commission. No takeover offer price is inserted as a market close. No additional prices are generated.",
+  "closes": [
+    {"Date": "2008-03-10", "Close": 62.30},
+    {"Date": "2008-03-11", "Close": 62.97},
+    {"Date": "2008-03-12", "Close": 61.58},
+    {"Date": "2008-03-13", "Close": 57.00},
+    {"Date": "2008-03-14", "Close": 30.00},
+    {"Date": "2008-03-17", "Close": 4.81}
+  ]
+}

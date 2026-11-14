@@ -50,7 +50,9 @@
       "date_source_published": "2008-03-17",
       "verification": "Contemporaneous report dates the Mad Money statement March 11. In the CNN interview Cramer explains it concerned customer funds. No equity trade or stock return is inferred.",
       "analysis_type": "context_only",
-      "evidence_location": "predictions.csv evidence field"
+      "evidence_location": "predictions.csv evidence field",
+      "context_chart": "bear_stearns_history.json",
+      "context_chart_scope": "Six reported daily closing prices, 2008-03-10 through 2008-03-17; statement date marker only. Historical price context, no simulated trade, benchmark or return verdict."
     }
   ],
   "price_extensions": [
@@ -149,11 +151,7 @@
     "cramer-coinbase-20210413",
     "ark-tesla-20210319",
     "pompliano-bitcoin-20190624",
-    "cramer-bear-stearns-context-20080311",
-    "6824248973004410118-VTIQ-NKLA",
-    "7026749642477964549-HERO",
-    "7026749642477964549-KDA",
-    "7026749642477964549-MTV"
+    "cramer-bear-stearns-context-20080311"
   ],
   "retired_case_ids": [
     "6930016692546358533-HD",
@@ -161,7 +159,11 @@
     "7249072169680948526-CROX",
     "7249072169680948526-MRVL",
     "7450979443658525958-TSM",
-    "7450979443658525958-MU"
+    "7450979443658525958-MU",
+    "6824248973004410118-VTIQ-NKLA",
+    "7026749642477964549-HERO",
+    "7026749642477964549-KDA",
+    "7026749642477964549-MTV"
   ],
-  "retained_original_cases": "Nikola Motors plus Metahero, Kadena and MultiVAC. Retired original rows remain solely as regression fixtures."
+  "retained_original_cases": "None. All original user-supplied TikTok cases are retired from the active database; the original dataset and price files remain only as regression fixtures."
 }

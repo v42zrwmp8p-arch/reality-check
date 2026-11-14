@@ -5,11 +5,12 @@ https://finfluencer-reality-check.streamlit.app/
 Besucher brauchen keine Python-Installation und keinen eigenen API-Key.
 
 Bereiche: Import TikTok, Manual Entry, My Tracker, Case Database.
-Die Case Database heisst im Inhalt Iconic market calls und enthaelt neun Faelle:
+Die Case Database heisst im Inhalt Iconic market calls und enthaelt fuenf Faelle:
 Roaring Kitty/GME, Cramer/Coinbase, Cathie Wood/ARK/Tesla, Pompliano/Bitcoin,
-Cramer/Bear Stearns, Nikola Motors sowie Metahero, Kadena und MultiVAC.
-Sieben besitzen gespeicherte Kursauswertungen. Nikola Motors zeigt den
-Aktienannullierungsstatus; Bear Stearns ist ein Kontextfall ohne Aktienrendite.
+Cramer/Bear Stearns.
+Vier besitzen gespeicherte Kursvergleiche. Bear Stearns zeigt einen historischen
+Chart fuer 10.-17. Maerz 2008 mit Markierung der Aussage, ohne simulierten Trade.
+Alle urspruenglichen TikTok-Faelle sind aus der aktiven Datenbank entfernt.
 My Tracker speichert die Eintraege im jeweiligen Browser.
 
 Lokaler Start mit Python 3.12:

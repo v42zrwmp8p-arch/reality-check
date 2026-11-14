@@ -3,8 +3,8 @@
   "delivery": "GitHub-backed Streamlit application source",
   "publicly_deployed": null,
   "saved_price_cutoff": "2026-11-12",
-  "examples": 9,
-  "calculated_examples": 7,
+  "examples": 5,
+  "calculated_examples": 4,
   "requirements": {
     "streamlit": "1.67.0",
     "pandas": "3.1.1",
@@ -18,7 +18,7 @@
     "gallery-dl": "1.32.20"
   },
   "price_source": "Yahoo Finance: live requests via yfinance; special-case saved additions via the public chart endpoint.",
-  "original_claims_source": "Four retained user-supplied TikTok cases plus five sourced iconic market calls documented in case_sources.json.",
+  "original_claims_source": "Five sourced iconic market calls documented in case_sources.json. All ten original supplied TikTok cases retired from the active database.",
   "case_identity": "Unique case per public source and asset",
   "browser_visual_qa": "Unavailable: preview relay missing",
   "file_sha256": {
@@ -108,14 +108,14 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-14.13",
+    "full_suite_release": "2026-11-14.14",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
       "seconds": 7.442,
       "scope": "Existing tracker and release-consistency checks; backup UI removed, browser-storage mechanism and source fields retained."
     },
-    "navigation_update": "All nine active curated views and Manual Entry pass AppTest; Import TikTok stays the fresh-session default and Case Database remains last.",
+    "navigation_update": "Five active curated views; fresh visitors still start with Import TikTok, Case Database last. Bear Stearns context has a historical-price chart without a simulated trade.",
     "bitcoin_benchmark_update": {
       "release": "2026-11-14.10",
       "focused_tests_passed": 41,
@@ -158,9 +158,20 @@
       "previous_price_files_byte_identical": 13,
       "scope": "Active membership and retired selector recovery; ARK source/share-basis review and year-end evaluation label; unreviewed, wrong or extra split events blocked; tracker preservation; Bear context-only no price request; seven-case batch export.",
       "live_host_verified": false
+    },
+    "market_calls_cleanup": {
+      "release": "2026-11-14.14",
+      "tests_passed": 119,
+      "seconds": 27.484,
+      "current_cases": 5,
+      "calculated_cases": 4,
+      "context_only_cases": 1,
+      "previous_price_files_byte_identical": 14,
+      "scope": "All original curated cases retired; five-view smoke and retired-selection reset; Bear Stearns historical chart in actual AppTest Vega-Lite output with USD axis, statement-date marker, sourced close and no takeover-offer substitution or simulated trade; four-case batch output.",
+      "live_host_verified": false
     }
   },
-  "app_version": "2026-11-14.13",
+  "app_version": "2026-11-14.14",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -205,17 +216,33 @@
     "pompliano-bitcoin-20190624",
     "cramer-bear-stearns-context-20080311"
   ],
-  "price_snapshot_changes": "Release .13 adds TSLA only; all thirteen prior price files byte-identical. Release .12 added GME/COIN and older BTC/SPY rows with all original observation bytes retained. Retired cases retained only as regression fixtures.",
+  "price_snapshot_changes": "Release .14 retains all fourteen prior price CSVs byte-identically. Adds separate sourced Bear Stearns six-close context history, with no backtest. Original supplied cases retained only as regression fixtures.",
   "collection_heading": "Iconic market calls",
-  "active_case_count": 9,
-  "context_case": "Bear Stearns: broker-customer-funds reassurance, no stock-price forecast or equity return inferred.",
+  "active_case_count": 5,
+  "context_case": "Bear Stearns: six sourced reported closing prices around the statement; no stock-price forecast or equity trade inferred.",
   "retired_original_symbols": [
     "HD",
     "LOW",
     "CROX",
     "MRVL",
     "TSM",
-    "MU"
+    "MU",
+    "NKLA",
+    "HERO",
+    "KDA",
+    "MTV"
   ],
-  "split_review": "ARK 2021 Tesla target USD 3000 converted manually to USD 1000 after verified 2022-08-25 3:1 split. Evaluation requires exact observed/reviewed event match. New or unreviewed events remain blocked."
+  "split_review": "ARK 2021 Tesla target USD 3000 converted manually to USD 1000 after verified 2022-08-25 3:1 split. Evaluation requires exact observed/reviewed event match. New or unreviewed events remain blocked.",
+  "bear_stearns_context_chart": {
+    "file": "bear_stearns_history.json",
+    "start": "2008-03-10",
+    "end": "2008-03-17",
+    "observations": 6,
+    "currency": "USD",
+    "series": "reported daily closing prices",
+    "statement_marker": "2008-03-11",
+    "source": "Court opinion hosted by Justia; March 11 independently corroborated in contemporary Bloomberg reporting archived by FCIC.",
+    "simulated_trade": false,
+    "benchmark_return": false
+  }
 }
