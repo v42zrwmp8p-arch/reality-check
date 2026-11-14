@@ -1,7 +1,7 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.7
-79 tests passed with Python 3.12 in 18.869 seconds:
+Current release: 2026-11-14.8
+91 tests passed with Python 3.12 in 23.627 seconds:
 - 10 original calculation/data checks
 - 9 Groq/input checks
 - 10 identifier/transcript/creator regression checks
@@ -12,7 +12,41 @@ Current release: 2026-11-14.7
 - 5 request-format recovery/error-detail checks
 - 6 ETF-scope and source-recovery checks
 - 9 photo-reader/pipeline/API/UI checks
+- 12 tracker record/math/frontend-contract/UI checks
 
+
+My Tracker
+- Native fourth mode, with save actions for a reviewed selected import, manual
+  input before calculation and non-cancelled curated examples. A tiny browser
+  storage component uses the installed Streamlit v2 API; no new dependencies,
+  credentials, accounts or external storage service were introduced.
+- Whitelisted records exclude all media, full transcript/OCR, reports, keys and
+  prices. Validation covers ticker/type/date/target/reference/deadline, source
+  URLs, text length, JSON size/schema and a 100-record limit. Same-source/asset
+  saves update an existing entry. Backups round-trip the small records only.
+- Node executes the actual frontend storage component with simulated browser
+  localStorage and Streamlit state callbacks: save, no rerun feedback loop,
+  reopening a renderer, independent browser stores, preserving other-tab adds,
+  merge restore, removal, corrupt data, full store and denied writes. No success
+  reply is emitted for a failed write. This is a frontend contract test, not a
+  real browser persistence observation or transactional concurrency guarantee.
+- AppTest simulates the browser bridge and market/provider boundaries. It tests
+  manual save today without any price request, restore into a new app session,
+  removal, selected import save/update without repeating source/market work,
+  full historical comparison display, price failures retaining records, explicit
+  price refresh and disabled saving/no success acknowledgement on storage error.
+- Today/insufficient daily history yields no made-up return. Ordinary tracker
+  analysis uses the existing math and a forced live-history path (subject to the
+  existing one-hour cache). Status labels describe the deadline, not truth or
+  forecast success. No background polling or notifications were added.
+- The eight-helper release guard now includes tracker_core and tracker_ui and
+  verifies matching function identities. Original video/photo tests still pass.
+- All eleven saved-price file hashes match. Source-cache separation and original
+  calculations remain unchanged. The only later code adjustment moved the
+  optional curated-save button after the existing cancelled-Nikola guard.
+- Actual Chromium launch was attempted but blocked by this sandbox's socket
+  policy. The local Streamlit server started, but browser visual/persistence QA
+  and the hosted Streamlit tracker have not been independently verified.
 
 Photo posts: integrated retrieval and functional coverage
 - The integrated photo reader fetched the user's full drewhelpss /photo/ URL

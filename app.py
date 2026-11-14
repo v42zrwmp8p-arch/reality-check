@@ -11,8 +11,9 @@ from analysis_core import positive_number
 from charts import comparison_chart
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.7"
+APP_VERSION = "2026-11-14.8"
 tiktok_mode = import_flow(APP_VERSION)
+from tracker_ui import sync_tracker, storage_message, track_button, tracker_mode
 
 ROOT = Path(__file__).resolve().parent
 st.set_page_config(page_title="Reality Check", layout="wide", initial_sidebar_state="collapsed")
@@ -165,6 +166,7 @@ def example_mode():
     if row["symbol"] in {"VTIQ / NKLA", "VTIQ", "NKLA", "NKLAQ"}:
         show_nikola()
         return
+    track_button(lambda: row, key="curated_track")
     if st.button("Update prices", key="update_prices"):
         live_history.clear()
         st.session_state["live_case"] = case_id
@@ -205,27 +207,36 @@ def manual_mode():
         if target_label != "No target":
             target_approximate = st.checkbox("Approximate target", key="manual_approximate")
         deadline = st.date_input("Forecast deadline (optional)", value=None, key="manual_deadline")
-    current_inputs = (ticker, kind, str(published), target_label, str(value_input), reference_type, str(reference_input), str(deadline), target_approximate)
-    submitted = st.button("Calculate", type="primary", key="manual_calculate")
+    with st.expander("Source (optional)"):
+        creator = st.text_input("Creator", key="manual_creator")
+        source_link = st.text_input("Original post link", key="manual_link")
+        claim = st.text_area("Prediction", key="manual_claim")
+    current_inputs = (ticker, kind, str(published), target_label, str(value_input), reference_type, str(reference_input), str(deadline), target_approximate, creator, source_link, claim)
+    def checked_row():
+        symbol = provider_symbol(ticker, kind)
+        target_type = {"No target": "none", "Price target (USD)": "price", "Price multiple": "multiple"}[target_label]
+        value = positive_number(value_input, "Target value") if target_type != "none" else None
+        if target_type == "multiple" and value <= 1:
+            raise ValueError("The upside multiple must be greater than 1.")
+        reference = positive_number(reference_input, "Creator reference price") if reference_type == "creator" else None
+        if deadline and deadline < published:
+            raise ValueError("The deadline must be on or after publication.")
+        return {"case_id": "manual-" + symbol, "asset": symbol, "symbol": symbol, "asset_type": kind,
+                "publication_date": published.isoformat(), "creator": creator, "projection": claim, "video_url": source_link,
+                "time_frame": deadline.isoformat() if deadline else "Not specified",
+                "target_type": target_type, "target_value": value,
+                "target_approximate": target_approximate,
+                "reference_type": reference_type, "reference_price": reference,
+                "deadline": deadline.isoformat() if deadline else None, "curated": False}
+    a, b = st.columns(2)
+    submitted = a.button("Calculate", type="primary", key="manual_calculate")
+    with b:
+        track_button(checked_row, key="manual_track")
     if submitted:
         st.session_state.pop("manual_result", None)
         try:
-            symbol = provider_symbol(ticker, kind)
-            target_type = {"No target": "none", "Price target (USD)": "price", "Price multiple": "multiple"}[target_label]
-            value = positive_number(value_input, "Target value") if target_type != "none" else None
-            if target_type == "multiple" and value <= 1:
-                raise ValueError("The upside multiple must be greater than 1.")
-            reference = positive_number(reference_input, "Creator reference price") if reference_type == "creator" else None
-            if deadline and deadline < published:
-                raise ValueError("The deadline must be on or after publication.")
-            row = {"case_id": "manual-" + symbol, "asset": symbol, "symbol": symbol, "asset_type": kind,
-                   "publication_date": published.isoformat(), "creator": "", "projection": "", "video_url": "",
-                   "time_frame": deadline.isoformat() if deadline else "Not specified",
-                   "target_type": target_type, "target_value": value,
-                   "target_approximate": target_approximate,
-                   "reference_type": reference_type, "reference_price": reference,
-                   "deadline": deadline.isoformat() if deadline else None, "curated": False}
-            if symbol in {"NKLA", "NKLAQ", "VTIQ"}:
+            row = checked_row()
+            if row["symbol"] in {"NKLA", "NKLAQ", "VTIQ"}:
                 st.session_state["manual_result"] = {"row": row, "nikola": True, "inputs": current_inputs}
             else:
                 with st.spinner("Loading daily prices and calculating…"):
@@ -249,15 +260,19 @@ def manual_mode():
 
 st.title("Reality Check")
 st.write("See what happened after the recommendation.")
+sync_tracker()
 legacy_modes = {"TikTok examples": "TikTok Case Database", "Your own case": "Manual Entry"}
 if st.session_state.get("mode") in legacy_modes:
     st.session_state["mode"] = legacy_modes[st.session_state["mode"]]
-mode = st.radio("Mode", ["TikTok Case Database", "Import TikTok", "Manual Entry"], horizontal=True, label_visibility="collapsed", key="mode")
+mode = st.radio("Mode", ["TikTok Case Database", "Import TikTok", "Manual Entry", "My Tracker"], horizontal=True, label_visibility="collapsed", key="mode")
 st.divider()
+storage_message()
 if mode == "TikTok Case Database":
     example_mode()
 elif mode == "Manual Entry":
     manual_mode()
+elif mode == "My Tracker":
+    tracker_mode(histories, show_results, show_nikola, live_history.clear)
 else:
-    tiktok_mode(histories, show_results, show_nikola)
+    tiktok_mode(histories, show_results, show_nikola, track_button)
 show_method()

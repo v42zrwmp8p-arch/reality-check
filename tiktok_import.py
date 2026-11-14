@@ -15,7 +15,7 @@ from market_data import provider_symbol
 from asset_resolution import explicit_buy_list_candidates, explicit_etf_candidates, known_asset
 from target_extraction import recover_multiple
 
-IMPORT_VERSION = "2026-11-14.7"
+IMPORT_VERSION = "2026-11-14.8"
 
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"
@@ -309,7 +309,7 @@ def recommendations(result):
 def reviewed_case(values, url):
     """Validate the user's checked fields before any market-data request."""
     if not values.get("publication_date"):
-        raise ImportProblem("Enter the video's publication date before calculating.")
+        raise ImportProblem("Enter the publication date first.")
     published = date.fromisoformat(str(values["publication_date"]))
     if published > date.today():
         raise ImportProblem("The publication date cannot be in the future.")

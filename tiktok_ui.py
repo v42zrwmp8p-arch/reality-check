@@ -12,7 +12,7 @@ from case_analysis import analyse_case
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-14.7"
+IMPORT_VERSION = "2026-11-14.8"
 
 
 def service_key():
@@ -205,7 +205,7 @@ def review_fields(state):
     return values, mode, choice
 
 
-def tiktok_mode(histories, show_results, show_nikola):
+def tiktok_mode(histories, show_results, show_nikola, track_button=None):
     st.subheader("Import a TikTok recommendation")
     st.caption("Paste a video or photo link. Videos: up to 3 minutes. Photo posts: up to 15 images.")
     link = st.text_input("TikTok post link", placeholder="https://www.tiktok.com/@creator/…", key="tt_link")
@@ -266,14 +266,21 @@ def tiktok_mode(histories, show_results, show_nikola):
         return
     values, mode, choice = review_fields(state)
     signature = json.dumps({"url": state["url"], "choice": choice, "mode": mode, "values": values}, default=str, sort_keys=True)
-    if st.button("Calculate checked case", type="primary", key="tt_calculate", disabled=not values["symbol"].strip()):
+    def checked_row():
+        if mode == "Exact deadline" and not values["deadline"]:
+            raise ImportProblem("Enter the forecast deadline or choose Not specified / vague.")
+        if mode == "Duration from publication" and not values["horizon_value"]:
+            raise ImportProblem("Enter the stated duration or choose Not specified / vague.")
+        return reviewed_case(values, state["url"])
+    a, b = st.columns(2)
+    calculate = a.button("Calculate checked case", type="primary", key="tt_calculate", disabled=not values["symbol"].strip())
+    if track_button:
+        with b:
+            track_button(checked_row, key="tt_track")
+    if calculate:
         st.session_state.pop("tt_result", None)
         try:
-            if mode == "Exact deadline" and not values["deadline"]:
-                raise ImportProblem("Enter the forecast deadline or choose Not specified / vague.")
-            if mode == "Duration from publication" and not values["horizon_value"]:
-                raise ImportProblem("Enter the stated duration or choose Not specified / vague.")
-            row = reviewed_case(values, state["url"])
+            row = checked_row()
             if row["symbol"] in {"VTIQ", "NKLA", "NKLAQ"}:
                 stored = {"row": row, "nikola": True}
             else:
@@ -299,4 +306,4 @@ def tiktok_mode(histories, show_results, show_nikola):
             show_results(row, stored["result"], stored["source"])
         st.download_button("Download checked case", json.dumps(row, indent=2),
                            file_name=row["case_id"] + ".json", mime="application/json")
-        st.caption("Your edits stay in this session.")
+        st.caption("Save to My Tracker to keep this prediction.")

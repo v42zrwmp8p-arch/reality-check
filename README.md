@@ -5,18 +5,18 @@ happened afterwards. Choose a curated example, enter a USD stock/ETF/crypto tick
 and publication date, or import a public TikTok link for review. The app shows a full-history chart, cumulative returns,
 benchmark differences, drawdown and fixed holding periods.
 
-The three modes are **TikTok Case Database**, **Import TikTok**, then
-**Manual Entry**. Prices and targets use short labels; supporting methodology
+The four modes are **TikTok Case Database**, **Import TikTok**,
+**Manual Entry**, then **My Tracker**. Prices and targets use short labels; supporting methodology
 is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.7` checks that Streamlit's entry script and all six import
+Release `2026-11-14.8` checks that Streamlit's entry script and all eight
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v7. The dependency file also changed to request
-a fresh Community Cloud deployment, including the new pinned gallery-dl dependency.
+results are isolated by engine v8. The dependency file also changed to request
+a fresh Community Cloud deployment. Existing pinned dependencies are retained.
 
 The reported combination of new menu labels and the old no-result message
 suggested stale imported code; this has not been directly confirmed on the
@@ -32,6 +32,54 @@ available if extraction fails after successful speech recognition.
 This makes a remaining real model failure inspectable instead of guessing
 from successful transcription alone. Live model accuracy is still separate
 from these runtime and simulated-response tests.
+
+## My Tracker
+
+Release `2026-11-14.8` adds a personal **My Tracker** area. **Track this
+prediction** saves the selected, reviewed TikTok recommendation or the current
+manual entry without calculating returns or requiring available market data.
+Non-cancelled curated examples can also be saved. Re-saving the same post and
+asset updates its target/details instead of adding a duplicate; different posts
+and assets stay separate. Manual entries include optional creator, source link
+and prediction text so the stored tip can be identified later.
+
+Records are stored in this browser's localStorage, without a login or new API
+key/database service. They survive ordinary page refreshes and later visits on
+the same app origin/browser. They do not automatically sync across devices or
+browser profiles, and clearing site data removes them. The **Backup / transfer**
+section downloads a JSON file and restores/merges one on another device. Up to
+100 predictions are supported. Browser storage errors are shown, and a save is
+acknowledged only after the frontend confirms the write. The browser copy is
+read before each update so unrelated records added by another tab are preserved;
+another open tab loads fresh state on reload or its next save. This is a small
+MVP store, without account-based sync or transactional multi-tab guarantees.
+
+The saved record is a whitelist: asset, ticker/type, publication date, creator,
+short prediction, original link, target/reference, time frame and saved time.
+Video/audio/images, full transcripts/OCR, import reports, API keys and downloaded
+price histories are excluded. These records are independent of the shared
+24-hour source-import cache. No media is downloaded or transcribed when opening
+a saved tip, and other visitors have their own browser lists.
+
+My Tracker shows the saved list and the selected tip's comparison using the
+existing return, benchmark, drawdown, horizon and price-target functions. It
+requests current market history rather than the curated saved snapshot. Existing
+one-hour price-request caching still applies; **Refresh prices** clears it.
+There is no background polling or notification service. **Tracking** and
+**Deadline reached** describe the stated horizon, not a correctness verdict.
+A tip published today can be saved before any later daily close exists. Fewer
+than two common closes produces a waiting state with no fabricated return.
+Unavailable prices do not delete the saved tip. A selected tip can be removed.
+
+`tracker_core.py` handles validated records and uses the existing analysis;
+`tracker_ui.py` contains the Streamlit controls. A small native Streamlit v2
+component (`tracker_storage.js`) bridges browser storage and Python using data
+messages, without putting user content into HTML/JavaScript. Tests include
+simulated AppTest storage/provider boundaries and a Node frontend contract test
+for save/reopen, separate browser stores, backup merge, removal and write failure.
+A real Chromium smoke test could not run in this execution sandbox (browser
+socket creation was denied). Browser persistence on the deployed Streamlit
+host has therefore not been independently verified here.
 
 ## Photo posts
 
