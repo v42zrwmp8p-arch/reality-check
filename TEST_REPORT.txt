@@ -1,6 +1,32 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.11
+Current release: 2026-11-14.12
+Full suite: 112 tests passed with Python 3.12 in 27.438 seconds.
+Special cases update:
+- Three sourced cases: Roaring Kitty/GME (2020-08-04), Cramer/COIN (2021-04-13)
+  and Pompliano/BTC (2019-06-24). Original URLs, publisher dates and short excerpts
+  are included. Source interpretation/retrieval notes are in case_sources.json.
+- GME is a bullish thesis from the original description, not an encoded numeric
+  forecast or a replica of personal option profits. Cramer's USD 475 purchase
+  ceiling is not treated as a future target. Pompliano's explicit USD 100,000
+  target and 2021-12-31 deadline retain the stated confidence qualification.
+- Five new checks verify source/date/entry consistency, saved data, positive BTC
+  returns versus an unmet deadline target, no invented GME/COIN target, recovery
+  of original snapshot hashes from extended files, UI and newsletter tracking.
+- All three cases calculate using saved data through 2026-11-12. GME/COIN added;
+  BTC/SPY extended only with earlier Yahoo rows. All old header/row bytes retained.
+  A separate exact comparison proves that all nine original calculated examples
+  have identical summary dictionaries, periods and chart values. Other nine old
+  price files are byte-identical. Current hashes recorded in project_info.json.
+- Case Database is last in navigation and defaults to GME on a fresh selection.
+  It now has 13 cases, 12 calculated; the existing Nikola history gap remains.
+  All cases render in AppTest. Historical reach counts are not invented.
+- The final source-hash strengthening and selector-label adjustment are covered
+  by two subsequent focused checks. Automatic TikTok import is unchanged.
+- Actual source reading and Yahoo chart retrieval were performed in development;
+  automated tests use saved data or simulated requests. Hosted UI not verified.
+
+Previous release 2026-11-14.11 checks:
 Full suite: 107 tests passed with Python 3.12 in 21.617 seconds.
 Dual crypto update:
 - Other crypto now has simultaneous Bitcoin and SPY references in the chart,
@@ -233,7 +259,7 @@ Reproduced reported problems
 - Source refresh observes a 30-second cooldown and existing provider waits.
 
 Interface and existing behavior
-- Modes: Import TikTok, Manual Entry, My Tracker, TikTok Case Database, in that order.
+- Modes: Import TikTok, Manual Entry, My Tracker, Case Database, in that order.
 - All ten curated views render; manual entry remains available without a key.
 - Sampled screen text is hidden; OCR still supports background analysis.
 - Crocs displays Target: 3x (USD 318), without a six-decimal reference or

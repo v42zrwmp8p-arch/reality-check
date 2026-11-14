@@ -42,11 +42,11 @@ class MvpChecks(unittest.TestCase):
         split = check_price_target(frame, frame.index[0], frame.index[-1], 149, "test", "2024-01-03")
         self.assertIn("Manual split adjustment", split["status"])
 
-    def test_table_can_grow_to_twenty(self):
+    def test_table_can_grow_with_more_cases(self):
         original = pd.read_csv(ROOT / "predictions.csv", keep_default_na=False)
         added = original.copy()
         added["case_id"] = ""
-        added["video_url"] = [f"https://example.invalid/video/additional-{i}" for i in range(10)]
+        added["video_url"] = [f"https://example.invalid/video/additional-{i}" for i in range(len(added))]
         added["projection"] = "Additional test claim"
         added["target_type"] = "none"
         added["target_value"] = ""
@@ -57,8 +57,8 @@ class MvpChecks(unittest.TestCase):
             path = Path(folder) / "twenty.csv"
             pd.concat([original, added], ignore_index=True).to_csv(path, index=False)
             records = load_examples(path)
-        self.assertEqual(len(records), 20)
-        self.assertEqual(len({r["case_id"] for r in records}), 20)
+        self.assertEqual(len(records), 2 * len(original))
+        self.assertEqual(len({r["case_id"] for r in records}), 2 * len(original))
         marvell = [r for r in records if r["symbol"] == "MRVL"]
         self.assertEqual(len(marvell), 2)
         self.assertEqual(marvell[0]["target_value"], 142)
@@ -129,7 +129,7 @@ class MvpChecks(unittest.TestCase):
                 self.assertEqual(summary["price_target"]["target_usd"], 142)
             elif row["symbol"] == "CROX":
                 self.assertEqual(summary["price_target"]["target_usd"], 318)
-            elif row["asset_type"] == "Crypto":
+            elif row["symbol"] in {"HERO", "KDA", "MTV"}:
                 self.assertEqual(summary["price_target"]["target_value"], 10)
             elif row["symbol"] in {"TSM", "MU"}:
                 self.assertEqual(summary["forecast_deadline"], "2034-12-21")

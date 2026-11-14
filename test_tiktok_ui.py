@@ -112,11 +112,11 @@ class ImportUiChecks(unittest.TestCase):
         self.assertIn("If a post has already been analysed, the app can reuse the saved result for up to 24 hours.", captions)
         for removed in ["A forecast without a deadline is not labelled false", "Vague time frames are retained as text", "The curated collection is illustrative"]:
             self.assertNotIn(removed, words)
-        self.assertEqual(at.radio(key="mode").options, ["Import TikTok", "Manual Entry", "My Tracker", "TikTok Case Database"])
+        self.assertEqual(at.radio(key="mode").options, ["Import TikTok", "Manual Entry", "My Tracker", "Case Database"])
         at.radio(key="mode").set_value("Manual Entry").run()
         self.assertIsNotNone(at.text_input(key="manual_ticker"))
-        at.radio(key="mode").set_value("TikTok Case Database").run()
-        for index in range(10):
+        at.radio(key="mode").set_value("Case Database").run()
+        for index in range(len(at.selectbox(key="case_selector").options)):
             at.selectbox(key="case_selector").select_index(index).run()
             self.assertFalse(at.exception)
             self.assertFalse(at.error)
@@ -146,7 +146,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertTrue(any("Fixture transcript" in x.value for x in at.text))
         self.assertNotIn("Sampled screen text", [x.label for x in at.expander])
         self.assertIn("Import details", [x.label for x in at.expander])
-        self.assertTrue(any("Import version: 2026-11-14.11" == x.value for x in at.caption))
+        self.assertTrue(any("Import version: 2026-11-14.12" == x.value for x in at.caption))
         at.date_input(key="tt_review_0_published").set_value(None).run()
         at.button(key="tt_calculate").click().run()
         self.assertTrue(any("publication date" in x.value for x in at.error))

@@ -10,7 +10,7 @@ from analysis_core import positive_number, resolve_deadline, resolve_target
 from case_analysis import analyse_comparisons, comparison_dates
 from market_data import provider_symbol
 
-IMPORT_VERSION = "2026-11-14.11"
+IMPORT_VERSION = "2026-11-14.12"
 SCHEMA_VERSION = 1
 MAX_ITEMS = 100
 MAX_BYTES = 512 * 1024
@@ -58,7 +58,7 @@ def prediction_record(row):
                   video_url=raw_url, target_type=target_type, target_value=None,
                   target_approximate=False, reference_type=None, reference_price=None,
                   deadline=None, horizon_value=None, horizon_unit=None,
-                  source_kind="photo" if row.get("source_kind") == "photo" else "video")
+                  source_kind=row.get("source_kind") if row.get("source_kind") in {"photo", "video", "article", "post"} else "video")
     if target_type != "none":
         value = row.get("target_value") if row.get("target_value") not in (None, "") else row.get("target_usd")
         if isinstance(value, bool):

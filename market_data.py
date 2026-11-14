@@ -5,7 +5,7 @@ import re
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
-IMPORT_VERSION = "2026-11-14.11"
+IMPORT_VERSION = "2026-11-14.12"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
 
 

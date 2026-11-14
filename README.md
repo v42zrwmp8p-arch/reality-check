@@ -6,12 +6,12 @@ and publication date, or import a public TikTok link for review. The app shows a
 benchmark differences, drawdown and fixed holding periods.
 
 The four modes are **Import TikTok**, **Manual Entry**, **My Tracker**, then
-**TikTok Case Database**. A new visit starts with Import TikTok. Prices and targets use short labels; supporting methodology
+**Case Database**. A new visit starts with Import TikTok. Prices and targets use short labels; supporting methodology
 is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.11` checks that Streamlit's entry script and all eleven
+Release `2026-11-14.12` checks that Streamlit's entry script and all eleven
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
@@ -32,6 +32,46 @@ available if extraction fails after successful speech recognition.
 This makes a remaining real model failure inspectable instead of guessing
 from successful transcription alone. Live model accuracy is still separate
 from these runtime and simulated-response tests.
+
+## Curated special cases
+
+Release `2026-11-14.12` adds three documented examples at the top of **Case
+Database**, which remains the last navigation item. The neutral name reflects
+that these selected sources also include YouTube and a newsletter. The automatic
+import feature still supports TikTok only. New visitors still open Import TikTok.
+
+- Roaring Kitty / GameStop, 4 August 2020: the dated original YouTube description
+  explicitly states a bullish view. No numeric target or exact horizon is
+  invented from the longer video. The chart starts on 5 August 2020.
+- Jim Cramer / Coinbase, 13 April 2021: CNBC's original YouTube description
+  recommends buying some at the following day's direct listing, ideally below
+  USD 475. That purchase-price ceiling is not treated as a forecast target.
+  The first simulated entry is the 14 April 2021 closing price.
+- Anthony Pompliano / Bitcoin, 24 June 2019: the original Pomp Letter gives
+  a USD 100,000 target by 31 December 2021 and around 70-75% confidence. The case
+  shows positive returns by that deadline while the target was not reached.
+
+These are hypothetical investments after the public statement, not reconstructions
+of the creators' own trades, option positions or portfolio profit. Each case has
+an original source link, a short excerpt and an explanation of its learning point.
+Sources and verification notes are recorded in `case_sources.json`. Historical
+follower/view counts are left blank rather than invented. Other examples retain
+the supplied counts. The selected cases do not constitute a representative sample.
+
+Saved Yahoo Finance chart-endpoint observations were added for GME and COIN.
+Only earlier rows were prepended to BTC-USD (864 days) and SPY (221 sessions),
+with the old header/row bytes retained exactly and previous hashes recorded.
+All nine original calculated examples have identical summaries, period results
+and chart values. The other nine original price files are byte-identical.
+The collection now has 13 cases, 12 with saved comparisons through 12 November
+2026; Nikola retains its separate cancelled-share status and historical-data gap.
+
+The five special-case checks cover source/date consistency and saved-data
+availability, a gain versus an unmet deadline target, purchase ceiling versus
+forecast, original price-row hashes, and the featured UI/newsletter tracker flow.
+The growth test and database smoke test now use the actual number of rows.
+All 112 tests pass; after the final caption/integrity-check adjustment, two focused
+checks also passed. Hosted rendering has not been independently verified here.
 
 ## Crypto comparisons
 
@@ -61,12 +101,12 @@ are not rewritten and automatically use the current comparisons when opened.
 The source-import engine/cache stays at v8; the change needs no new TikTok
 transcription. The release guard now covers case_analysis/charts as well.
 
-All 107 tests pass, including ten new dual-reference checks: three-series
+All 112 tests pass, including ten dual-reference checks: three-series
 alignment and arithmetic, both deadline differences, chart labels, a weekend
 target hit, saved-data routing, missing-reference behavior, batch exports,
 manual/import/tracker UI and old-result invalidation. Requests in automated
-tests are simulated or use existing saved observations. All eleven original
-price-file hashes match. Hosted browser output has not been independently
+tests are simulated or use saved observations. Existing observations are
+preserved; the special-case section documents the added price history. Hosted browser output has not been independently
 verified here.
 
 ## My Tracker
@@ -347,8 +387,8 @@ these helper modules, removes the feature without reverting unrelated work.
 
 ## Add more examples
 
-Edit `predictions.csv`, save it and reload the app. Use one row per video and
-asset. A new row's `case_id` can be blank to generate an ID from its video link
+Edit `predictions.csv`, save it and reload the app. Use one row per public
+source and asset. A new row's `case_id` can be blank to generate an ID from its video link
 and symbol, or you can provide a unique ID. Different videos about the same
 stock remain separate cases. There is no fixed ten-example limit.
 
@@ -364,7 +404,7 @@ An exact deadline can be recorded in `deadline`. Alternatively, supply
 publication. The ten-year TSM/Micron horizons resolve to 21 December 2034.
 Vague statements such as next few weeks are preserved without an invented date.
 
-The initial collection has ten records. Nine have saved daily price histories
+The collection has thirteen records. Twelve have saved daily price histories
 through 12 November 2026. Nikola remains visible with a documented cancellation
 outcome and a clearly labelled historical-data gap. Existing examples work from
 their saved snapshot; new cases and **Update prices** request data from Yahoo.

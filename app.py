@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.11"
+APP_VERSION = "2026-11-14.12"
 tiktok_mode = import_flow(APP_VERSION)
 from market_data import load_examples, provider_symbol, download_history, get_comparison_histories, comparison_symbols
 from case_analysis import analyse_comparisons
@@ -54,7 +54,12 @@ def show_recommendation(row):
         return
     creator = row.get("creator") or "Your entry"
     st.caption(f"{creator} · Published {row['publication_date']} · {row['symbol']}")
+    if row.get("case_note"):
+        st.caption(row["case_note"])
     st.write(row.get("projection") or "No prediction text entered.")
+    if row.get("evidence"):
+        with st.expander("Source excerpt"):
+            st.text(row["evidence"])
     horizon = row.get("time_frame") or "Not specified"
     st.caption(f"Creator's time frame: {horizon}")
     reach = []
@@ -187,7 +192,7 @@ def show_method():
         st.write("Stocks, ETFs and Bitcoin are compared with the S&P 500 ETF (SPY). Other crypto is compared with both Bitcoin and SPY. Price targets are checked separately from investment returns.")
         st.write("A price multiple uses either the simulated entry close or an explicitly supplied creator reference. For example, 2× means a 100% price gain and 10× means a 900% gain.")
         st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication.")
-        st.caption("Market data: Yahoo Finance via yfinance. Videos are linked, not hosted. Trading costs and taxes are excluded.")
+        st.caption("Market data: Yahoo Finance via yfinance. Original sources are linked, not hosted. Trading costs and taxes are excluded.")
         st.caption("Video imports use speech and sampled screen text. Photo imports read the images and caption. Review names, tickers and dates. Publication dates use UTC.")
         st.caption("If a post has already been analysed, the app can reuse the saved result for up to 24 hours.")
         st.caption("Edits stay private and media files are deleted after processing. Groq usage limits apply.")
@@ -204,9 +209,9 @@ def example_mode():
         st.info("No examples have been added to the table yet.")
         return
     by_id = {row["case_id"]: row for row in examples}
-    default = next((i for i, row in enumerate(examples) if row["case_id"] == "7249072169680948526-MRVL"), 0)
-    case_id = st.selectbox("Choose a recommendation", list(by_id), index=default,
-        format_func=lambda key: f"{by_id[key]['asset']} — {by_id[key]['creator']} · {by_id[key]['publication_date']}", key="case_selector")
+    default = next((i for i, row in enumerate(examples) if row["case_id"] == "roaring-kitty-gme-20200804"), 0)
+    case_id = st.selectbox("Choose a case", list(by_id), index=default,
+        format_func=lambda key: f"{by_id[key].get('case_title') or (by_id[key]['asset'] + ' — ' + by_id[key]['creator'])} · {by_id[key]['publication_date']}", key="case_selector")
     row = by_id[case_id]
     show_recommendation(row)
     if row["symbol"] in {"VTIQ / NKLA", "VTIQ", "NKLA", "NKLAQ"}:
@@ -308,13 +313,13 @@ st.title("Reality Check")
 st.write("See what happened after the recommendation.")
 sync_tracker()
 discard_outdated_comparisons()
-legacy_modes = {"TikTok examples": "TikTok Case Database", "Your own case": "Manual Entry"}
+legacy_modes = {"TikTok examples": "Case Database", "TikTok Case Database": "Case Database", "Your own case": "Manual Entry"}
 if st.session_state.get("mode") in legacy_modes:
     st.session_state["mode"] = legacy_modes[st.session_state["mode"]]
-mode = st.radio("Mode", ["Import TikTok", "Manual Entry", "My Tracker", "TikTok Case Database"], horizontal=True, label_visibility="collapsed", key="mode")
+mode = st.radio("Mode", ["Import TikTok", "Manual Entry", "My Tracker", "Case Database"], horizontal=True, label_visibility="collapsed", key="mode")
 st.divider()
 storage_message()
-if mode == "TikTok Case Database":
+if mode == "Case Database":
     example_mode()
 elif mode == "Manual Entry":
     manual_mode()

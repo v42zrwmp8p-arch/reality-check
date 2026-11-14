@@ -3,8 +3,8 @@
   "delivery": "GitHub-backed Streamlit application source",
   "publicly_deployed": null,
   "saved_price_cutoff": "2026-11-12",
-  "examples": 10,
-  "calculated_examples": 9,
+  "examples": 13,
+  "calculated_examples": 12,
   "requirements": {
     "streamlit": "1.67.0",
     "pandas": "3.1.1",
@@ -17,12 +17,12 @@
     "jsonschema": "4.26.0",
     "gallery-dl": "1.32.20"
   },
-  "price_source": "Yahoo Finance via yfinance",
-  "original_claims_source": "User-supplied TikTok notes",
-  "case_identity": "Unique case per video and asset",
+  "price_source": "Yahoo Finance: live requests via yfinance; special-case saved additions via the public chart endpoint.",
+  "original_claims_source": "User-supplied TikTok notes plus three manually verified original public sources documented in case_sources.json.",
+  "case_identity": "Unique case per public source and asset",
   "browser_visual_qa": "Unavailable: preview relay missing",
   "file_sha256": {
-    "prices/BTC-USD.csv": "084baf3e1b68857d4fe205196e55826c86247f36f903ada82a00932d7d61fbd4",
+    "prices/BTC-USD.csv": "21c0b9b6bb690e2ae0356236e0fcaa62d3a98be2b15d38d2cef1c025990f61ac",
     "prices/CROX.csv": "5b9a5ed3ccffd941c2f0832bc5f53f5ff62bbd1d5685bb5fd0e6c7d522bd2e8a",
     "prices/HD.csv": "a781f0acadff0a1cd06377d8017251f090f9edf745731c1c2c088794d0d7be40",
     "prices/HERO10778-USD.csv": "2badbe253fa606cf3faeff5126cba26fb347cab750347821aa8ae923b15d76cc",
@@ -31,8 +31,10 @@
     "prices/MRVL.csv": "3c689c0320f52da4b399f18858b60383a2bfe30f108a84808e7318deb06cdd6e",
     "prices/MTV-USD.csv": "5a30229c12bdfb6518fb884c9037029b8b21331490ee73edcee79e690ac36d9a",
     "prices/MU.csv": "a09d617401768a8c86e45187aa7850f094fd3401b39eeb5c39e06630405e02dd",
-    "prices/SPY.csv": "6387019c6cdd6cfa6de6e2d1f5fa059948b3098bdedaa8d6db40383b803f215f",
-    "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41"
+    "prices/SPY.csv": "b906407d3a4a543e5bc5330e3370ce1493be654668060e9f0ae7dac3040bec38",
+    "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41",
+    "prices/COIN.csv": "92bb2db5b271160b4791bb64be7b6e014d4e79af3e91976b0c81cc88c61cb761",
+    "prices/GME.csv": "e71da2cf6a6548cb1631a9c16722524e6b299f75774c7a8b9ddef935d269233d"
   },
   "live_app_verification": "Supplied app URL reached Streamlit access/not-found page during browser checks",
   "target_schema": "Explicit none/price/multiple with entry or creator reference and target_approximate flag",
@@ -91,21 +93,21 @@
     "Import TikTok",
     "Manual Entry",
     "My Tracker",
-    "TikTok Case Database"
+    "Case Database"
   ],
   "validation": {
-    "tests_passed": 107,
+    "tests_passed": 112,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
-    "original_price_files_unchanged": true,
+    "original_price_files_unchanged": false,
     "mixed_release_regression": "Stale helper reload, matching function identities, queue preserved, no reload on ordinary reruns",
     "diagnostic_report": "Exact extraction request JSON, returned content, response ID, parsing status and counts; excludes credentials/headers/tasks/private edits; available after extraction errors",
     "recorded_amc_replay": "Actual user-provided source/model output replayed through extraction, recovery and ticker resolution; approx 6x with USD 2.25 reference and preserved condition",
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-14.11",
+    "full_suite_release": "2026-11-14.12",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -130,9 +132,21 @@
       "scope": "Three-series returns/deadlines/periods/chart, saved data and missing references, weekend target hits, batch exports, manual/import/tracker UI and stale-result invalidation.",
       "source_import_engine_unchanged": "groq-whisper-ocr-v8",
       "live_host_verified": false
+    },
+    "original_price_observations_unchanged": true,
+    "special_case_update": {
+      "release": "2026-11-14.12",
+      "tests_passed": 112,
+      "seconds": 27.438,
+      "new_tests": 5,
+      "original_examples_exactly_unchanged": 9,
+      "current_cases": 13,
+      "calculated_cases": 12,
+      "source_manifest": "case_sources.json",
+      "live_host_verified": false
     }
   },
-  "app_version": "2026-11-14.11",
+  "app_version": "2026-11-14.12",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -169,5 +183,11 @@
   },
   "comparison_calendar": "All available comparison series use identical common observation dates, entry and cutoff. SPY non-trading dates excluded from return/drawdown observations; nominal targets retain full asset history within the evaluated window.",
   "comparison_exports": "Both benchmark returns and differences in period and batch CSVs; three-series chart data and per-reference deadline results in JSON.",
-  "missing_comparison_handling": "Show only available references, with an explicit warning. No fabricated reference series or difference. No result without sufficient common data."
+  "missing_comparison_handling": "Show only available references, with an explicit warning. No fabricated reference series or difference. No result without sufficient common data.",
+  "curated_special_cases": [
+    "roaring-kitty-gme-20200804",
+    "cramer-coinbase-20210413",
+    "pompliano-bitcoin-20190624"
+  ],
+  "price_snapshot_changes": "New GME/COIN files; only older rows prepended to BTC-USD/SPY. Original CSV header/row bytes preserved; original nine calculated cases unchanged. Previous hashes recorded in case_sources.json."
 }

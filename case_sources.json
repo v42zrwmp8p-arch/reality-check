@@ -1,0 +1,106 @@
+{
+  "collection_date": "2026-11-14",
+  "purpose": "Curated educational special cases; public statements, not the creators actual trading returns.",
+  "cases": [
+    {
+      "case_id": "roaring-kitty-gme-20200804",
+      "url": "https://www.youtube.com/watch?v=JWdWCtLMoU0",
+      "published": "2020-08-04",
+      "publisher": "Roaring Kitty (YouTube)",
+      "verification": "Dated original publisher video description. A bullish thesis is encoded; no numeric target or horizon is inferred from the full video.",
+      "evidence_location": "predictions.csv evidence field"
+    },
+    {
+      "case_id": "cramer-coinbase-20210413",
+      "url": "https://www.youtube.com/watch?v=OVXAM02gB5A",
+      "published": "2021-04-13",
+      "publisher": "CNBC (YouTube)",
+      "verification": "Dated original publisher description. The next-day debut purchase and purchase-price ceiling are distinguished from a future target.",
+      "evidence_location": "predictions.csv evidence field"
+    },
+    {
+      "case_id": "pompliano-bitcoin-20190624",
+      "url": "https://pomp.substack.com/p/bitcoin-is-likely-to-hit-100000-by",
+      "published": "2019-06-24",
+      "publisher": "The Pomp Letter",
+      "verification": "Original newsletter title and body. Explicit USD 100,000 target, deadline 2021-12-31 and stated 70-75% confidence.",
+      "evidence_location": "predictions.csv evidence field"
+    }
+  ],
+  "price_extensions": [
+    {
+      "symbol": "BTC-USD",
+      "added_older_rows": 864,
+      "old_first": "2021-11-04",
+      "new_first": "2019-06-24",
+      "original_row_bytes_preserved": true,
+      "previous_sha256": "084baf3e1b68857d4fe205196e55826c86247f36f903ada82a00932d7d61fbd4"
+    },
+    {
+      "symbol": "SPY",
+      "added_older_rows": 221,
+      "old_first": "2020-05-08",
+      "new_first": "2019-06-24",
+      "original_row_bytes_preserved": true,
+      "previous_sha256": "6387019c6cdd6cfa6de6e2d1f5fa059948b3098bdedaa8d6db40383b803f215f"
+    }
+  ],
+  "price_retrieval": [
+    {
+      "symbol": "GME",
+      "start_requested": "2020-08-04",
+      "end_exclusive": "2026-11-13",
+      "first_date": "2020-08-04",
+      "last_date": "2026-11-12",
+      "observations": 1578,
+      "currency": "USD",
+      "source": "Yahoo Finance public chart endpoint",
+      "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/GME",
+      "retrieved_utc": "2026-11-14T16:20:32+00:00",
+      "split_events": {
+        "2022-07-22": 4.0
+      }
+    },
+    {
+      "symbol": "COIN",
+      "start_requested": "2021-04-13",
+      "end_exclusive": "2026-11-13",
+      "first_date": "2021-04-14",
+      "last_date": "2026-11-12",
+      "observations": 1404,
+      "currency": "USD",
+      "source": "Yahoo Finance public chart endpoint",
+      "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/COIN",
+      "retrieved_utc": "2026-11-14T16:20:32+00:00",
+      "split_events": {}
+    },
+    {
+      "symbol": "BTC-USD",
+      "start_requested": "2019-06-24",
+      "end_exclusive": "2021-11-04",
+      "first_date": "2019-06-24",
+      "last_date": "2021-11-03",
+      "observations": 864,
+      "currency": "USD",
+      "source": "Yahoo Finance public chart endpoint",
+      "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD",
+      "retrieved_utc": "2026-11-14T16:20:32+00:00",
+      "split_events": {}
+    },
+    {
+      "symbol": "SPY",
+      "start_requested": "2019-06-24",
+      "end_exclusive": "2020-05-08",
+      "first_date": "2019-06-24",
+      "last_date": "2020-05-07",
+      "observations": 221,
+      "currency": "USD",
+      "source": "Yahoo Finance public chart endpoint",
+      "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/SPY",
+      "retrieved_utc": "2026-11-14T16:20:32+00:00",
+      "split_events": {}
+    }
+  ],
+  "price_cutoff": "2026-11-12",
+  "historical_reach": "Followers/views for these historical calls are left blank; no historical reach is invented."
+}

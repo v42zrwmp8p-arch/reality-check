@@ -2,7 +2,7 @@
 import altair as alt
 import pandas as pd
 
-IMPORT_VERSION = "2026-11-14.11"
+IMPORT_VERSION = "2026-11-14.12"
 
 
 def comparison_chart(normalized, asset_label, benchmark_label, deadline_result, additional_labels=None):
