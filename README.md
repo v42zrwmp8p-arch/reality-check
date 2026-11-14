@@ -11,11 +11,11 @@ is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.3` checks that Streamlit's entry script and all four import
+Release `2026-11-14.4` checks that Streamlit's entry script and all five import
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v3. The dependency file also changed to request
+results are isolated by engine v4. The dependency file also changed to request
 a fresh Community Cloud deployment, with the same dependency versions.
 
 The reported combination of new menu labels and the old no-result message
@@ -32,6 +32,24 @@ available if extraction fails after successful speech recognition.
 This makes a remaining real model failure inspectable instead of guessing
 from successful transcription alone. Live model accuracy is still separate
 from these runtime and simulated-response tests.
+
+## Approximate and conditional targets
+
+The user's real v3 AMC report established that the stock and AMC ticker were
+recognized, but the model returned no numeric target despite 'nearly a 6x'.
+The recorded source and response are a credential-free regression fixture.
+The prompt now explicitly supports conditional and approximate forecasts.
+The `target_approximate` flag preserves that qualification in the review,
+result and checked-case export.
+
+`target_extraction.py` also recovers one clearly named future multiple for a
+single identified asset if the model missed it, without another API call.
+It preserves conditions and position-size wording, rejects valuation multiples,
+past and teaching examples, and does not guess between assets or competing
+scenarios or overwrite a conflicting target. The recorded AMC source recovers
+approximately 6 times the stated USD 2.25 reference: an approximate USD 13.50
+level, with no invented deadline. Currency remains subject to confirmation if
+only a dollar sign is available. Other targets stay editable in review.
 
 ## Deploy online
 
@@ -151,7 +169,7 @@ UI tests use labelled simulated provider responses, not a hidden real API key.
 Technical integration does not establish copyright/platform/privacy permission.
 The planned course prototype runs for two weeks; removal remains a later code change.
 
-The import is isolated in `tiktok_import.py`, `asset_resolution.py`, `video_pipeline.py` and
+The import is isolated in `tiktok_import.py`, `asset_resolution.py`, `target_extraction.py`, `video_pipeline.py` and
 `tiktok_ui.py`. Removing its import, mode option and call from `app.py`, plus
 these helper modules, removes the feature without reverting unrelated work.
 
@@ -166,7 +184,7 @@ Targets belong to individual recommendations: `target_type` is `none`, `price`
 or `multiple`; `target_value` contains the price or factor. Multiples use
 `reference_type=entry`, or `reference_type=creator` with a `reference_price`.
 For example, the Crocs record uses 3 times a USD 106 reference. A 2x multiple
-means a 100% price increase, and 10x means 900%. Free-text claims are not parsed
+means a 100% price increase, and 10x means 900%. Curated table free-text claims are not parsed
 for numerical targets. Existing `target_usd` inputs remain readable for legacy data.
 
 An exact deadline can be recorded in `deadline`. Alternatively, supply
@@ -215,7 +233,7 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py
 ```
 
 All ten curated views and the manual target/reference/deadline flows passed

@@ -11,7 +11,7 @@ from analysis_core import positive_number
 from charts import comparison_chart
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.3"
+APP_VERSION = "2026-11-14.4"
 tiktok_mode = import_flow(APP_VERSION)
 
 ROOT = Path(__file__).resolve().parent
@@ -116,14 +116,15 @@ def show_results(row, result, source):
     target = summary["price_target"]
     if target["target_usd"] is not None:
         amount = usd(target["target_usd"])
+        mark = "~" if target.get("approximate") else ""
         if target["target_type"] == "multiple":
             multiple = target["target_value"]
-            st.subheader(f"Target: {multiple:g}× ({amount})")
+            st.subheader(f"Target: {mark}{multiple:g}× ({amount})")
             if target["reference_type"] == "entry":
                 st.caption("Reference: simulated entry price.")
         else:
-            st.subheader(f"Target: {amount}")
-        st.write(target["status"])
+            st.subheader(f"Target: {mark}{amount}")
+        st.write(("Approximate level: " if target.get("approximate") else "") + target["status"])
         if target.get("creator_deadline"):
             st.caption("Creator deadline: " + target["creator_deadline"])
         if target.get("first_intraday_high_date"):
@@ -189,6 +190,7 @@ def manual_mode():
     kind = middle.selectbox("Asset type", ["Equity", "Crypto"], key="manual_type")
     published = right.date_input("Publication date", value=date(2023, 6, 26), max_value=date.today(), key="manual_date")
     value_input, reference_input, reference_type = None, None, None
+    target_approximate = False
     with st.expander("Target and time frame (optional)"):
         target_label = st.selectbox("Target type", ["No target", "Price target (USD)", "Price multiple"], key="manual_target_type")
         if target_label == "Price target (USD)":
@@ -199,8 +201,10 @@ def manual_mode():
             reference_type = "entry" if reference_label == "Simulated entry price" else "creator"
             if reference_type == "creator":
                 reference_input = st.text_input("Creator reference price (USD)", placeholder="e.g. 106", key="manual_reference_price")
+        if target_label != "No target":
+            target_approximate = st.checkbox("Approximate target", key="manual_approximate")
         deadline = st.date_input("Forecast deadline (optional)", value=None, key="manual_deadline")
-    current_inputs = (ticker, kind, str(published), target_label, str(value_input), reference_type, str(reference_input), str(deadline))
+    current_inputs = (ticker, kind, str(published), target_label, str(value_input), reference_type, str(reference_input), str(deadline), target_approximate)
     submitted = st.button("Calculate", type="primary", key="manual_calculate")
     if submitted:
         st.session_state.pop("manual_result", None)
@@ -217,6 +221,7 @@ def manual_mode():
                    "publication_date": published.isoformat(), "creator": "", "projection": "", "video_url": "",
                    "time_frame": deadline.isoformat() if deadline else "Not specified",
                    "target_type": target_type, "target_value": value,
+                   "target_approximate": target_approximate,
                    "reference_type": reference_type, "reference_price": reference,
                    "deadline": deadline.isoformat() if deadline else None, "curated": False}
             if symbol in {"NKLA", "NKLAQ", "VTIQ"}:

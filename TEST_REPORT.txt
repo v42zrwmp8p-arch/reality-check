@@ -1,13 +1,36 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.3
-48 tests passed with Python 3.12:
+Current release: 2026-11-14.4
+58 tests passed with Python 3.12 in 14.976 seconds:
 - 10 original calculation/data checks
 - 9 Groq/input checks
 - 10 identifier/transcript/creator regression checks
 - 8 background-task/cache checks
-- 8 Streamlit AppTest flows
+- 9 Streamlit AppTest flows
 - 3 mixed-release and safe-diagnostic checks
+- 9 multiple-target recovery checks
+
+
+Confirmed AMC target omission
+- The user's actual v3 report shows the current release running, AMC and its
+  AMC ticker recognized, one parsed item and one final review item. That run
+  does not reproduce the earlier empty-stock-list complaint.
+- The actual model output has target_type=none despite a conditional nearly-6x
+  forecast in the transcript. The source and response are retained in a
+  credential-free regression fixture, excluding request/response identifiers.
+- Replaying that recorded response through the real processing functions now
+  recovers approximately 6x from the stated USD 2.25 reference (USD 13.50),
+  preserving the condition and small-position caution, with no invented deadline.
+- The numeric fallback requires one named asset and one supported future
+  multiple. Tests reject historical/valuation multiples, teaching examples,
+  negation, other assets and competing scenarios; conflicting existing model
+  targets are preserved. A dollar sign alone does not establish USD.
+- AppTest checks the editable approximate-target flag and Target: ~6x (USD 13.5)
+  result using synthetic prices. Those prices are not real AMC performance.
+- Target arithmetic is unchanged; result metadata now includes approximation.
+  The prompt also explicitly supports approximate/conditional forecasts. A new
+  live Groq call with that prompt has not been verified. Recovery of the actual
+  recorded miss does not require another API call.
 
 Runtime correction
 - A new entry script with the previous no-result message suggests stale import
@@ -17,7 +40,7 @@ Runtime correction
   helpers in dependency order and verifies matching versions/function types.
 - Queue, semaphore, task registry and lock retain identity across the reload.
   Normal widget reruns do not reload helpers. An incompatible deployment stops
-  rather than silently running old code. Engine v3 isolates old cached results.
+  rather than silently running old code. Engine v4 isolates old cached results.
 - The dependency-file change requests a fresh deployment without changing
   installed dependency versions. Actual Cloud restart remains unverified here.
 - The optional import report records the exact extraction request JSON,
@@ -27,8 +50,9 @@ Runtime correction
   completed speech and diagnostics in the interface. Tests cover invalid
   provider JSON, error checkpoint preservation and the error-state UI.
 - Direct live diagnosis remains blocked: the supplied app URL again redirected
-  this browser to Streamlit's access/not-found page. No actual failing Groq
-  response has yet been collected; the root cause is still unconfirmed.
+  this browser to Streamlit's access/not-found page. The user-provided real
+  report confirms the AMC numeric-target omission; earlier empty-stock-list
+  cases remain unconfirmed.
 
 Reproduced reported problems
 - The supplied failing AI-stock transcript is a regression input. Explicit
@@ -68,7 +92,8 @@ Interface and existing behavior
   original calculations and Nikola's separate status are unchanged.
 
 Provider and storage boundaries
-- Groq HTTP responses in automated tests are labelled simulated fixtures.
+- Outbound Groq calls in automated tests are mocked, including replay of the
+  real AMC response supplied by the user.
   No actual credential was read from chat, screenshots, secrets or local files.
 - Only GROQ_API_KEY is used. There are no Supadata calls or paid fallbacks.
 - The prompt explicitly includes buy lists without numerical targets and
@@ -78,7 +103,7 @@ Provider and storage boundaries
 - Successful speech is retained for extraction retry. Original video/audio/
   frame files remain temporary and are deleted after processing or failure.
 - The bounded public-source cache remains shared. Edits and manually added
-  recommendations stay private. Engine v2 invalidates previous v1 results.
+  recommendations stay private. Engine v4 invalidates older source results.
 - Free usage requires a Groq Free account. Code cannot inspect billing tier;
   it never changes billing settings. Separate speech/text limits still apply.
 

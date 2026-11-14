@@ -12,8 +12,9 @@ import requests
 from analysis_core import positive_number, resolve_deadline, resolve_target
 from market_data import provider_symbol
 from asset_resolution import explicit_buy_list_candidates, known_asset
+from target_extraction import recover_multiple
 
-IMPORT_VERSION = "2026-11-14.3"
+IMPORT_VERSION = "2026-11-14.4"
 
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"
@@ -70,6 +71,7 @@ EXTRACTION_SCHEMA = {
                     "evidence_time": _nullable("string", "Approximate location of the supporting statement as mm:ss; null if unknown."),
                     "target_type": {"type": "string", "enum": ["none", "price", "multiple"], "description": "Explicit future price, upside multiple, or no numeric target."},
                     "target_value": _nullable("number", "Explicit future target price, or factor such as 2 for doubling or 10 for tenfold. Never a current price."),
+                    "target_approximate": {"type": "boolean", "description": "True for an approximate target such as nearly/about/roughly N times; false if exact or no numeric target."},
                     "reference_price": _nullable("number", "Creator's explicit price from which the factor is measured; null when not stated."),
                     "currency": _nullable("string", "Currency of nominal prices, such as USD; null if not established."),
                     "time_frame": _nullable("string", "The stated horizon, preserving vague wording; null if absent."),
@@ -77,7 +79,7 @@ EXTRACTION_SCHEMA = {
                     "horizon_value": _nullable("integer", "Explicit whole-number duration after publication; null if vague or absent."),
                     "horizon_unit": {"type": ["string", "null"], "enum": ["days", "weeks", "months", "years", None], "description": "Unit for the explicit duration."},
                 },
-                "required": ["asset", "symbol", "asset_type", "claim", "evidence", "evidence_time", "target_type", "target_value", "reference_price", "currency", "time_frame", "deadline", "horizon_value", "horizon_unit"],
+                "required": ["asset", "symbol", "asset_type", "claim", "evidence", "evidence_time", "target_type", "target_value", "target_approximate", "reference_price", "currency", "time_frame", "deadline", "horizon_value", "horizon_unit"],
                 "additionalProperties": False,
             },
         },
@@ -93,6 +95,8 @@ Read the ENTIRE transcript: return a separate item for every recommended asset, 
 Distinguish recommended assets from companies mentioned only as customers, competitors, researchers or comparisons. A creator teasing an unnamed final pick does not establish its identity.
 An introduction such as 'top stocks to buy for the next decade' applies to the named items in that list: next decade means a ten-year duration. A valuation such as 11 times forward earnings is NOT an elevenfold price target.
 Exclude shorts, sell/downside predictions, options, leverage products and purely historical or hypothetical examples.
+Conditional forecasts about the actual named asset ARE supported: 'if performance continues, it could rise' is a conditional prediction, not a hypothetical teaching example. Preserve the condition and any position-size caution in the claim.
+Approximate numerical upside such as 'nearly a N-x', 'about N times' or 'roughly N-fold' is still a numeric target: set target_type=multiple, target_value=N and target_approximate=true. Do not discard a number because it is approximate or conditional. An explicitly stated current share price can be the reference for that forecast. A prior historical high is not an automatic future deadline.
 Distinguish a future target from a current, entry or past price. Preserve conditional language in the claim.
 Only assign a shared target or horizon to multiple assets when the speaker clearly applies it to all of them.
 Unknown information must be null; do not invent dates, tickers, targets or deadlines.
@@ -198,7 +202,7 @@ class GroqClient:
                         if not row.get("time_frame") and not row.get("deadline") and not row.get("horizon_value"):
                             for field in ["time_frame", "horizon_value", "horizon_unit"]:
                                 row[field] = recovered[field]
-        return rows[:20]
+        return recover_multiple(rows[:20], transcript, screen_text)
 
     def _extract_once(self, source, review=False):
         payload = {
@@ -290,6 +294,7 @@ def reviewed_case(values, url):
            "creator": values.get("creator", ""), "projection": values.get("claim", ""),
            "video_url": url, "time_frame": values.get("time_frame") or "Not specified",
            "target_type": target_type, "target_value": value, "reference_type": reference,
+           "target_approximate": bool(values.get("target_approximate")) if target_type != "none" else False,
            "reference_price": reference_price, "deadline": values.get("deadline"),
            "horizon_value": values.get("horizon_value"), "horizon_unit": values.get("horizon_unit"),
            "evidence": values.get("evidence"), "evidence_time": values.get("evidence_time"),

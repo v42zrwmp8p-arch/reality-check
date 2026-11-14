@@ -1,0 +1,25 @@
+{
+  "description": "Recorded source and model output supplied by the user on 14 November 2026; no new live API call.",
+  "transcript": "[00:00] Is AMC stock about to explode?\n[00:02] Common knowledge is that movie theaters are dead, a relic from before we had home theaters.\n[00:06] But the explosive success of Obsession and Backrooms, now followed shortly by the Odyssey,\n[00:11] has led to AMC posting their most profitable quarter in its 106-year history.\n[00:17] If you remember, AMC was one of the main darlings of the meme stock craze of 2021,\n[00:21] reaching an all-time high of nearly $400.\n[00:24] Though the stock has been heavily diluted since,\n[00:26] It trades at less than 1% of the prior all-time high, at $2.25.\n[00:32] Not even enough to buy popcorn.\n[00:33] But if this success continues, AMC could at least run up to the prior range high from August 2023,\n[00:38] which would still be nearly a 6x.\n[00:41] And of course, if this thing goes full meme stock mania, well, you never know what could happen.\n[00:45] It seems that people are craving IRL experiences, and AMC might be one of the big beneficiaries.\n[00:50] And when you sprinkle in some of that meme stock magic, you just never really know.\n[00:53] So to be honest, I think it's worth a tiny punt.\n[00:54] But certainly this is not something you would go all in on.",
+  "screen_text": "[00:01] Y BG ey 3.70 QZ 60 LW Se \u2018a y \u00bb \u00a2 aX i 3 ae is a ck < ADO & \u00a9 OY] 7]\n[00:05] MOVIE THEATERS ARE DEAD arelic from before we had home theaters of TikTok @lesliemikeO\n[00:08] NT ESCAPE i\\\\ Mii |) \u2014 a ese 1 = a Bac! fOOMS ROOMS TOMING SOON HTH EnscKnogy TikTok @lesliemikeO\n[00:12] HEDGE Hedgeye % Follow @Hedgeye BREAKING: AMC Entertainment, & amc-<$0.01), soars +24.4% after posting the best earnings in the company's 106-year history. e+ 20- WOK 0}3) KH UH GH SULLA) | 7 | to AM \u00a2 w | | \" \"he ' ot TikTok @lesliemikeO\n[00:16] Hedgeye % @Hedgeye GD \u00b0 BREAKING: AMC Entertainment, \u00ae amc - <$0.01), soars +24.4% after posting the best earnings in the company's 106-year history. AE MEE ON) WO LS BAIN) in its 106 | I @lesliemikeO\n[00:19] \u00a9 ANC Entert, 02.20 H2.60 u ainment Holdings, Inc. \u201cIW-NYSE \u00a9 = 5 0.01 2.10 \u20ac2.25 40.31 (015.98 ) 2.26 Vol315.51 rite Buy M2 \u2018| | | of the meme > ro TikTok @lesliemikeO J we a. _ 4\n[00:23] USD ~ [ ings, Inc. - 1W-N YSE 1\u201d 450.00 T 3.08 (+3 yy) Vol 3 425.00 395.11 375.00 350.00 325.00 300.00 275.00 250.00 nearly ce of TikTok @lesliemikeO C4 a _\n[00:26] \u00a9 ANC Entertainment Holdings, Inc, 2 1W NYSE ls = 02.20 H2.60 L2.10 \u20ac2.25 +0. 2 oor | 2.76 73.00 ~2 70.00 65.00 10.00 55.00 30.00 5.00 A 40.00 35.00 30.00 25.00 20,00 15.00 10,00 So sett a \"E since fe Fe ob TikTok @lesliemikeO wt, w4 a\n[00:30] uo ~ 02.20 M2.60 L2.10 2.25 \u00ab0.31 (+15.98%) Vol315.510 (@ ANC Entertainment Holdings, Inc. - 1W- NYSE \u00a9 = = 73.00 ~2 70.00 65.00 0.00 55.00 50.00 45.00 i 40.00 35.00 30.00 25.00 20,00 15.00 10,00 NP \u2014 a high, \u2014 aan 72 of TikTok i @lesliemikeO i, a _\u2014\n[00:33] _ vi nr ot TikTok @lesliemikeO \u00ab\u20ac\\\n[00:37] 44.00 40.00 36,00 32.00 28.00 24.00 20.00 6.00 One 12.00 8.00 range high a> \u201c> of TikTok @lesliemikeO a, a\n[00:40] 46 32. 28.0 24.00 20.00 16.00 12.00 8.00 \\A \u201c4 9 NA sia as oe ne ee ey nearly a 6X. of TikTok a @lesliemikeO es,\n[00:44] \u2122 <a a \u00ab Mir ou never know ot TikTok @lesliemikeO\n[00:48] \u2014 * i@ (ae ee 4 (On = a ee CUMNC | Pe a P| i) = | ge! | | iii Vv ft) |) We >} oh Tiktok @lesliemikeO\n[00:51] \\W eg | ZN a Mh} Sex 1H a Ina . Seesseeeapaneceness, ) 2 6 TLL } ee aA am a ot TikTok @lesliemikeO 7) \u2014a\n[00:55] Po \u20ac. e aw | DU ot TikTok @lesliemikeO \u00a7",
+  "model_response": {
+    "recommendations": [
+      {
+        "asset": "AMC Entertainment Holdings, Inc.",
+        "symbol": "AMC",
+        "asset_type": "Equity",
+        "claim": "worth a tiny punt",
+        "evidence": "So to be honest, I think it's worth a tiny punt.",
+        "evidence_time": "00:53",
+        "target_type": "none",
+        "target_value": null,
+        "reference_price": null,
+        "currency": null,
+        "time_frame": null,
+        "deadline": null,
+        "horizon_value": null,
+        "horizon_unit": null
+      }
+    ]
+  }
+}

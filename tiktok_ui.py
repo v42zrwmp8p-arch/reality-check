@@ -12,7 +12,7 @@ from case_analysis import analyse_case
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-14.3"
+IMPORT_VERSION = "2026-11-14.4"
 
 
 def service_key():
@@ -104,6 +104,7 @@ def import_report(state):
             "failed_stage": state.get("failed_stage"),
             "analysed_at": state.get("analysed_at"), "transcript": state.get("transcript"),
             "extraction_checks": state.get("extraction_checks", []),
+            "post_processing_targets": [{field: row.get(field) for field in ["asset", "symbol", "target_type", "target_value", "target_approximate", "reference_price", "currency", "target_recovered"]} for row in state.get("raw_drafts", [])],
             "extraction_result_count": len(state.get("raw_drafts", [])),
             "review_list_count": len(state.get("drafts", []))}
 
@@ -151,9 +152,11 @@ def review_fields(state):
                               index=list(labels).index(draft.get("target_type")) if draft.get("target_type") in labels else 0,
                               key=prefix + "target_type")
     target_value, reference_price, reference_type, currency = None, None, None, None
+    target_approximate = False
     if target_type != "none":
         default_value = draft.get("target_value") if draft.get("target_type") == target_type else None
         target_value = st.text_input("Target price (USD)" if target_type == "price" else "Target multiple", value=str(default_value) if default_value is not None else "", key=prefix + target_type + "_value")
+        target_approximate = st.checkbox("Approximate target", value=bool(draft.get("target_approximate")), key=prefix + "approximate")
         if target_type == "multiple":
             refs = {"entry": "Simulated entry price", "creator": "Creator reference price"}
             reference_type = st.selectbox("Reference price", list(refs), format_func=refs.get,
@@ -185,6 +188,7 @@ def review_fields(state):
         horizon_unit = b.selectbox("Time-frame unit", units, index=units.index(draft["horizon_unit"]) if duration_valid else 2, key=prefix + "unit")
     values = {"asset": asset, "symbol": symbol, "asset_type": kind, "publication_date": published,
               "creator": creator, "claim": claim, "target_type": target_type, "target_value": target_value,
+              "target_approximate": target_approximate,
               "reference_type": reference_type, "reference_price": reference_price, "currency": currency,
               "time_frame": time_frame, "deadline": deadline.isoformat() if deadline else None,
               "horizon_value": horizon_value, "horizon_unit": horizon_unit,

@@ -36,6 +36,31 @@ def completed(rows):
 class ImportUiChecks(unittest.TestCase):
     @patch("tiktok_ui.service_key", return_value="fixture-key")
     @patch("tiktok_ui.submit_import")
+    @patch("market_data.download_history")
+    def test_recorded_amc_target_review_and_approximate_result(self, download, submit, key):
+        from test_target_extraction import FIXTURE, AMC
+        from target_extraction import recover_multiple
+        row = recover_multiple([AMC], FIXTURE["transcript"], FIXTURE["screen_text"])[0]
+        submit.return_value = (completed([row]), False)
+        # Synthetic prices only exercise the display, not real AMC performance.
+        dates = pd.to_datetime(["2023-06-27", "2023-06-28", "2023-06-29"])
+        frame = pd.DataFrame({"Close": [2.25, 3.0, 14.0], "Adj Close": [2.25, 3.0, 14.0],
+                              "High": [2.3, 3.1, 14.1], "Stock Splits": [0, 0, 0]}, index=dates)
+        download.side_effect = lambda symbol, *args: (frame.copy(), symbol)
+        at = app(); at.text_input(key="tt_link").set_value(VIDEO).run()
+        at.button(key="tt_analyse").click().run()
+        self.assertEqual(at.selectbox(key="tt_review_0_target_type").value, "multiple")
+        self.assertEqual(float(at.text_input(key="tt_review_0_multiple_value").value), 6)
+        self.assertTrue(at.checkbox(key="tt_review_0_approximate").value)
+        self.assertEqual(float(at.text_input(key="tt_review_0_reference_price").value), 2.25)
+        at.button(key="tt_calculate").click().run()
+        self.assertFalse(at.exception)
+        self.assertFalse(at.error)
+        self.assertTrue(any(item.value == "Target: ~6× (USD 13.5)" for item in at.subheader))
+        self.assertTrue(at.session_state["tt_result"]["row"]["target_approximate"])
+
+    @patch("tiktok_ui.service_key", return_value="fixture-key")
+    @patch("tiktok_ui.submit_import")
     def test_failed_extraction_still_offers_transcript_and_diagnostic_report(self, submit, key):
         task = ImportTask(); task.future = Future(); task.retry_at = time.time() + 120
         task.future.set_result({"ok": False, "error": "Fixture unreadable response", "retry_after": 120,
@@ -89,7 +114,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertTrue(any("Fixture transcript" in x.value for x in at.text))
         self.assertNotIn("Sampled screen text", [x.label for x in at.expander])
         self.assertIn("Import details", [x.label for x in at.expander])
-        self.assertTrue(any("Import version: 2026-11-14.3" == x.value for x in at.caption))
+        self.assertTrue(any("Import version: 2026-11-14.4" == x.value for x in at.caption))
         at.date_input(key="tt_review_0_published").set_value(None).run()
         at.button(key="tt_calculate").click().run()
         self.assertTrue(any("publication date" in x.value for x in at.error))

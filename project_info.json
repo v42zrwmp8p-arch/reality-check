@@ -33,7 +33,7 @@
     "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41"
   },
   "live_app_verification": "Supplied app URL reached Streamlit access/not-found page during browser checks",
-  "target_schema": "Explicit none/price/multiple with entry or creator reference",
+  "target_schema": "Explicit none/price/multiple with entry or creator reference and target_approximate flag",
   "forecast_deadline": "Exact date or structured duration from publication",
   "tiktok_import": {
     "provider": "Direct public TikTok retrieval + Groq + local sampled Tesseract OCR",
@@ -45,7 +45,7 @@
     "limits": "180 seconds, 50 MB, 16 sampled OCR frames, 2 active / 8 total tasks",
     "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change",
-    "engine_version": "groq-whisper-ocr-v3",
+    "engine_version": "groq-whisper-ocr-v4",
     "identifier_handling": "Known identifiers; spelling and bounded Yahoo-search suggestions require review",
     "empty_result_handling": "Explicit supported-list recovery; otherwise one additional model check",
     "recheck": "Explicit extraction-only recheck with 30-second cooldown; original transcript/OCR reused",
@@ -55,7 +55,8 @@
     "previous_live_user_test": "User reported successful transcription, plus empty extraction and missing identifiers in the prior version",
     "release_guard": "All helpers must match app release; reload once on mismatch",
     "clean_cloud_build": "Requested via requirements.txt change; deployed restart not independently confirmed",
-    "live_root_cause": "Unconfirmed: actual failing model response not collected; supplied app URL again reached access/not-found page"
+    "live_root_cause": "User v3 report confirms AMC recognized; actual model omitted nearly-6x conditional target. Other earlier empty-result cases remain unconfirmed.",
+    "numeric_target_recovery": "Single named asset/one explicit future multiple; no extra API call; rejects valuation/past/teaching examples and ambiguous/conflicting targets"
   },
   "system_dependencies": [
     "ffmpeg",
@@ -69,13 +70,14 @@
     "Manual Entry"
   ],
   "validation": {
-    "tests_passed": 48,
+    "tests_passed": 58,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
     "original_price_files_unchanged": true,
     "mixed_release_regression": "Stale helper reload, matching function identities, queue preserved, no reload on ordinary reruns",
-    "diagnostic_report": "Exact extraction request JSON, returned content, response ID, parsing status and counts; excludes credentials/headers/tasks/private edits; available after extraction errors"
+    "diagnostic_report": "Exact extraction request JSON, returned content, response ID, parsing status and counts; excludes credentials/headers/tasks/private edits; available after extraction errors",
+    "recorded_amc_replay": "Actual user-provided source/model output replayed through extraction, recovery and ticker resolution; approx 6x with USD 2.25 reference and preserved condition"
   },
-  "app_version": "2026-11-14.3"
+  "app_version": "2026-11-14.4"
 }

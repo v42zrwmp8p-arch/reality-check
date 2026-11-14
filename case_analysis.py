@@ -13,6 +13,7 @@ def analyse_case(row, asset, benchmark, benchmark_symbol):
     deadline, deadline_basis = resolve_deadline(row)
     target_check = check_price_target(asset, entry, last, goal["target_usd"], goal["basis"], deadline)
     target_check.update(goal)
+    target_check["approximate"] = bool(row.get("target_approximate"))
     summary = {
         "asset": row["asset"], "symbol": row["symbol"], "asset_type": row["asset_type"],
         "case_id": row.get("case_id", "manual"), "publication_date": row["publication_date"],

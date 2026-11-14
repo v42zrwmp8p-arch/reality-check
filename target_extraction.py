@@ -1,0 +1,83 @@
+"""Conservative recovery of an explicit future multiple missed by the model."""
+from copy import deepcopy
+import re
+
+from asset_resolution import ASSETS
+
+IMPORT_VERSION = "2026-11-14.4"
+WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+         "seven": 7, "eight": 8, "nine": 9, "ten": 10}
+MULTIPLE = re.compile(
+    r"\b(?:(?P<qualifier>nearly|almost|about|around|roughly|approximately|up\s+to)\s+(?:an?\s+)?)?"
+    r"(?P<value>\d+(?:\.\d+)?|two|three|four|five|six|seven|eight|nine|ten)\s*"
+    r"(?:x\b|×(?!\w)|-?fold\b|times\b)", re.I)
+
+
+def _names(row):
+    names = {str(row.get("asset") or ""), str(row.get("symbol") or "").removesuffix("-USD")}
+    for _, symbol, _, aliases in ASSETS:
+        if row.get("symbol") == symbol:
+            names.update(aliases)
+    return [name for name in names if len(name) >= 2]
+
+
+def recover_multiple(rows, transcript, screen_text=""):
+    """Only one named asset and one supported future multiple; no scenario guessing."""
+    result = deepcopy(rows)
+    if len(result) != 1:
+        return result
+    row = result[0]
+    if row.get("target_type") not in {None, "none", "multiple"}:
+        return result
+    text = " ".join(re.sub(r"\[\d+:\d+\]\s*", "", transcript).split())
+    candidates = []
+    for match in MULTIPLE.finditer(text):
+        raw = match["value"].lower()
+        value = float(WORDS[raw]) if raw in WORDS else float(raw)
+        if value <= 1:
+            continue
+        before = text[max(0, match.start() - 350):match.start()]
+        lead = re.split(r"[.!?]\s+", before)[-1]
+        after = text[match.end():match.end() + 60]
+        if not any(re.search(r"(?<!\w)" + re.escape(name) + r"(?!\w)", lead, re.I) for name in _names(row)):
+            continue
+        if not re.search(r"\b(?:could|may|might|can|will|would)\b.{0,160}\b(?:rise|reach|rally|run|gain|grow|increase|surge|up|be|return)\b", lead, re.I):
+            continue
+        if re.search(r"\b(?:not|never|won't|cannot|can't|unlikely|impossible|for example|imagine|suppose|hypothetical|fictional)\b", lead, re.I):
+            continue
+        if re.match(r"\s*(?:(?:its|the|forward|trailing|annual|current)\s+)*(?:earnings|sales|revenue|ebitda|leverage|leveraged|etf|p/e)\b", after, re.I):
+            continue
+        if re.search(r"\b(?:if you (?:had )?bought|if (?:we|I) (?:had )?bought|would have|could have)\b", lead, re.I):
+            continue
+        if re.search(r"\b(?:previously|already|historically)\b", lead[-90:], re.I):
+            continue
+        tail = re.split(r"(?<=[.!?])\s+", text[match.end():])[0]
+        context = (lead + match[0] + tail).strip()
+        candidates.append((value, bool(match["qualifier"]), context, match.start()))
+    if len(candidates) != 1:
+        return result
+    value, approximate, context, position = candidates[0]
+    existing = row.get("target_value")
+    if row.get("target_type") == "multiple":
+        try:
+            if float(existing) != value:
+                return result
+        except (TypeError, ValueError):
+            return result
+    else:
+        row.update(target_type="multiple", target_value=value, target_recovered=True)
+    if row.get("reference_price") is None:
+        # A stated current price may anchor the same named forecast. Past highs
+        # without current-price wording are not used as a reference.
+        prices = list(re.finditer(r"\b(?:trades?|trading|current price)\b[^.!?]{0,110}?\$\s*(\d[\d,]*(?:\.\d+)?)", text[:position], re.I))
+        if prices and position - prices[-1].end() < 500:
+            row["reference_price"] = float(prices[-1][1].replace(",", ""))
+            row["currency"] = "USD" if re.search(r"\bUSD\b", transcript + " " + screen_text) else None
+    row["target_approximate"] = bool(row.get("target_approximate")) or approximate
+    # Retain the actual conditional wording rather than upgrading it to a promise.
+    previous_claim = str(row.get("claim") or "").strip()
+    row["claim"] = context
+    if previous_claim and previous_claim.casefold().rstrip(".") not in context.casefold():
+        row["claim"] += " " + previous_claim[0].upper() + previous_claim[1:].rstrip(".") + "."
+    row["evidence"] = " ".join(context.split()[-20:])
+    return result

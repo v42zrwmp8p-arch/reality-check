@@ -30,9 +30,14 @@ network failures are surfaced. No automatic retry or provider fallback occurs.
 The planned two-week course usage has no automatic expiration timer.
 
 Import corrections
-- Release 2026-11-14.3 prevents a new entry script from using old imported
+- Approximate/conditional multiples remain forecasts, with an approximate-target
+  flag. A source check recovers a clearly named future multiple for one asset
+  if the model misses it. The recorded AMC example now yields approximately
+  6x from USD 2.25 (about USD 13.50), preserving the condition and small-position
+  caution. It does not invent a deadline or reinterpret earnings valuations.
+- Release 2026-11-14.4 prevents a new entry script from using old imported
   helpers. A version mismatch reloads the helpers once, preserving the queue.
-- Engine v3 isolates older cached analyses. The dependency-file change requests
+- Engine v4 isolates older cached analyses. The dependency-file change requests
   a clean Cloud rebuild with the same dependency versions.
 - Import details displays the active release. Its downloadable report contains
   the exact extraction request JSON, real returned content, model-response
@@ -163,6 +168,7 @@ analysis_core.py       Return, drawdown, horizon and explicit target functions
 charts.py              Full-history chart and covered-deadline annotations
 tiktok_import.py       Groq requests, extraction schema and reviewed-input validation
 asset_resolution.py    Known identifiers, spelling/search suggestions and explicit-list recovery
+target_extraction.py   Conservative recovery of a single explicit future multiple
 import_runtime.py      Entry-script/helper release consistency on Streamlit reruns
 video_pipeline.py      Public video retrieval, audio/OCR, background tasks and source cache
 tiktok_ui.py           Link import, job progress, editable review and optional transcript
@@ -175,6 +181,7 @@ test_tiktok_ui.py      Functional import UI checks with simulated responses
 test_video_pipeline.py Temporary-file, shared-task, retry and cache lifecycle checks
 test_asset_resolution.py Regressions for the supplied transcript, tickers and creator IDs
 test_import_runtime.py Mixed-release reload, queue preservation and safe diagnostics
+test_target_extraction.py Recorded AMC response replay and false-target guards
 
 The same functions can be imported into the report notebook. A final notebook
 and the course's PDF deliverable have not been created in this MVP step.
@@ -184,7 +191,7 @@ python analyse_examples.py
 python analyse_examples.py --refresh
 
 Run focused checks
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py
 
 Validation
 All ten curated views passed Streamlit AppTest checks. The nine price cases
