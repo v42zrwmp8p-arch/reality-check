@@ -7,6 +7,8 @@ import pandas as pd
 import streamlit as st
 from market_data import load_examples, provider_symbol, download_history, get_case_histories
 from case_analysis import analyse_case
+from analysis_core import positive_number
+from charts import comparison_chart
 
 ROOT = Path(__file__).resolve().parent
 st.set_page_config(page_title="Reality Check", layout="wide", initial_sidebar_state="collapsed")
@@ -24,6 +26,9 @@ def histories(row, force_live=False):
 
 def show_recommendation(row):
     st.subheader(row["asset"])
+    if not row.get("curated"):
+        st.caption(f"Recommendation date: {row['publication_date']} · {row['symbol']}")
+        return
     creator = row.get("creator") or "Your entry"
     st.caption(f"{creator} · Published {row['publication_date']} · {row['symbol']}")
     st.write(row.get("projection") or "No prediction text entered.")
@@ -57,10 +62,23 @@ def show_results(row, result, source):
     st.divider()
     st.subheader("What happened next")
     st.caption(f"Simulated entry: {summary['entry_date']} · Last common close: {summary['latest_close_date']} · {source}")
-    chart = normalized.rename(columns={"Asset": row["symbol"], "Benchmark": benchmark})
-    chart.index.name = "Date"
-    st.line_chart(chart, color=["#23685A", "#8A8D8B"], height=370,
-                  x_label="Date", y_label="Value at entry = 100")
+    window = summary["deadline_result"]
+    st.altair_chart(comparison_chart(normalized, row["symbol"], benchmark, window), width="stretch")
+    if window["status"] == "elapsed":
+        values = window["metrics"]
+        st.markdown(f"**By forecast deadline ({window['deadline']}):** "
+                    f"asset **{values['asset_return_pct']:+.2f}%**, "
+                    f"benchmark **{values['benchmark_return_pct']:+.2f}%**, "
+                    f"difference **{values['difference_pp']:+.2f} pp**.")
+        st.caption(f"Closing observation used: {window['observation_date']}. {window['basis']}.")
+    elif window["status"] == "not_covered":
+        future = pd.Timestamp(window["deadline"]).date() > date.today()
+        message = "The forecast horizon is still running." if future else "Update prices to check whether later observations are available."
+        st.info(f"Forecast deadline: {window['deadline']}. It lies beyond the shown history. {message}")
+        st.caption(window["basis"] + ". No future performance has been estimated.")
+    elif window["status"] == "before_entry":
+        st.info(f"Forecast deadline: {window['deadline']}. It precedes the simulated entry, so no holding-period return is available by that deadline.")
+    st.markdown("**Latest available results**")
     columns = st.columns(4)
     metrics = [
         ("Asset return", f"{summary['asset_return_pct']:+.2f}%"),
@@ -91,6 +109,11 @@ def show_results(row, result, source):
         st.subheader("Price target")
         amount = f"${target['target_usd']:,.2f}" if target["target_usd"] >= 1 else f"${target['target_usd']:.6f}"
         st.write(f"**{amount}** · {target['status']}")
+        if target["target_type"] == "multiple":
+            multiple = target["target_value"]
+            st.caption(f"{multiple:g}× means a {(multiple - 1) * 100:g}% price increase from the selected reference.")
+            label = "Simulated entry close" if target["reference_type"] == "entry" else "Creator reference price"
+            st.caption(f"{label}: USD {target['reference_price']:,.6f}")
         st.caption(target["basis"])
         if target.get("creator_deadline"):
             st.caption("Creator deadline: " + target["creator_deadline"])
@@ -98,8 +121,6 @@ def show_results(row, result, source):
             st.caption("First observed intraday touch after entry: " + target["first_intraday_high_date"])
         if target.get("first_closing_price_date"):
             st.caption("First closing price at or above target: " + target["first_closing_price_date"])
-    if row.get("time_frame") == "10 years":
-        st.info("The stated ten-year horizon is still running. These results show performance so far.")
 
 
 def show_method():
@@ -107,6 +128,8 @@ def show_method():
         st.write("The simulated purchase uses the first common closing price after publication. Both chart lines start at 100.")
         st.write("Returns use adjusted USD closing prices, including vendor split and dividend adjustments. The largest fall is the maximum daily closing-price drawdown from an earlier peak.")
         st.write("Equities are compared with the SPY ETF; crypto with Bitcoin. Price targets are checked separately from investment returns. A forecast without a deadline is not labelled false just because a selected period has ended.")
+        st.write("A price multiple uses either the simulated entry close or an explicitly supplied creator reference. For example, 2× means a 100% price gain and 10× means a 900% gain.")
+        st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication. Vague time frames are retained as text without inventing an exact date.")
         st.write("The curated collection is illustrative. These examples do not establish a creator ranking or represent all financial content.")
         st.caption("Market data: Yahoo Finance via yfinance. The saved examples use the supplied TikTok notes; videos are linked, not hosted. Trading costs and investor-specific taxes are excluded.")
 
@@ -150,49 +173,58 @@ def example_mode():
 def manual_mode():
     st.subheader("Check your own case")
     st.caption("Enter the asset and the date of the recommendation.")
-    with st.form("manual_form"):
-        left, middle, right = st.columns([2, 1, 2])
-        ticker = left.text_input("Yahoo Finance ticker", value="AAPL", key="manual_ticker", help="USD stocks, ADRs and crypto, for example AAPL, MRVL or KDA-USD.")
-        kind = middle.selectbox("Asset type", ["Equity", "Crypto"], key="manual_type")
-        published = right.date_input("Publication date", value=date(2023, 6, 26), max_value=date.today(), key="manual_date")
-        with st.expander("Add the prediction (optional)"):
-            claim = st.text_input("Claim or prediction", key="manual_claim")
-            creator = st.text_input("Creator", key="manual_creator")
-            link = st.text_input("Video link", key="manual_link")
-            target_text = st.text_input("Price target in USD (optional)", placeholder="e.g. 142", key="manual_target")
-            deadline = st.date_input("Creator deadline (optional)", value=None, key="manual_deadline")
-        submitted = st.form_submit_button("Calculate", type="primary")
+    left, middle, right = st.columns([2, 1, 2])
+    ticker = left.text_input("Yahoo Finance ticker", value="AAPL", key="manual_ticker", help="USD stocks, ADRs and crypto, for example AAPL, MRVL or KDA-USD.")
+    kind = middle.selectbox("Asset type", ["Equity", "Crypto"], key="manual_type")
+    published = right.date_input("Publication date", value=date(2023, 6, 26), max_value=date.today(), key="manual_date")
+    value_input, reference_input, reference_type = None, None, None
+    with st.expander("Target and time frame (optional)"):
+        target_label = st.selectbox("Target type", ["No target", "Price target (USD)", "Price multiple"], key="manual_target_type")
+        if target_label == "Price target (USD)":
+            value_input = st.text_input("Upside target price (USD)", placeholder="e.g. 142", key="manual_target_price")
+        elif target_label == "Price multiple":
+            value_input = st.number_input("Target multiple", min_value=1.000001, value=2.0, step=1.0, format="%g", key="manual_multiple")
+            st.caption("2× = doubling (+100%); 10× = tenfold (+900%).")
+            reference_label = st.selectbox("Reference price", ["Simulated entry price", "Creator reference price"], key="manual_reference_type")
+            reference_type = "entry" if reference_label == "Simulated entry price" else "creator"
+            if reference_type == "creator":
+                reference_input = st.text_input("Creator reference price (USD)", placeholder="e.g. 106", key="manual_reference_price")
+        deadline = st.date_input("Forecast deadline (optional)", value=None, key="manual_deadline")
+        st.caption("A deadline can be entered even without a numeric target.")
+    current_inputs = (ticker, kind, str(published), target_label, str(value_input), reference_type, str(reference_input), str(deadline))
+    submitted = st.button("Calculate", type="primary", key="manual_calculate")
     if submitted:
         st.session_state.pop("manual_result", None)
         try:
             symbol = provider_symbol(ticker, kind)
-            try:
-                target = float(target_text.strip()) if target_text.strip() else None
-            except ValueError:
-                raise ValueError("Use a positive USD number for the price target, for example 142.00.")
-            if target is not None and (not pd.notna(target) or target <= 0 or target == float("inf")):
-                raise ValueError("The price target must be a positive finite number.")
-            row = {"case_id": "manual-" + symbol, "asset": symbol, "symbol": symbol, "asset_type": kind,
-                   "publication_date": published.isoformat(), "creator": creator,
-                   "projection": claim or "No prediction text entered.", "video_url": link,
-                   "time_frame": deadline.isoformat() if deadline else "Not specified",
-                   "target_usd": target,
-                   "deadline": deadline.isoformat() if deadline else None, "curated": False}
+            target_type = {"No target": "none", "Price target (USD)": "price", "Price multiple": "multiple"}[target_label]
+            value = positive_number(value_input, "Target value") if target_type != "none" else None
+            if target_type == "multiple" and value <= 1:
+                raise ValueError("The upside multiple must be greater than 1.")
+            reference = positive_number(reference_input, "Creator reference price") if reference_type == "creator" else None
             if deadline and deadline < published:
                 raise ValueError("The deadline must be on or after publication.")
+            row = {"case_id": "manual-" + symbol, "asset": symbol, "symbol": symbol, "asset_type": kind,
+                   "publication_date": published.isoformat(), "creator": "", "projection": "", "video_url": "",
+                   "time_frame": deadline.isoformat() if deadline else "Not specified",
+                   "target_type": target_type, "target_value": value,
+                   "reference_type": reference_type, "reference_price": reference,
+                   "deadline": deadline.isoformat() if deadline else None, "curated": False}
             if symbol in {"NKLA", "NKLAQ", "VTIQ"}:
-                st.session_state["manual_result"] = {"row": row, "nikola": True}
+                st.session_state["manual_result"] = {"row": row, "nikola": True, "inputs": current_inputs}
             else:
                 with st.spinner("Loading daily prices and calculating…"):
                     asset, benchmark, benchmark_symbol, source = histories(row, force_live=True)
                     result = analyse_case(row, asset, benchmark, benchmark_symbol)
-                st.session_state["manual_result"] = {"row": row, "result": result, "source": source}
+                st.session_state["manual_result"] = {"row": row, "result": result, "source": source, "inputs": current_inputs}
         except ValueError as exc:
             st.error(str(exc))
         except Exception:
             st.error("The market-data request did not complete. Check the ticker or try again later.")
     stored = st.session_state.get("manual_result")
-    if stored:
+    if stored and stored.get("inputs") != current_inputs:
+        st.info("Click Calculate to apply the changed inputs.")
+    elif stored:
         show_recommendation(stored["row"])
         if stored.get("nikola"):
             show_nikola()

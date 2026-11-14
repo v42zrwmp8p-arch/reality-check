@@ -14,8 +14,8 @@ python -m pip install -r requirements.txt
 python -m streamlit run app.py
 
 Tested with Python 3.12. See START_HERE.txt for a short German introduction.
-This is a locally runnable app, not a publicly deployed website. The source can
-be hosted later on a service that supports a Streamlit Python server.
+The source can also run on Streamlit Community Cloud. See README.md for the
+repository settings. Visitors then use the deployed app's browser link.
 
 Add more examples without rebuilding the app
 Edit predictions.csv, save it and reload the page. The app reads every row.
@@ -34,16 +34,25 @@ Useful optional columns
   hyphens, with no spaces or slashes. Do not copy an existing case_id unchanged.
 - followers and video_views: plain numbers such as 226000, or blank if unknown.
 - provider_symbols: the Yahoo Finance ticker; if blank, symbol is used.
-- target_usd: optional positive nominal USD price target, or blank.
-- target_basis: explains an explicitly stated or derived target.
-- deadline: optional ISO date for a specific price-target deadline, or blank.
+- target_type: none, price or multiple.
+- target_value: the USD price or upside factor, such as 2 or 10.
+- reference_type: entry or creator for a multiple.
+- reference_price: the positive USD creator reference when reference_type=creator.
+- target_basis: a short source explanation of the stated or derived target.
+- deadline: an optional ISO end date, with or without a numeric target.
+- horizon_value and horizon_unit: optional whole-number duration from publication,
+  using days, weeks, months or years. An explicit deadline takes precedence.
+Legacy target_usd inputs remain readable, but the supplied CSV uses the explicit
+target_type/target_value structure.
 
 Dates use YYYY-MM-DD. Asset type is Equity or Crypto. Use valid CSV quoting for
 text containing commas; a spreadsheet editor can handle this. Missing engagement
 counts and forecasts stay blank/unspecified, not zero.
 
-The optional numeric target belongs to the individual recommendation. A new
-Marvell case does not inherit the USD 142 target from the existing video.
+Targets belong to individual recommendations. A new Marvell case does not
+inherit the USD 142 target from the existing video. Free-text predictions are
+not interpreted as numerical targets. The manual form uses explicit target type,
+value, reference and optional deadline, without Creator, Video link or Claim fields.
 In the supplied records, Crocs' USD 318 target is explicitly derived from
 3 times the creator's USD 106 reference. The three crypto 10x claims use ten
 times the actual entry close as a disclosed convention because the notes do not
@@ -88,7 +97,12 @@ Method
 - An absent deadline stays absent. A target not reached by the cutoff is not
   automatically a false forecast. A specific entered deadline limits the target
   test; the investment chart still shows the full available history.
-- The stated ten-year horizons for TSM and Micron are still running.
+- A covered deadline is marked with a vertical chart line and the returns up to
+  that deadline are highlighted. A weekend deadline uses the previous common
+  close, labelled with its actual date. The full later history stays visible.
+- The stated ten-year horizons for TSM and Micron resolve to 21 December 2034
+  and are still running. Uncovered/future deadlines have no fabricated return
+  and do not extend the price chart. Vague horizons are not given exact dates.
 - This is a small curated collection, not a creator ranking or representative
   survey. Original notes are not claimed as independently checked transcripts.
 - Trading costs and investor-specific taxes are excluded.
@@ -103,7 +117,8 @@ Shared code
 app.py                 Streamlit interface
 market_data.py         Example-table loading, symbol handling and price retrieval
 case_analysis.py       Combines the data into one case's results
-analysis_core.py       Return, drawdown, horizon and price-target functions
+analysis_core.py       Return, drawdown, horizon and explicit target functions
+charts.py              Full-history chart and covered-deadline annotations
 analyse_examples.py    Batch CSV/JSON outputs using the same functions as the app
 predictions.csv        Expandable curated database
 prices/*.csv           Original saved daily observations
@@ -123,7 +138,10 @@ Validation
 All ten curated views passed Streamlit AppTest checks. The nine price cases
 display four metrics and a horizon table; Nikola displays its separate status.
 Invalid ticker/target inputs and a real AAPL download were also tested.
-The integrated browser-preview infrastructure was unavailable, so a visual
+Explicit 2x/10x targets, creator reference prices, absolute targets and optional
+deadlines were checked through the manual interface using saved market data.
+Charts with elapsed and future deadlines were rendered for visual inspection.
+The integrated browser-preview infrastructure was unavailable, so a live
 browser QA pass has not been completed in this environment.
 
 Sources

@@ -1,5 +1,21 @@
 MVP VALIDATION
 
+Feature update: explicit targets and forecast deadlines
+- Ten focused unit tests passed with Python 3.12.
+- All ten curated views passed Streamlit AppTest checks.
+- Manual interface checks used the saved MRVL/SPY daily observations to test
+  2x and 10x entry-price targets, 3x a creator's USD 106 reference, an absolute
+  USD 142 target, a future deadline and a deadline without a numeric target.
+- A Sunday deadline uses the previous Friday's common close. The full later
+  history remains available and its latest results are labelled separately.
+- Changed inputs hide the old result until Calculate is pressed again.
+- The manual Creator, Video link and Claim fields are absent; source metadata
+  and original claim text remain in curated examples.
+- Free-text 10x claims no longer silently create a target. Curated target types,
+  values, references and ten-year horizons are explicit CSV fields.
+- Elapsed- and future-deadline charts were rendered as PNGs and visually checked.
+- Batch analysis still calculates nine of ten cases and retains Nikola's status.
+
 Passed
 - All ten curated views render without a Streamlit AppTest exception.
 - Nine asset views display four metrics and a fixed-horizon table.
@@ -17,8 +33,10 @@ Passed
 
 Verification limit
 The environment's integrated browser-preview relay was unavailable. Browser
-screenshots, visual layout and browser-level chart interactions have not been
-verified here. Functional UI checks used Streamlit's official AppTest API.
+screenshots, the full-page browser layout and browser-level chart interactions
+have not been verified here. Functional UI checks used Streamlit's official
+AppTest API; static chart rendering was checked separately.
 
 Delivery scope
-Locally runnable Streamlit source and saved examples. Not publicly deployed.
+Streamlit source and saved examples in the connected GitHub repository.
+The deployed Streamlit app has not been verified here; its URL was not supplied.

@@ -1,14 +1,15 @@
 {
   "project": "Reality Check MVP",
-  "delivery": "local Streamlit application",
-  "publicly_deployed": false,
+  "delivery": "GitHub-backed Streamlit application source",
+  "publicly_deployed": null,
   "saved_price_cutoff": "2026-11-12",
   "examples": 10,
   "calculated_examples": 9,
   "requirements": {
     "streamlit": "1.67.0",
     "pandas": "3.1.1",
-    "yfinance": "1.8.0"
+    "yfinance": "1.8.0",
+    "altair": "6.3.0"
   },
   "price_source": "Yahoo Finance via yfinance",
   "original_claims_source": "User-supplied TikTok notes",
@@ -26,5 +27,8 @@
     "prices/MU.csv": "a09d617401768a8c86e45187aa7850f094fd3401b39eeb5c39e06630405e02dd",
     "prices/SPY.csv": "6387019c6cdd6cfa6de6e2d1f5fa059948b3098bdedaa8d6db40383b803f215f",
     "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41"
-  }
+  },
+  "live_app_verification": "Not checked; deployed app URL not supplied",
+  "target_schema": "Explicit none/price/multiple with entry or creator reference",
+  "forecast_deadline": "Exact date or structured duration from publication"
 }

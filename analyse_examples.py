@@ -30,7 +30,7 @@ def main():
             table.to_csv(out / "periods.csv", index=False)
             chart.to_csv(out / "chart_data.csv", index_label="Date")
             (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-            summaries.append({k: v for k, v in summary.items() if k != "price_target"})
+            summaries.append({k: v for k, v in summary.items() if k not in {"price_target", "deadline_result"}})
             periods.append(table.assign(case_id=case_id, symbol=row["symbol"]))
             states.append({"case_id": case_id, "status": "Calculated", "data_source": source})
         except Exception as exc:

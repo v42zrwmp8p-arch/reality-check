@@ -22,9 +22,10 @@ def load_examples(path=None):
         row["publication_date"] = str(date.date())
         if row["asset_type"] not in {"Equity", "Crypto"}:
             raise ValueError("Asset type must be Equity or Crypto.")
-        row["target_usd"] = float(row["target_usd"]) if row.get("target_usd") not in (None, "") else None
-        if row["target_usd"] is not None and (not isfinite(row["target_usd"]) or row["target_usd"] <= 0):
-            raise ValueError("Price targets must be positive.")
+        for field in ["target_usd", "target_value", "reference_price", "horizon_value"]:
+            row[field] = float(row[field]) if row.get(field) not in (None, "") else None
+            if row[field] is not None and (not isfinite(row[field]) or row[field] <= 0):
+                raise ValueError(f"{field} must be a positive finite number or blank.")
         if not row.get("case_id"):
             video = row["video_url"].split("?")[0].rstrip("/").split("/")[-1]
             row["case_id"] = video + "-" + row["symbol"].replace(" ", "").replace("/", "-")
