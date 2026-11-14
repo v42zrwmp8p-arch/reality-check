@@ -7,10 +7,10 @@ from urllib.parse import urlsplit, urlunsplit
 import pandas as pd
 
 from analysis_core import positive_number, resolve_deadline, resolve_target
-from case_analysis import analyse_case
+from case_analysis import analyse_comparisons, comparison_dates
 from market_data import provider_symbol
 
-IMPORT_VERSION = "2026-11-14.10"
+IMPORT_VERSION = "2026-11-14.11"
 SCHEMA_VERSION = 1
 MAX_ITEMS = 100
 MAX_BYTES = 512 * 1024
@@ -160,9 +160,7 @@ def tracker_comparison(row, histories, today=None):
     today = today or date.today()
     if date.fromisoformat(row["publication_date"]) >= today:
         return None, "Tracking starts when daily closing prices after publication are available."
-    asset, benchmark, symbol, source = histories(row, force_live=True)
-    common = pd.concat([asset["Adj Close"], benchmark["Adj Close"]], axis=1).dropna()
-    common = common.loc[common.index > pd.Timestamp(row["publication_date"])]
-    if len(common) < 2:
+    data = histories(row, force_live=True)
+    if len(comparison_dates(row, data)) < 2:
         return None, "Not enough daily closing prices after publication yet. Check back later."
-    return analyse_case(row, asset, benchmark, symbol), source
+    return analyse_comparisons(row, data), data["source"]

@@ -5,7 +5,7 @@ import re
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
-IMPORT_VERSION = "2026-11-14.10"
+IMPORT_VERSION = "2026-11-14.11"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
 
 
@@ -56,8 +56,13 @@ def provider_symbol(symbol, asset_type):
 
 def comparison_symbol(symbol, asset_type):
     """Compare Bitcoin with SPY, and other crypto with Bitcoin."""
+    return comparison_symbols(symbol, asset_type)[0]
+
+
+def comparison_symbols(symbol, asset_type):
+    """Other crypto has both a crypto reference and a broad equity reference."""
     symbol = provider_symbol(symbol, asset_type)
-    return "BTC-USD" if asset_type == "Crypto" and symbol != "BTC-USD" else "SPY"
+    return ["BTC-USD", "SPY"] if asset_type == "Crypto" and symbol != "BTC-USD" else ["SPY"]
 
 
 def saved_history(symbol, publication_date):
@@ -104,3 +109,33 @@ def get_case_histories(row, force_live=False, fetch=download_history):
     asset, _ = fetch(symbol, row["publication_date"], end)
     benchmark, _ = fetch(benchmark_symbol, row["publication_date"], end)
     return asset, benchmark, benchmark_symbol, "New Yahoo Finance download"
+
+
+def get_comparison_histories(row, force_live=False, fetch=download_history):
+    """Load the asset and each requested comparison independently."""
+    supplied = row.get("provider_symbols") or row["symbol"]
+    symbol = provider_symbol(supplied.split("|")[0], row["asset_type"])
+    requested = comparison_symbols(symbol, row["asset_type"])
+    end = pd.Timestamp.now(tz="UTC").date().isoformat()
+    used_live = False
+
+    def read(ticker):
+        nonlocal used_live
+        frame = None if force_live else saved_history(ticker, row["publication_date"])
+        if frame is None:
+            frame, _ = fetch(ticker, row["publication_date"], end)
+            used_live = True
+        return frame
+
+    asset = read(symbol)
+    benchmarks, unavailable = {}, []
+    for ticker in requested:
+        try:
+            benchmarks[ticker] = read(ticker)
+        except Exception:
+            unavailable.append(ticker)
+    if not benchmarks:
+        raise ValueError("Comparison prices are unavailable. Please try again later.")
+    return {"asset": asset, "benchmarks": benchmarks, "requested": requested,
+            "unavailable": unavailable,
+            "source": "New Yahoo Finance download" if used_live else "Saved data snapshot"}

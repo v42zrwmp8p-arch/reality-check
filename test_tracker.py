@@ -77,7 +77,7 @@ class RecordChecks(unittest.TestCase):
         self.assertIsNone(result);fetch.assert_not_called()
         frame = pd.DataFrame({'Adj Close':[100],'Close':[100],'High':[100],'Stock Splits':[0]},
                              index=pd.to_datetime(['2024-01-02']))
-        fetch.return_value = frame,frame,'SPY','fixture'
+        fetch.return_value = {'asset':frame,'benchmarks':{'SPY':frame},'requested':['SPY'],'unavailable':[],'source':'fixture'}
         result,message = tracker_comparison(prediction_record(BASE),fetch)
         self.assertIsNone(result)
         self.assertIn('Not enough',message)
@@ -85,7 +85,7 @@ class RecordChecks(unittest.TestCase):
     def test_existing_math_and_forced_current_data_are_used_for_a_tracked_case(self):
         frame = pd.DataFrame({'Adj Close':[100,120],'Close':[100,120],'High':[100,121],'Stock Splits':[0,0]},
                              index=pd.to_datetime(['2024-01-02','2024-01-03']))
-        fetch = Mock(return_value=(frame,frame,'SPY','simulated price observations'))
+        fetch = Mock(return_value={'asset':frame,'benchmarks':{'SPY':frame},'requested':['SPY'],'unavailable':[],'source':'simulated price observations'})
         row = prediction_record(BASE)
         result,_ = tracker_comparison(row,fetch)
         self.assertAlmostEqual(result[0]['asset_return_pct'],20)

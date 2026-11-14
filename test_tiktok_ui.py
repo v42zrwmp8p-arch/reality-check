@@ -146,7 +146,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertTrue(any("Fixture transcript" in x.value for x in at.text))
         self.assertNotIn("Sampled screen text", [x.label for x in at.expander])
         self.assertIn("Import details", [x.label for x in at.expander])
-        self.assertTrue(any("Import version: 2026-11-14.10" == x.value for x in at.caption))
+        self.assertTrue(any("Import version: 2026-11-14.11" == x.value for x in at.caption))
         at.date_input(key="tt_review_0_published").set_value(None).run()
         at.button(key="tt_calculate").click().run()
         self.assertTrue(any("publication date" in x.value for x in at.error))

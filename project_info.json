@@ -94,7 +94,7 @@
     "TikTok Case Database"
   ],
   "validation": {
-    "tests_passed": 91,
+    "tests_passed": 107,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -105,7 +105,7 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-14.8",
+    "full_suite_release": "2026-11-14.11",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -121,9 +121,18 @@
       "scope": "Shared-date arithmetic, saved/live routing, BTC alias, other crypto/ETF preservation, imported/manual/tracked Bitcoin UI, obsolete-result discard and dependency reload.",
       "source_import_engine_unchanged": "groq-whisper-ocr-v8",
       "live_host_verified": false
+    },
+    "dual_crypto_update": {
+      "release": "2026-11-14.11",
+      "tests_passed": 107,
+      "seconds": 21.617,
+      "new_tests": 10,
+      "scope": "Three-series returns/deadlines/periods/chart, saved data and missing references, weekend target hits, batch exports, manual/import/tracker UI and stale-result invalidation.",
+      "source_import_engine_unchanged": "groq-whisper-ocr-v8",
+      "live_host_verified": false
     }
   },
-  "app_version": "2026-11-14.10",
+  "app_version": "2026-11-14.11",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -151,9 +160,14 @@
   "default_mode": "Import TikTok",
   "comparison_assets": {
     "Bitcoin": "S&P 500 ETF (SPY)",
-    "other_crypto": "Bitcoin (BTC-USD)",
+    "other_crypto": [
+      "Bitcoin (BTC-USD)",
+      "S&P 500 ETF (SPY)"
+    ],
     "Equity": "S&P 500 ETF (SPY)",
     "ETF": "S&P 500 ETF (SPY)"
   },
-  "comparison_calendar": "Common observation dates; Bitcoin/SPY comparison excludes SPY non-trading dates. Drawdown is across these common closing observations."
+  "comparison_calendar": "All available comparison series use identical common observation dates, entry and cutoff. SPY non-trading dates excluded from return/drawdown observations; nominal targets retain full asset history within the evaluated window.",
+  "comparison_exports": "Both benchmark returns and differences in period and batch CSVs; three-series chart data and per-reference deadline results in JSON.",
+  "missing_comparison_handling": "Show only available references, with an explicit warning. No fabricated reference series or difference. No result without sufficient common data."
 }

@@ -8,11 +8,11 @@ import time
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
-from case_analysis import analyse_case
+from case_analysis import analyse_comparisons
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-14.10"
+IMPORT_VERSION = "2026-11-14.11"
 
 
 def service_key():
@@ -285,8 +285,8 @@ def tiktok_mode(histories, show_results, show_nikola, track_button=None):
                 stored = {"row": row, "nikola": True}
             else:
                 with st.spinner("Loading daily prices and calculating…"):
-                    asset, benchmark, benchmark_symbol, source = histories(row, force_live=True)
-                    stored = {"row": row, "result": analyse_case(row, asset, benchmark, benchmark_symbol), "source": source}
+                    data = histories(row, force_live=True)
+                    stored = {"row": row, "result": analyse_comparisons(row, data), "source": data["source"]}
             st.session_state["tt_result"] = {**stored, "signature": signature}
         except ValueError as exc:
             st.error(str(exc))

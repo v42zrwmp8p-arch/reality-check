@@ -2,14 +2,17 @@
 import altair as alt
 import pandas as pd
 
+IMPORT_VERSION = "2026-11-14.11"
 
-def comparison_chart(normalized, asset_label, benchmark_label, deadline_result):
-    data = normalized.rename(columns={"Asset": asset_label, "Benchmark": benchmark_label}).copy()
+
+def comparison_chart(normalized, asset_label, benchmark_label, deadline_result, additional_labels=None):
+    labels = {"Asset": asset_label, "Benchmark": benchmark_label, **(additional_labels or {})}
+    data = normalized.rename(columns=labels).copy()
     data.index.name = "Date"
     long = data.reset_index().melt("Date", var_name="Series", value_name="Value")
     long["Date"] = long["Date"].dt.strftime("%Y-%m-%d")
-    color = alt.Color("Series:N", scale=alt.Scale(domain=[asset_label, benchmark_label],
-                      range=["#23685A", "#8A8D8B"]), legend=alt.Legend(title=None, orient="top"))
+    color = alt.Color("Series:N", scale=alt.Scale(domain=list(data.columns),
+                      range=["#23685A", "#8A8D8B", "#4967A3"][:len(data.columns)]), legend=alt.Legend(title=None, orient="top"))
     base = alt.Chart(alt.Data(values=long.to_dict("records"))).encode(
         x=alt.X("Date:T", title="Date", scale=alt.Scale(type="utc"),
                 axis=alt.Axis(tickCount=7, format="%b %Y", labelOverlap=True)),

@@ -7,8 +7,8 @@ from pathlib import Path
 import json
 import sys
 import pandas as pd
-from market_data import load_examples, get_case_histories
-from case_analysis import analyse_case
+from market_data import load_examples, get_comparison_histories
+from case_analysis import analyse_comparisons
 
 ROOT = Path(__file__).resolve().parent
 
@@ -23,16 +23,20 @@ def main():
             states.append({"case_id": case_id, "status": "Historical series incomplete; terminal share value USD 0 confirmed"})
             continue
         try:
-            asset, benchmark, symbol, source = get_case_histories(row, force_live="--refresh" in sys.argv)
-            summary, table, chart = analyse_case(row, asset, benchmark, symbol)
+            data = get_comparison_histories(row, force_live="--refresh" in sys.argv)
+            summary, table, chart = analyse_comparisons(row, data)
             out = folder / case_id
             out.mkdir(exist_ok=True)
             table.to_csv(out / "periods.csv", index=False)
             chart.to_csv(out / "chart_data.csv", index_label="Date")
             (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-            summaries.append({k: v for k, v in summary.items() if k not in {"price_target", "deadline_result"}})
+            flat = {k: v for k, v in summary.items() if k not in {"price_target", "deadline_result", "comparisons", "requested_benchmark_symbols", "unavailable_benchmarks"}}
+            for symbol, values in summary["comparisons"].items():
+                flat[symbol + "_return_pct"] = values["return_pct"]
+                flat["difference_vs_" + symbol + "_pp"] = values["difference_pp"]
+            summaries.append(flat)
             periods.append(table.assign(case_id=case_id, symbol=row["symbol"]))
-            states.append({"case_id": case_id, "status": "Calculated", "data_source": source})
+            states.append({"case_id": case_id, "status": "Calculated", "data_source": data["source"]})
         except Exception as exc:
             states.append({"case_id": case_id, "status": str(exc)})
     pd.DataFrame(summaries).to_csv(folder / "current_summary.csv", index=False)

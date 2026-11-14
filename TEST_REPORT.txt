@@ -1,6 +1,29 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.10
+Current release: 2026-11-14.11
+Full suite: 107 tests passed with Python 3.12 in 21.617 seconds.
+Dual crypto update:
+- Other crypto now has simultaneous Bitcoin and SPY references in the chart,
+  latest metrics, forecast-deadline figures, period CSV and batch exports.
+  Bitcoin itself and stocks/ETFs retain one SPY reference.
+- A shared date intersection gives the same entry and cutoff for every line.
+  Original pairwise return/horizon/drawdown functions are reused. Full asset
+  data are retained for nominal targets, including weekend crypto target hits.
+- Ten new checks use synthetic price histories or existing saved observations.
+  They verify +60% asset, +30% Bitcoin and +10% SPY returns (+30pp/+50pp),
+  aligned dates and starting values, both deadline results, three-line chart
+  labels and deadline marker, weekend target hits, saved data, partial/total
+  reference failures, batch files, manual/import/tracker UI and stale results.
+- Partial reference failures show the available comparison and explicit warning;
+  missing series/returns are not invented. Insufficient common data yield no
+  result. Old single-reference altcoin results are invalidated; current partial
+  results remain usable and are labelled. Existing tracker facts are unchanged.
+- Eleven-helper release guard includes case_analysis and charts. Source-import
+  engine v8 is retained. The 97 earlier tests also pass. All eleven original
+  price-file hashes match. No actual Groq/market requests were used by tests.
+- AppTest is functional testing, not a live browser/hosted deployment check.
+
+Previous release 2026-11-14.10 checks:
 Bitcoin comparison update: 41 focused tests passed with Python 3.12 in 18.950s.
 - Bitcoin now compares with SPY, including the BTC alias and existing saved
   tracker records. Other crypto retains Bitcoin; stocks and ETFs retain SPY.

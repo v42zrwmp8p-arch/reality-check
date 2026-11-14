@@ -7,10 +7,10 @@ import pandas as pd
 import streamlit as st
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.10"
+APP_VERSION = "2026-11-14.11"
 tiktok_mode = import_flow(APP_VERSION)
-from market_data import load_examples, provider_symbol, download_history, get_case_histories, comparison_symbol
-from case_analysis import analyse_case
+from market_data import load_examples, provider_symbol, download_history, get_comparison_histories, comparison_symbols
+from case_analysis import analyse_comparisons
 from analysis_core import positive_number
 from charts import comparison_chart
 from tracker_ui import sync_tracker, storage_message, track_button, tracker_mode
@@ -26,7 +26,7 @@ def live_history(symbol, publication_date, end_date):
 
 
 def histories(row, force_live=False):
-    return get_case_histories(row, force_live, fetch=live_history)
+    return get_comparison_histories(row, force_live, fetch=live_history)
 
 
 def discard_outdated_comparisons():
@@ -35,8 +35,10 @@ def discard_outdated_comparisons():
         if not stored or not stored.get("result"):
             continue
         row = stored["row"]
-        expected = comparison_symbol(row["symbol"], row["asset_type"])
-        if stored["result"][0].get("benchmark_symbol") != expected:
+        expected = comparison_symbols(row["symbol"], row["asset_type"])
+        summary = stored["result"][0]
+        recorded = summary.get("requested_benchmark_symbols", [summary.get("benchmark_symbol")])
+        if set(recorded) != set(expected):
             st.session_state.pop(key, None)
 
 
@@ -77,20 +79,38 @@ def show_nikola():
     st.link_button("Official FINRA notice", status["source"])
 
 
+def benchmark_label(symbol):
+    return "Bitcoin" if symbol == "BTC-USD" else "S&P 500 ETF (SPY)"
+
+
 def show_results(row, result, source):
     summary, periods, normalized = result
-    benchmark = "Bitcoin" if summary["benchmark_symbol"] == "BTC-USD" else "S&P 500 ETF (SPY)"
+    primary = summary["benchmark_symbol"]
+    comparisons = summary.get("comparisons") or {primary: {
+        "return_pct": summary["benchmark_return_pct"], "difference_pp": summary["difference_pp"],
+        "deadline_result": summary["deadline_result"]}}
+    benchmark = benchmark_label(primary)
     st.divider()
     st.subheader("What happened next")
     st.caption(f"Simulated entry: {summary['entry_date']} · Last common close: {summary['latest_close_date']} · {source}")
+    for missing in summary.get("unavailable_benchmarks", []):
+        st.warning(f"{benchmark_label(missing)} comparison is unavailable. Showing the available comparison.")
     window = summary["deadline_result"]
-    st.altair_chart(comparison_chart(normalized, row["symbol"], benchmark, window), width="stretch")
+    additional = {"Benchmark_" + symbol: benchmark_label(symbol) for symbol in comparisons if symbol != primary}
+    st.altair_chart(comparison_chart(normalized, row["symbol"], benchmark, window, additional), width="stretch")
     if window["status"] == "elapsed":
         values = window["metrics"]
-        st.markdown(f"**By forecast deadline ({window['deadline']}):** "
-                    f"asset **{values['asset_return_pct']:+.2f}%**, "
-                    f"benchmark **{values['benchmark_return_pct']:+.2f}%**, "
-                    f"difference **{values['difference_pp']:+.2f} pp**.")
+        if len(comparisons) == 1:
+            st.markdown(f"**By forecast deadline ({window['deadline']}):** "
+                        f"asset **{values['asset_return_pct']:+.2f}%**, "
+                        f"benchmark **{values['benchmark_return_pct']:+.2f}%**, "
+                        f"difference **{values['difference_pp']:+.2f} pp**.")
+        else:
+            st.markdown(f"**By forecast deadline ({window['deadline']}):** asset **{values['asset_return_pct']:+.2f}%**.")
+            for symbol, comparison in comparisons.items():
+                metrics = comparison["deadline_result"]["metrics"]
+                st.markdown(f"{benchmark_label(symbol)}: **{metrics['benchmark_return_pct']:+.2f}%** · "
+                            f"Difference: **{metrics['difference_pp']:+.2f} pp**.")
         st.caption(f"Closing observation used: {window['observation_date']}. {window['basis']}.")
     elif window["status"] == "not_covered":
         future = pd.Timestamp(window["deadline"]).date() > date.today()
@@ -100,28 +120,43 @@ def show_results(row, result, source):
     elif window["status"] == "before_entry":
         st.info(f"Forecast deadline: {window['deadline']}. It precedes the simulated entry, so no holding-period return is available by that deadline.")
     st.markdown("**Latest available results**")
-    columns = st.columns(4)
-    metrics = [
-        ("Asset return", f"{summary['asset_return_pct']:+.2f}%"),
-        (f"{benchmark} return", f"{summary['benchmark_return_pct']:+.2f}%"),
-        ("Difference", f"{summary['difference_pp']:+.2f} pp"),
-        ("Largest fall", f"{summary['max_drawdown_pct']:.2f}%"),
-    ]
-    for column, (label, value) in zip(columns, metrics):
-        column.metric(label, value)
-    if summary["benchmark_symbol"] == "BTC-USD":
+    if len(comparisons) == 1:
+        metrics = [("Asset return", f"{summary['asset_return_pct']:+.2f}%"),
+                   (f"{benchmark} return", f"{summary['benchmark_return_pct']:+.2f}%"),
+                   ("Difference", f"{summary['difference_pp']:+.2f} pp"),
+                   ("Largest fall", f"{summary['max_drawdown_pct']:.2f}%")]
+        for column, (label, value) in zip(st.columns(4), metrics):
+            column.metric(label, value)
+    else:
+        returns = [("Asset return", f"{summary['asset_return_pct']:+.2f}%")]
+        returns += [(f"{benchmark_label(symbol)} return", f"{values['return_pct']:+.2f}%") for symbol, values in comparisons.items()]
+        differences = [(f"Difference vs {'Bitcoin' if symbol == 'BTC-USD' else symbol}", f"{values['difference_pp']:+.2f} pp") for symbol, values in comparisons.items()]
+        differences.append(("Largest fall", f"{summary['max_drawdown_pct']:.2f}%"))
+        for items in (returns, differences):
+            for column, (label, value) in zip(st.columns(3), items):
+                column.metric(label, value)
+    if "BTC-USD" in comparisons and "SPY" in comparisons:
+        st.caption("Bitcoin is the crypto comparison here; SPY provides a broad equity-market comparison.")
+    elif "BTC-USD" in comparisons:
         st.caption("Bitcoin is the comparison asset here; it is not a broad crypto-market index.")
     last = pd.Timestamp(summary["latest_close_date"])
     if last < pd.Timestamp.now(tz="UTC").tz_localize(None).normalize() - pd.Timedelta(days=7):
         st.info(f"This series ends on {last:%d %b %Y}. Its subsequent performance has not been assessed.")
     st.subheader("Results over time")
-    display = periods[["period", "observation_date", "asset_return_pct", "benchmark_return_pct", "difference_pp"]].rename(columns={
-        "period": "Period", "observation_date": "Observation date",
-        "asset_return_pct": "Asset return (%)", "benchmark_return_pct": "Benchmark return (%)",
-        "difference_pp": "Difference (pp)",
-    })
+    fields = ["period", "observation_date", "asset_return_pct", "benchmark_return_pct", "difference_pp"]
+    names = {"period": "Period", "observation_date": "Observation date", "asset_return_pct": "Asset return (%)",
+             "benchmark_return_pct": "Benchmark return (%)", "difference_pp": "Difference (pp)"}
+    if len(comparisons) > 1:
+        primary_short = "Bitcoin" if primary == "BTC-USD" else primary
+        names.update(benchmark_return_pct=primary_short + " return (%)", difference_pp="Difference vs " + primary_short + " (pp)")
+        for symbol in comparisons:
+            if symbol != primary:
+                fields += [symbol + "_return_pct", "difference_vs_" + symbol + "_pp"]
+                names[symbol + "_return_pct"] = symbol + " return (%)"
+                names["difference_vs_" + symbol + "_pp"] = "Difference vs " + symbol + " (pp)"
+    display = periods[fields].rename(columns=names)
     st.dataframe(display, hide_index=True, width="stretch", column_config={
-        c: st.column_config.NumberColumn(format="%+.2f") for c in ["Asset return (%)", "Benchmark return (%)", "Difference (pp)"]})
+        names[field]: st.column_config.NumberColumn(format="%+.2f") for field in fields[2:]})
     st.caption("Cumulative returns from entry.")
     st.download_button("Download period results", periods.to_csv(index=False),
                        file_name=f"{row.get('case_id', 'manual')}_periods.csv", mime="text/csv")
@@ -147,9 +182,9 @@ def show_results(row, result, source):
 
 def show_method():
     with st.expander("How the comparison works"):
-        st.write("The simulated purchase uses the first common closing price after publication. Both chart lines start at 100 and use common observation dates.")
+        st.write("The simulated purchase uses the first common closing price after publication. All chart lines start at 100 and use common observation dates.")
         st.write("Returns use adjusted USD closing prices, including vendor split and dividend adjustments. The largest fall is the maximum drawdown across those closing observations.")
-        st.write("Stocks, ETFs and Bitcoin are compared with the S&P 500 ETF (SPY). Other crypto is compared with Bitcoin. Price targets are checked separately from investment returns.")
+        st.write("Stocks, ETFs and Bitcoin are compared with the S&P 500 ETF (SPY). Other crypto is compared with both Bitcoin and SPY. Price targets are checked separately from investment returns.")
         st.write("A price multiple uses either the simulated entry close or an explicitly supplied creator reference. For example, 2× means a 100% price gain and 10× means a 900% gain.")
         st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication.")
         st.caption("Market data: Yahoo Finance via yfinance. Videos are linked, not hosted. Trading costs and taxes are excluded.")
@@ -183,9 +218,9 @@ def example_mode():
         st.session_state["live_case"] = case_id
     try:
         with st.spinner("Preparing the comparison…"):
-            asset, benchmark, symbol, source = histories(row, st.session_state.get("live_case") == case_id)
-            result = analyse_case(row, asset, benchmark, symbol)
-        show_results(row, result, source)
+            data = histories(row, st.session_state.get("live_case") == case_id)
+            result = analyse_comparisons(row, data)
+        show_results(row, result, data["source"])
     except ValueError as exc:
         st.error(str(exc))
     except Exception:
@@ -251,9 +286,9 @@ def manual_mode():
                 st.session_state["manual_result"] = {"row": row, "nikola": True, "inputs": current_inputs}
             else:
                 with st.spinner("Loading daily prices and calculating…"):
-                    asset, benchmark, benchmark_symbol, source = histories(row, force_live=True)
-                    result = analyse_case(row, asset, benchmark, benchmark_symbol)
-                st.session_state["manual_result"] = {"row": row, "result": result, "source": source, "inputs": current_inputs}
+                    data = histories(row, force_live=True)
+                    result = analyse_comparisons(row, data)
+                st.session_state["manual_result"] = {"row": row, "result": result, "source": data["source"], "inputs": current_inputs}
         except ValueError as exc:
             st.error(str(exc))
         except Exception:
