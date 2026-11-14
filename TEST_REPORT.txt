@@ -1,6 +1,10 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
 Current release: 2026-11-14.9
+Navigation update: Import TikTok, Manual Entry, My Tracker, TikTok Case Database.
+A fresh session opens Import TikTok. The existing UI compatibility check passed
+(all ten curated cases and Manual Entry); a separate AppTest smoke verified the
+fresh-session default. No import-helper or engine/cache version change was needed.
 15 focused tracker/runtime tests passed with Python 3.12 in 7.442 seconds.
 Backup/transfer controls and the related caption were removed. Existing local
 records and optional manual source fields are retained. Engine v8/cache identity
@@ -190,7 +194,7 @@ Reproduced reported problems
 - Source refresh observes a 30-second cooldown and existing provider waits.
 
 Interface and existing behavior
-- Modes: TikTok Case Database, Import TikTok, Manual Entry, in that order.
+- Modes: Import TikTok, Manual Entry, My Tracker, TikTok Case Database, in that order.
 - All ten curated views render; manual entry remains available without a key.
 - Sampled screen text is hidden; OCR still supports background analysis.
 - Crocs displays Target: 3x (USD 318), without a six-decimal reference or

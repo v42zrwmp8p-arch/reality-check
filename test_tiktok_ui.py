@@ -112,7 +112,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertIn("If a post has already been analysed, the app can reuse the saved result for up to 24 hours.", captions)
         for removed in ["A forecast without a deadline is not labelled false", "Vague time frames are retained as text", "The curated collection is illustrative"]:
             self.assertNotIn(removed, words)
-        self.assertEqual(at.radio(key="mode").options, ["TikTok Case Database", "Import TikTok", "Manual Entry", "My Tracker"])
+        self.assertEqual(at.radio(key="mode").options, ["Import TikTok", "Manual Entry", "My Tracker", "TikTok Case Database"])
         at.radio(key="mode").set_value("Manual Entry").run()
         self.assertIsNotNone(at.text_input(key="manual_ticker"))
         at.radio(key="mode").set_value("TikTok Case Database").run()

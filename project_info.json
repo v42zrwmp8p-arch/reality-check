@@ -88,10 +88,10 @@
   ],
   "app_url": "https://finfluencer-reality-check.streamlit.app/",
   "navigation": [
-    "TikTok Case Database",
     "Import TikTok",
     "Manual Entry",
-    "My Tracker"
+    "My Tracker",
+    "TikTok Case Database"
   ],
   "validation": {
     "tests_passed": 91,
@@ -111,7 +111,8 @@
       "focused_tests_passed": 15,
       "seconds": 7.442,
       "scope": "Existing tracker and release-consistency checks; backup UI removed, browser-storage mechanism and source fields retained."
-    }
+    },
+    "navigation_update": "Existing UI compatibility check passed (all ten curated cases plus Manual Entry); separate AppTest smoke verified Import TikTok as the fresh-session default and database last."
   },
   "app_version": "2026-11-14.9",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
@@ -137,5 +138,6 @@
     "live_browser_verified": false,
     "validation": "Native Streamlit AppTest with simulated storage/API plus Node frontend contract; actual Chromium launch blocked by socket policy.",
     "backup_interface": false
-  }
+  },
+  "default_mode": "Import TikTok"
 }

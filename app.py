@@ -264,7 +264,7 @@ sync_tracker()
 legacy_modes = {"TikTok examples": "TikTok Case Database", "Your own case": "Manual Entry"}
 if st.session_state.get("mode") in legacy_modes:
     st.session_state["mode"] = legacy_modes[st.session_state["mode"]]
-mode = st.radio("Mode", ["TikTok Case Database", "Import TikTok", "Manual Entry", "My Tracker"], horizontal=True, label_visibility="collapsed", key="mode")
+mode = st.radio("Mode", ["Import TikTok", "Manual Entry", "My Tracker", "TikTok Case Database"], horizontal=True, label_visibility="collapsed", key="mode")
 st.divider()
 storage_message()
 if mode == "TikTok Case Database":

@@ -5,8 +5,8 @@ happened afterwards. Choose a curated example, enter a USD stock/ETF/crypto tick
 and publication date, or import a public TikTok link for review. The app shows a full-history chart, cumulative returns,
 benchmark differences, drawdown and fixed holding periods.
 
-The four modes are **TikTok Case Database**, **Import TikTok**,
-**Manual Entry**, then **My Tracker**. Prices and targets use short labels; supporting methodology
+The four modes are **Import TikTok**, **Manual Entry**, **My Tracker**, then
+**TikTok Case Database**. A new visit starts with Import TikTok. Prices and targets use short labels; supporting methodology
 is kept in the expandable explanation.
 
 ## Release consistency
