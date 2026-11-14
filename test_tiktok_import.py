@@ -1,11 +1,14 @@
-"""API-boundary and review checks. Provider responses below are test fixtures."""
+"""Groq API-boundary and review checks. Responses below are test fixtures."""
 from datetime import date
 from unittest.mock import Mock, patch
+import json
+import tempfile
+from pathlib import Path
 import unittest
 
 from analysis_core import resolve_deadline
-from tiktok_import import (ImportProblem, SupadataClient, clean_tiktok_url, metadata_details,
-                           recommendations, reviewed_case, transcript_text)
+from tiktok_import import (ImportProblem, GroqClient, clean_tiktok_url, metadata_details,
+                           recommendations, reviewed_case)
 
 VIDEO = "https://www.tiktok.com/@fixture/video/7249072169680948526"
 METADATA = {"platform": "tiktok", "type": "video", "createdAt": "2023-06-26T18:00:00Z",
@@ -17,7 +20,7 @@ DRAFT = {"asset": "Marvell", "symbol": "MRVL", "asset_type": "Equity", "claim": 
 
 
 def response(data, status=200):
-    result = Mock(status_code=status, content=b"{}")
+    result = Mock(status_code=status, content=b"{}", headers={})
     result.json.return_value = data
     return result
 
@@ -79,45 +82,46 @@ class ImportChecks(unittest.TestCase):
         with self.assertRaises(ImportProblem):
             recommendations({"data": {"recommendations": "not a list"}})
 
-    def test_transcript_sync_async_and_silent_audio(self):
-        self.assertEqual(transcript_text({"content": "speech"}), "speech")
-        self.assertEqual(transcript_text({"status": "completed", "result": {"content": "speech"}}), "speech")
-        self.assertEqual(transcript_text({"content": [{"text": "hello"}, {"text": "world"}]}), "hello world")
+    @patch("tiktok_import.requests.post")
+    def test_transcript_and_silent_audio(self, request):
+        request.side_effect = [response({"text": "hello world", "segments": [{"start": 12, "text": "hello world"}]}), response({"text": "", "segments": []})]
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "audio.mp3"; path.write_bytes(b"fixture-audio")
+            client = GroqClient("fixture-key")
+            self.assertEqual(client.transcribe(path), "[00:12] hello world")
+            self.assertEqual(client.transcribe(path), "")
+        self.assertEqual(request.call_args.kwargs["data"]["model"], "whisper-large-v3-turbo")
+
+    @patch("tiktok_import.requests.post")
+    def test_provider_protocol_and_structured_extraction(self, request):
+        request.return_value = response({"choices": [{"finish_reason": "stop", "message": {"content": json.dumps({"recommendations": [DRAFT]})}}]})
+        rows = GroqClient("fixture-key").extract("[00:12] Marvell could rise to 142 dollars", "MRVL")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(request.call_count, 1)
+        self.assertEqual(request.call_args.args[0], "https://api.groq.com/openai/v1/chat/completions")
+        payload = request.call_args.kwargs["json"]
+        self.assertEqual(payload["model"], "openai/gpt-oss-20b")
+        self.assertTrue(payload["response_format"]["json_schema"]["strict"])
+        self.assertFalse(request.call_args.kwargs["allow_redirects"])
+        self.assertNotIn("tools", payload)
+        request.return_value = response({"choices": [{"finish_reason": "length", "message": {"content": "{}"}}]})
         with self.assertRaises(ImportProblem):
-            transcript_text({"content": []})
+            GroqClient("fixture-key").extract("speech", "")
 
-    @patch("tiktok_import.RATE_INTERVAL", 0)
-    @patch("tiktok_import.requests.request")
-    def test_provider_protocol_and_jobs(self, request):
-        request.side_effect = [response(METADATA), response({"jobId": "test-job"}, 202),
-                               response({"status": "queued"}), response({"status": "completed", "data": {"recommendations": [DRAFT]}}),
-                               response({"jobId": "transcript-job"}, 202)]
-        client = SupadataClient("fixture-key")
-        self.assertEqual(client.metadata(VIDEO), METADATA)
-        self.assertEqual(client.start_analysis(VIDEO), "test-job")
-        self.assertEqual(client.job("extract", "test-job")["status"], "queued")
-        self.assertEqual(len(recommendations(client.job("extract", "test-job"))), 1)
-        self.assertEqual(client.start_transcript(VIDEO)["jobId"], "transcript-job")
-        post = request.call_args_list[1]
-        self.assertEqual(post.args, ("POST", "https://api.supadata.ai/v1/extract"))
-        self.assertIn("schema", post.kwargs["json"])
-        self.assertFalse(post.kwargs["allow_redirects"])
-        self.assertEqual(request.call_args_list[-1].kwargs["params"]["mode"], "auto")
-
-    @patch("tiktok_import.RATE_INTERVAL", 0)
-    @patch("tiktok_import.requests.request")
-    def test_provider_errors_are_safe_and_no_retry_post(self, request):
-        for status in [206, 400, 401, 402, 403, 404, 429, 500]:
+    @patch("tiktok_import.requests.post")
+    def test_provider_errors_are_safe_and_no_retry_or_fallback(self, request):
+        for status in [400, 401, 403, 404, 413, 429, 500]:
             request.reset_mock()
             request.return_value = response({"details": "fixture-key should not be shown"}, status)
+            request.return_value.headers = {"retry-after": "120"}
             with self.assertRaises(ImportProblem) as raised:
-                SupadataClient("fixture-key").start_analysis(VIDEO)
+                GroqClient("fixture-key").extract("speech", "")
             self.assertNotIn("fixture-key", str(raised.exception))
             self.assertEqual(request.call_count, 1)
+            if status == 429:
+                self.assertEqual(raised.exception.retry_after, 120)
         with self.assertRaises(ImportProblem):
-            SupadataClient("")
-        with self.assertRaises(ImportProblem):
-            SupadataClient("fixture-key").job("extract", "../secrets")
+            GroqClient("")
 
 
 if __name__ == "__main__":

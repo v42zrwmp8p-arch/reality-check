@@ -33,56 +33,79 @@ does not itself publish the website.
 
 ## Connect TikTok import
 
-**Import TikTok** is a normal third app mode, with no feature toggle. It needs
-a Supadata account and API key. In Streamlit Community Cloud, open your app's
-**Settings → Secrets**, add the following and save:
+**Import TikTok** now uses direct public-video retrieval plus Groq. It has no
+feature toggle, automatic expiry, Supadata requests or paid fallback provider.
+The server transcribes speech with `whisper-large-v3-turbo`, reads sampled
+on-screen text with Tesseract, and extracts structured predictions with
+`openai/gpt-oss-20b`. Investment calculations remain in the original shared code.
+
+Use a Groq **Free** account without enabling a paid upgrade/payment method. In
+Streamlit Community Cloud, open **Settings → Secrets**, add this and save:
 
 ```toml
-SUPADATA_API_KEY = "replace-with-your-supadata-key"
+GROQ_API_KEY = "replace-with-your-groq-key"
 ```
 
-Keep the actual key in Streamlit's secrets, not in GitHub or a chat message.
-For local use, the same setting can go in an untracked `.streamlit/secrets.toml`
-or the `SUPADATA_API_KEY` environment variable. Visitors need neither an API
-key nor a Supadata account. Without the key, the new mode explains that its
-connection is missing; the original two modes remain usable.
+After the new code is deployed, the old `SUPADATA_API_KEY` entry can be removed.
+It is ignored by this version. Keep the actual key in Streamlit secrets, never
+in GitHub or chat. Local use can read an untracked `.streamlit/secrets.toml` or
+`GROQ_API_KEY` environment variable. Visitors do not need their own account.
+The app cannot inspect your billing tier: a paid Groq account can incur usage
+charges. The code never upgrades an account or changes billing settings.
 
-Paste a public TikTok video/share URL and press **Analyse video**. The server
-requests platform metadata, then starts an audio/visual extraction job using an
-explicit output schema. Processing progress is checked automatically while the
-session is open. If a request fails or takes longer than three minutes,
-**Check analysis progress** resumes that job rather than creating another one.
-New import requests consume the project's provider credits. The adapter spaces
-requests by at least 1.1 seconds; a shared provider quota can still be exhausted.
+Deployment installs Python dependencies from `requirements.txt` and FFmpeg /
+Tesseract from `packages.txt`. This dependency change triggers a server rebuild.
+On a local computer, install those system tools separately if using video import.
 
-Review the detected recommendations and choose one asset at a time. Dates and
-creator identity come from metadata; a missing date must be entered. Suggested
-tickers, currencies, targets, reference prices and horizons remain editable.
-Vague horizons do not acquire an invented deadline. This version supports long
-stock/crypto comparisons and upside forecasts, not short/option strategies.
-The checked case uses the existing shared investment calculations.
+Paste a public TikTok video/share URL and press **Analyse video**. This prototype
+supports completed clips up to three minutes and downloaded videos up to 50 MB.
+It does not use login cookies, proxies or access-bypass mechanisms. TikTok may
+reject requests from some hosting environments even when a link works elsewhere.
+No supported recommendations produces an empty result, not an invented stock.
 
-**Get transcript** is optional and consumes additional provider credits. It
-uses existing captions where available and otherwise requests speech
-transcription. It supports both immediate responses and processing jobs.
-Extraction also considers visible text, so the investment draft does not rely
-solely on audio or on the optional transcript.
+The analysis runs in a bounded background queue: two active tasks and up to
+eight queued/running tasks. Progress is shown while it runs. A Groq usage limit
+produces a waiting message, using the provider's retry time when supplied;
+there is no automatic retry loop. Press **Analyse video** again when available.
+Successful transcription is retained as a checkpoint if prediction extraction
+hits a limit, so that retry does not transcribe the same audio again.
+Speech and prediction models have separate account-level quotas. Free does not
+mean unlimited or guaranteed availability. Check current limits in your Groq
+console and https://console.groq.com/docs/rate-limits.
 
-Imports and transcripts are held in the current session, not written to the
-curated CSV or shared disk cache. **Clear this import** removes the session
-copy, including the displayed results and transcript. It does not cancel or
-delete a job already held by Supadata, whose retention terms apply separately.
-A checked case can be downloaded as JSON; the app does not rehost the video.
+Review one detected asset at a time. Dates/creator identity come from video
+metadata. A missing date or uncertain ticker must be completed by the user.
+Numeric targets, currencies, reference prices and horizons stay editable. Vague
+time frames retain their original wording without an invented deadline. Only
+long stock/crypto comparisons and upside forecasts are supported in this version.
 
-The integration has been tested with simulated API responses, not a live
-Supadata account. Actual link access, extraction accuracy, account entitlement
-and credit usage still require a real-key test. Technical integration does not
-establish copyright, platform or data-protection permission for a given use.
-The planned course prototype runs for two weeks; there is no automatic expiry.
+The transcript is available directly after analysis. OCR samples up to sixteen
+frames with English text recognition. Small text, logos, briefly visible names
+and complex graphics can be missed; this is not full visual video understanding.
+If OCR fails, the interface clearly says the result uses speech only.
 
-The import is isolated in `tiktok_import.py` and `tiktok_ui.py`. To remove it
-later, remove its import, mode option and call from `app.py`, then those two
-modules and their tests. This preserves later changes to unrelated features.
+Source-derived results for the same public video and connection are reused
+across visitors in server memory for up to 24 hours, with at most 32 entries.
+Concurrent requests for the same source share work. User corrections, checked
+cases and market results stay session-local and are never written to that shared
+source cache or to the curated CSV. Cache contents disappear on a server restart.
+**Clear this import** clears your view/edits, not the shared public-source cache.
+Original video, audio and frame files are temporary and deleted after processing,
+including on failure. Groq's own data-processing policy applies separately.
+A checked case can be downloaded as JSON; the app does not rehost videos.
+
+Direct video retrieval, audio conversion and 16-frame OCR were exercised on
+the supplied 63-second Crocs/Marvell video in development. An intermediate
+certificate-store problem was fixed by using the system trust store, without
+disabling TLS verification. OCR found some but not all relevant names/numbers.
+A real Groq request and deployment-host retrieval still require a live app check. API and
+UI tests use labelled simulated provider responses, not a hidden real API key.
+Technical integration does not establish copyright/platform/privacy permission.
+The planned course prototype runs for two weeks; removal remains a later code change.
+
+The import is isolated in `tiktok_import.py`, `video_pipeline.py` and
+`tiktok_ui.py`. Removing its import, mode option and call from `app.py`, plus
+these helper modules, removes the feature without reverting unrelated work.
 
 ## Add more examples
 
@@ -144,7 +167,7 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_mvp.py test_tiktok_import.py test_tiktok_ui.py
+python -m unittest test_mvp.py test_tiktok_import.py test_video_pipeline.py test_tiktok_ui.py
 ```
 
 All ten curated views and the manual target/reference/deadline flows passed

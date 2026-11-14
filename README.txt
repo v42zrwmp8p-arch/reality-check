@@ -2,24 +2,32 @@ REALITY CHECK - STREAMLIT MVP
 
 What is included
 A Python app with three flows: curated TikTok examples, manual input and a
-Supadata-backed TikTok link import with editable extracted recommendations.
-Nine of the ten curated assets have daily-price comparisons. Nikola remains
-visible with a documented cancellation outcome and an explicit historical gap.
+Groq-backed public TikTok import with editable extracted recommendations.
+Nine of ten curated assets have daily-price comparisons. Nikola keeps its
+separate documented cancellation outcome and historical-data gap.
 
-The layout is intentionally simple: recommendation, full-period chart, four
-metrics, fixed-horizon table and a separate price-target check. Imported public
-videos are processed by Supadata; optional speech transcription is available.
-The app does not rehost videos or automatically add imports to its database.
+The import retrieves a public video, transcribes speech through Groq, reads
+sampled screen text with Tesseract, and extracts predictions through Groq.
+It does not call Supadata, rehost videos or add imports to the curated database.
+There is no feature flag, automatic expiration or paid fallback provider.
 
 TikTok import setup
-Add SUPADATA_API_KEY to the deployed app's Settings -> Secrets. See README.md
-for the exact TOML setting and workflow. The actual key must not be committed
-to GitHub. There is no import enable/disable toggle. Missing connection details
-affect only the import mode. Visitors do not need their own provider account.
-The planned two-week course usage does not have an automatic expiration timer.
-The new API and UI flows were tested with simulated provider responses; a real
-video/provider run still requires the owner's key. Legal permissions for the
-retrieval and processing are not established by the implementation.
+Add GROQ_API_KEY in the deployed app's Settings -> Secrets. See README.md for
+exact TOML and operation details. Once updated, SUPADATA_API_KEY can be removed;
+it is ignored by this version. Keep the Groq account on Free and do not enable
+a paid upgrade if you require zero API charges. Code cannot verify billing tier.
+Visitors need no account. The original modes do not require a Groq key.
+FFmpeg/Tesseract server dependencies are listed in packages.txt.
+
+Public clips are limited to three minutes and 50 MB. Two background tasks may
+run simultaneously, with at most eight tasks queued/running. Completed public
+source analyses are reused in memory for up to 24 hours (32 entries), including
+across visitors. User edits and checked cases remain session-local. Clearing
+an import clears its current view, not the shared public-source cache. Temporary
+original video/audio/frame files are deleted after processing, including on failure.
+OCR samples at most 16 frames; it can miss visual-only information. Limits and
+network failures are surfaced. No automatic retry or provider fallback occurs.
+The planned two-week course usage has no automatic expiration timer.
 
 Start
 python -m pip install -r requirements.txt
@@ -131,7 +139,8 @@ market_data.py         Example-table loading, symbol handling and price retrieva
 case_analysis.py       Combines the data into one case's results
 analysis_core.py       Return, drawdown, horizon and explicit target functions
 charts.py              Full-history chart and covered-deadline annotations
-tiktok_import.py       Supadata requests, extraction schema and reviewed-input validation
+tiktok_import.py       Groq requests, extraction schema and reviewed-input validation
+video_pipeline.py      Public video retrieval, audio/OCR, background tasks and source cache
 tiktok_ui.py           Link import, job progress, editable review and optional transcript
 analyse_examples.py    Batch CSV/JSON outputs using the same functions as the app
 predictions.csv        Expandable curated database
@@ -139,6 +148,7 @@ prices/*.csv           Original saved daily observations
 test_mvp.py            Focused checks of calculations and adding more examples
 test_tiktok_import.py  API/error/input checks with simulated responses
 test_tiktok_ui.py      Functional import UI checks with simulated responses
+test_video_pipeline.py Temporary-file, shared-task, retry and cache lifecycle checks
 
 The same functions can be imported into the report notebook. A final notebook
 and the course's PDF deliverable have not been created in this MVP step.
@@ -148,7 +158,7 @@ python analyse_examples.py
 python analyse_examples.py --refresh
 
 Run focused checks
-python -m unittest test_mvp.py test_tiktok_import.py test_tiktok_ui.py
+python -m unittest test_mvp.py test_tiktok_import.py test_video_pipeline.py test_tiktok_ui.py
 
 Validation
 All ten curated views passed Streamlit AppTest checks. The nine price cases

@@ -10,7 +10,10 @@
     "pandas": "3.1.1",
     "yfinance": "1.8.0",
     "altair": "6.3.0",
-    "requests": "2.34.2"
+    "requests": "2.34.2",
+    "yt-dlp": "2026.10.26",
+    "pytesseract": "0.3.13",
+    "Pillow": "13.0.0"
   },
   "price_source": "Yahoo Finance via yfinance",
   "original_claims_source": "User-supplied TikTok notes",
@@ -29,15 +32,24 @@
     "prices/SPY.csv": "6387019c6cdd6cfa6de6e2d1f5fa059948b3098bdedaa8d6db40383b803f215f",
     "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41"
   },
-  "live_app_verification": "Not checked; deployed app URL not supplied",
+  "live_app_verification": "Supplied app URL reached Streamlit access/not-found page during browser checks",
   "target_schema": "Explicit none/price/multiple with entry or creator reference",
   "forecast_deadline": "Exact date or structured duration from publication",
   "tiktok_import": {
-    "provider": "Supadata",
-    "secret_name": "SUPADATA_API_KEY",
+    "provider": "Direct public TikTok retrieval + Groq + local sampled Tesseract OCR",
+    "secret_name": "GROQ_API_KEY",
     "live_provider_verified": false,
-    "api_and_ui_tests": "Simulated provider responses; saved market data for calculation checks",
-    "storage": "Current Streamlit session only; provider retention is separate",
+    "speech_model": "whisper-large-v3-turbo",
+    "prediction_model": "openai/gpt-oss-20b",
+    "paid_fallback": false,
+    "limits": "180 seconds, 50 MB, 16 sampled OCR frames, 2 active / 8 total tasks",
+    "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change"
-  }
+  },
+  "system_dependencies": [
+    "ffmpeg",
+    "tesseract-ocr",
+    "tesseract-ocr-eng"
+  ],
+  "app_url": "https://finfluencer-reality-check.streamlit.app/"
 }

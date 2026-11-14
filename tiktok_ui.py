@@ -1,5 +1,6 @@
 """The removable TikTok import flow for the existing Streamlit app."""
 from datetime import date
+from copy import deepcopy
 import json
 import os
 import time
@@ -8,15 +9,15 @@ import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
 from case_analysis import analyse_case
-from tiktok_import import (ImportProblem, SupadataClient, clean_tiktok_url, metadata_details,
-                           recommendations, reviewed_case, transcript_text)
+from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
+from video_pipeline import ENGINE_VERSION, submit_import
 
 
 def service_key():
-    value = os.environ.get("SUPADATA_API_KEY", "")
+    value = os.environ.get("GROQ_API_KEY", "")
     if not value:
         try:
-            value = st.secrets.get("SUPADATA_API_KEY", "")
+            value = st.secrets.get("GROQ_API_KEY", "")
         except (FileNotFoundError, StreamlitSecretNotFoundError):
             value = ""
     return value.strip() if isinstance(value, str) else ""
@@ -35,69 +36,45 @@ def _same_link(value, expected):
         return False
 
 
-@st.fragment(run_every=3)
+@st.fragment(run_every=2)
 def poll_import():
     state = st.session_state.get("tt_import")
     if (not state or st.session_state.get("mode") != "Import TikTok"
             or not _same_link(st.session_state.get("tt_link", ""), state["url"])):
         return
-    for kind in ["extract", "transcript"]:
-        task = state.get(kind)
-        if not task or task["status"] != "pending" or task.get("paused"):
-            continue
-        if time.monotonic() - task["started"] > 180:
-            task.update(paused=True, error="Processing is taking longer than expected. Check progress again without starting another analysis.")
+    if state["status"] == "error":
+        if time.time() >= state["retry_at"]:
             st.rerun()
-        try:
-            result = SupadataClient(service_key()).job(kind, task["id"])
-            if result["status"] == "completed":
-                if kind == "extract":
-                    state["drafts"] = recommendations(result)
-                else:
-                    task["text"] = transcript_text(result)
-                task["status"] = "completed"
-                st.rerun()
-            st.info("Analysing the video…" if kind == "extract" else "Preparing the transcript…")
-        except ImportProblem as exc:
-            task.update(paused=True, error=str(exc))
-            st.rerun()
+        st.caption(f"You can retry in about {max(1, int(state['retry_at'] - time.time()))} seconds.")
+        return
+    task = state["task"]
+    if not task.future.done():
+        st.info(task.progress)
+        return
+    result = task.future.result()
+    if result["ok"]:
+        state.update(deepcopy(result["data"]), status="completed")
+    else:
+        state.update(status="error", error=result["error"], retry_at=task.retry_at)
+    st.rerun()
 
 
 def job_status(state):
-    pending = False
-    for kind in ["extract", "transcript"]:
-        task = state.get(kind)
-        if not task or task["status"] != "pending":
-            continue
-        if task.get("paused"):
-            st.warning(task["error"])
-            if st.button("Check analysis progress" if kind == "extract" else "Check transcript progress", key="tt_retry_" + kind):
-                task.update(paused=False, started=time.monotonic())
-                st.rerun()
-        else:
-            pending = True
-    if pending:
+    if state["status"] == "error":
+        st.error(state["error"])
+        if time.time() < state["retry_at"]:
+            poll_import()
+    elif state["status"] == "pending":
         poll_import()
 
 
-def transcript_section(state, key):
-    task = state.get("transcript")
-    if task and task["status"] == "completed":
-        with st.expander("Transcript"):
-            st.text(task["text"])
-            st.caption("Transcription may contain errors. Check important numbers against the original video.")
-    elif not task:
-        if st.button("Get transcript", key="tt_transcribe", help="Optional: uses additional video-service credits. Existing captions are used when available; otherwise speech is transcribed."):
-            try:
-                with st.spinner("Requesting the transcript…"):
-                    result = SupadataClient(key).start_transcript(state["url"])
-                if result.get("jobId"):
-                    state["transcript"] = {"id": result["jobId"], "status": "pending", "started": time.monotonic()}
-                else:
-                    state["transcript"] = {"status": "completed", "text": transcript_text(result)}
-                st.rerun()
-            except ImportProblem as exc:
-                st.error(str(exc))
+def transcript_section(state):
+    with st.expander("Transcript"):
+        st.text(state.get("transcript") or "No speech was detected.")
+        st.caption("Speech recognition may mishear names and numbers. Check important details against the original video.")
+    with st.expander("Sampled screen text"):
+        st.text(state.get("screen_text") or "No readable screen text was detected.")
+        st.caption(state.get("screen_note", ""))
 
 
 def review_fields(state):
@@ -176,25 +153,24 @@ def review_fields(state):
 
 def tiktok_mode(histories, show_results, show_nikola):
     st.subheader("Import a TikTok recommendation")
-    st.caption("Paste a public video link. Supadata analyses its audio and visible text; you review the details before calculating. Each new analysis uses project credits.")
+    st.caption("Paste a public TikTok up to three minutes long. Groq transcribes the speech and identifies predictions; sampled screen text is read with OCR. Review the details before calculating. Shared usage limits can temporarily pause imports.")
     link = st.text_input("TikTok video link", placeholder="https://www.tiktok.com/@creator/video/…", key="tt_link")
     key = service_key()
     if not key:
         st.info("The video import service has not been connected yet. The app owner needs to complete its setup. The other two modes are ready to use.")
     state = st.session_state.get("tt_import")
+    if state and state.get("engine") != ENGINE_VERSION:
+        clear_import()
+        state = None
     same = bool(state and _same_link(link, state["url"]))
-    if st.button("Analyse video", type="primary", disabled=not key or same, key="tt_analyse"):
+    busy_or_ready = same and (state["status"] in {"pending", "completed"} or time.time() < state.get("retry_at", 0))
+    if st.button("Analyse video", type="primary", disabled=not key or busy_or_ready, key="tt_analyse"):
         try:
             url = clean_tiktok_url(link)
-            client = SupadataClient(key)
-            with st.spinner("Reading video details and starting the analysis…"):
-                metadata = client.metadata(url)
-                if metadata.get("platform") not in {None, "tiktok"} or metadata.get("type") not in {None, "video"}:
-                    raise ImportProblem("Choose a TikTok video rather than a photo or carousel post.")
-                job_id = client.start_analysis(url)
+            task, reused = submit_import(url, key)
             clear_import()
-            st.session_state["tt_import"] = {"url": url, "metadata": metadata,
-                                            "extract": {"id": job_id, "status": "pending", "started": time.monotonic()}}
+            st.session_state["tt_import"] = {"engine": ENGINE_VERSION, "url": url, "task": task,
+                                            "status": "pending", "reused": reused}
             st.rerun()
         except ImportProblem as exc:
             st.error(str(exc))
@@ -203,14 +179,17 @@ def tiktok_mode(histories, show_results, show_nikola):
     if not same:
         st.info("Press Analyse video to load the changed link.")
         return
-    if st.button("Clear this import", key="tt_clear", help="Removes this session's imported details and transcript. It does not cancel processing already started at the external provider."):
+    if st.button("Clear this import", key="tt_clear", help="Clears your current view and edits. Source-derived results for this public video may remain in the shared server cache for up to 24 hours."):
         clear_import()
         st.rerun()
     job_status(state)
-    if state["extract"]["status"] != "completed":
+    if state["status"] != "completed":
         return
     st.link_button("Original video", state["url"])
-    transcript_section(state, key)
+    if state.get("reused"):
+        st.caption("Reused an existing analysis of this public video. No new transcription or prediction request was started for this import.")
+    st.caption("Source analysis time (UTC): " + state["analysed_at"])
+    transcript_section(state)
     if not state["drafts"]:
         st.info("No supported stock or crypto buy/upside prediction was detected. You can still use Your own case to enter an asset and date manually.")
         return
@@ -249,4 +228,4 @@ def tiktok_mode(histories, show_results, show_nikola):
             show_results(row, stored["result"], stored["source"])
         st.download_button("Download checked case", json.dumps(row, indent=2),
                            file_name=row["case_id"] + ".json", mime="application/json")
-        st.caption("This import stays in your current session. It is not added to the curated collection. Clearing it removes the app's session copy; the provider has its own retention policy.")
+        st.caption("Your checked details stay in this session and are not added to the curated collection. Source-derived results for the public video may be reused by other visitors for up to 24 hours; your edits are not shared. Original video/audio/frame files are deleted after processing. Groq has its own data policy.")
