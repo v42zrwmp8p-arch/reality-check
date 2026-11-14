@@ -5,14 +5,14 @@ from urllib.parse import urlparse
 import json
 import pandas as pd
 import streamlit as st
-from market_data import load_examples, provider_symbol, download_history, get_case_histories
+from import_runtime import import_flow
+
+APP_VERSION = "2026-11-14.10"
+tiktok_mode = import_flow(APP_VERSION)
+from market_data import load_examples, provider_symbol, download_history, get_case_histories, comparison_symbol
 from case_analysis import analyse_case
 from analysis_core import positive_number
 from charts import comparison_chart
-from import_runtime import import_flow
-
-APP_VERSION = "2026-11-14.9"
-tiktok_mode = import_flow(APP_VERSION)
 from tracker_ui import sync_tracker, storage_message, track_button, tracker_mode
 
 ROOT = Path(__file__).resolve().parent
@@ -27,6 +27,17 @@ def live_history(symbol, publication_date, end_date):
 
 def histories(row, force_live=False):
     return get_case_histories(row, force_live, fetch=live_history)
+
+
+def discard_outdated_comparisons():
+    for key in ("manual_result", "tt_result"):
+        stored = st.session_state.get(key)
+        if not stored or not stored.get("result"):
+            continue
+        row = stored["row"]
+        expected = comparison_symbol(row["symbol"], row["asset_type"])
+        if stored["result"][0].get("benchmark_symbol") != expected:
+            st.session_state.pop(key, None)
 
 
 def usd(value):
@@ -136,9 +147,9 @@ def show_results(row, result, source):
 
 def show_method():
     with st.expander("How the comparison works"):
-        st.write("The simulated purchase uses the first common closing price after publication. Both chart lines start at 100.")
-        st.write("Returns use adjusted USD closing prices, including vendor split and dividend adjustments. The largest fall is the maximum daily closing-price drawdown from an earlier peak.")
-        st.write("Stocks and ETFs are compared with SPY; crypto with Bitcoin. Price targets are checked separately from investment returns.")
+        st.write("The simulated purchase uses the first common closing price after publication. Both chart lines start at 100 and use common observation dates.")
+        st.write("Returns use adjusted USD closing prices, including vendor split and dividend adjustments. The largest fall is the maximum drawdown across those closing observations.")
+        st.write("Stocks, ETFs and Bitcoin are compared with the S&P 500 ETF (SPY). Other crypto is compared with Bitcoin. Price targets are checked separately from investment returns.")
         st.write("A price multiple uses either the simulated entry close or an explicitly supplied creator reference. For example, 2× means a 100% price gain and 10× means a 900% gain.")
         st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication.")
         st.caption("Market data: Yahoo Finance via yfinance. Videos are linked, not hosted. Trading costs and taxes are excluded.")
@@ -261,6 +272,7 @@ def manual_mode():
 st.title("Reality Check")
 st.write("See what happened after the recommendation.")
 sync_tracker()
+discard_outdated_comparisons()
 legacy_modes = {"TikTok examples": "TikTok Case Database", "Your own case": "Manual Entry"}
 if st.session_state.get("mode") in legacy_modes:
     st.session_state["mode"] = legacy_modes[st.session_state["mode"]]

@@ -146,7 +146,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertTrue(any("Fixture transcript" in x.value for x in at.text))
         self.assertNotIn("Sampled screen text", [x.label for x in at.expander])
         self.assertIn("Import details", [x.label for x in at.expander])
-        self.assertTrue(any("Import version: 2026-11-14.9" == x.value for x in at.caption))
+        self.assertTrue(any("Import version: 2026-11-14.10" == x.value for x in at.caption))
         at.date_input(key="tt_review_0_published").set_value(None).run()
         at.button(key="tt_calculate").click().run()
         self.assertTrue(any("publication date" in x.value for x in at.error))
@@ -227,6 +227,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertFalse(at.error)
         self.assertFalse(at.exception)
         self.assertEqual(at.session_state["tt_result"]["row"]["symbol"], "BTC-USD")
+        self.assertEqual(at.session_state["tt_result"]["result"][0]["benchmark_symbol"], "SPY")
 
     @patch("tiktok_ui.service_key", return_value="fixture-key")
     @patch("tiktok_ui.submit_import")

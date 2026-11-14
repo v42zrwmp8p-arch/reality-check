@@ -112,9 +112,18 @@
       "seconds": 7.442,
       "scope": "Existing tracker and release-consistency checks; backup UI removed, browser-storage mechanism and source fields retained."
     },
-    "navigation_update": "Existing UI compatibility check passed (all ten curated cases plus Manual Entry); separate AppTest smoke verified Import TikTok as the fresh-session default and database last."
+    "navigation_update": "Existing UI compatibility check passed (all ten curated cases plus Manual Entry); separate AppTest smoke verified Import TikTok as the fresh-session default and database last.",
+    "bitcoin_benchmark_update": {
+      "release": "2026-11-14.10",
+      "focused_tests_passed": 41,
+      "seconds": 18.95,
+      "new_tests": 6,
+      "scope": "Shared-date arithmetic, saved/live routing, BTC alias, other crypto/ETF preservation, imported/manual/tracked Bitcoin UI, obsolete-result discard and dependency reload.",
+      "source_import_engine_unchanged": "groq-whisper-ocr-v8",
+      "live_host_verified": false
+    }
   },
-  "app_version": "2026-11-14.9",
+  "app_version": "2026-11-14.10",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -139,5 +148,12 @@
     "validation": "Native Streamlit AppTest with simulated storage/API plus Node frontend contract; actual Chromium launch blocked by socket policy.",
     "backup_interface": false
   },
-  "default_mode": "Import TikTok"
+  "default_mode": "Import TikTok",
+  "comparison_assets": {
+    "Bitcoin": "S&P 500 ETF (SPY)",
+    "other_crypto": "Bitcoin (BTC-USD)",
+    "Equity": "S&P 500 ETF (SPY)",
+    "ETF": "S&P 500 ETF (SPY)"
+  },
+  "comparison_calendar": "Common observation dates; Bitcoin/SPY comparison excludes SPY non-trading dates. Drawdown is across these common closing observations."
 }

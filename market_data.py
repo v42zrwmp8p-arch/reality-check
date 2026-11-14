@@ -5,6 +5,7 @@ import re
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
+IMPORT_VERSION = "2026-11-14.10"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
 
 
@@ -53,6 +54,12 @@ def provider_symbol(symbol, asset_type):
     return symbol
 
 
+def comparison_symbol(symbol, asset_type):
+    """Compare Bitcoin with SPY, and other crypto with Bitcoin."""
+    symbol = provider_symbol(symbol, asset_type)
+    return "BTC-USD" if asset_type == "Crypto" and symbol != "BTC-USD" else "SPY"
+
+
 def saved_history(symbol, publication_date):
     path = ROOT / "prices" / f"{symbol}.csv"
     if not path.exists():
@@ -87,7 +94,7 @@ def get_case_histories(row, force_live=False, fetch=download_history):
     """Shared data path for the app, batch analysis and a future report notebook."""
     supplied = row.get("provider_symbols") or row["symbol"]
     symbol = provider_symbol(supplied.split("|")[0], row["asset_type"])
-    benchmark_symbol = "BTC-USD" if row["asset_type"] == "Crypto" else "SPY"
+    benchmark_symbol = comparison_symbol(symbol, row["asset_type"])
     if not force_live:
         asset = saved_history(symbol, row["publication_date"])
         benchmark = saved_history(benchmark_symbol, row["publication_date"])

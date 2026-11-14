@@ -1,6 +1,22 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.9
+Current release: 2026-11-14.10
+Bitcoin comparison update: 41 focused tests passed with Python 3.12 in 18.950s.
+- Bitcoin now compares with SPY, including the BTC alias and existing saved
+  tracker records. Other crypto retains Bitcoin; stocks and ETFs retain SPY.
+- Six new tests cover different synthetic returns (BTC +60%, SPY +20%, +40pp),
+  common-date alignment, saved-data routing without network calls, other asset
+  types, manual/tracker UI results and obsolete cached-result removal.
+- The existing imported Bitcoin regression now also asserts benchmark SPY.
+- The nine-helper release guard reloads market_data first and checks imported
+  function identities. Existing math, import UI and tracker tests pass.
+- Drawdown and returns use common observations; SPY non-trading dates are
+  excluded from the Bitcoin/SPY pair. Price histories and target math unchanged.
+- All 11 original price-file hashes match. No saved tracker record migration.
+  Source import engine v8 retained, so source-cache results can still be reused.
+- API price requests were simulated. Live hosted output not independently checked.
+
+Previous release 2026-11-14.9 follow-up checks:
 Navigation update: Import TikTok, Manual Entry, My Tracker, TikTok Case Database.
 A fresh session opens Import TikTok. The existing UI compatibility check passed
 (all ten curated cases and Manual Entry); a separate AppTest smoke verified the

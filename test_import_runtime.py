@@ -14,19 +14,19 @@ class RuntimeChecks(unittest.TestCase):
     def test_mixed_release_reloads_helpers_once_and_preserves_shared_queue(self):
         script = '''
 from unittest.mock import patch
-import asset_resolution, target_extraction, tracker_core, tracker_ui, tiktok_import, photo_import, video_pipeline, tiktok_ui
+import market_data, asset_resolution, target_extraction, tracker_core, tracker_ui, tiktok_import, photo_import, video_pipeline, tiktok_ui
 from import_runtime import import_flow
-modules = [asset_resolution, target_extraction, tracker_core, tracker_ui, tiktok_import, photo_import, video_pipeline, tiktok_ui]
+modules = [market_data, asset_resolution, target_extraction, tracker_core, tracker_ui, tiktok_import, photo_import, video_pipeline, tiktok_ui]
 pool, slots, tasks, lock = (video_pipeline._POOL, video_pipeline._SLOTS,
                           video_pipeline._TASKS, video_pipeline._LOCK)
 old = lambda *args: 'No supported stock or crypto detected'
 tiktok_ui.tiktok_mode = old
 tiktok_ui.IMPORT_VERSION = 'old-loaded-ui'
 video_pipeline.ENGINE_VERSION = 'groq-whisper-ocr-v1'
-flow = import_flow('2026-11-14.9')
+flow = import_flow('2026-11-14.10')
 assert flow is not old
 assert flow is tiktok_ui.tiktok_mode
-assert all(module.IMPORT_VERSION == '2026-11-14.9' for module in modules)
+assert all(module.IMPORT_VERSION == '2026-11-14.10' for module in modules)
 assert video_pipeline.ENGINE_VERSION == 'groq-whisper-ocr-v8'
 assert video_pipeline._POOL is pool
 assert video_pipeline._SLOTS is slots
@@ -38,9 +38,11 @@ assert video_pipeline.GroqClient is tiktok_import.GroqClient
 assert video_pipeline.read_photo_post is photo_import.read_photo_post
 assert photo_import.ImportProblem is tiktok_import.ImportProblem
 assert tracker_ui.prediction_record is tracker_core.prediction_record
+assert tracker_core.provider_symbol is market_data.provider_symbol
+assert tiktok_import.provider_symbol is market_data.provider_symbol
 assert tiktok_import.recover_multiple is target_extraction.recover_multiple
 with patch('import_runtime.importlib.reload', side_effect=AssertionError('ordinary rerun must not reload')):
-    assert import_flow('2026-11-14.9') is flow
+    assert import_flow('2026-11-14.10') is flow
 print('mixed-release regression passed')
 '''
         result = subprocess.run([sys.executable, "-c", script], cwd=ROOT, capture_output=True, text=True, timeout=30)

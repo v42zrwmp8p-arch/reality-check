@@ -11,7 +11,7 @@ is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.9` checks that Streamlit's entry script and all eight
+Release `2026-11-14.10` checks that Streamlit's entry script and all nine
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
@@ -32,6 +32,30 @@ available if extraction fails after successful speech recognition.
 This makes a remaining real model failure inspectable instead of guessing
 from successful transcription alone. Live model accuracy is still separate
 from these runtime and simulated-response tests.
+
+## Bitcoin comparison
+
+Release `2026-11-14.10` compares Bitcoin (including manual BTC aliases) with
+SPY instead of itself. Other cryptocurrencies retain Bitcoin as their
+comparison; stocks and ETFs retain SPY. The choice is centralized in
+`market_data.comparison_symbol`, so curated/batch, manual, imported and tracked
+cases share the same rule. Charts and result labels use the selected symbol.
+
+Both series use their common observation dates. Bitcoin-versus-SPY therefore
+uses SPY trading dates, and its reported drawdown is across those observations.
+The return, target and horizon formulas are unchanged. Cached session results
+with an obsolete comparison are discarded; existing tracker records are not
+rewritten. Opening a tracked Bitcoin tip calculates its current comparison.
+The source-import engine/cache stays at v8: no repeated TikTok processing is
+required by the benchmark change. The release guard now includes market_data
+and reloads it before helpers importing its functions.
+
+41 focused tests pass, including six new benchmark checks: different synthetic
+Bitcoin/SPY returns and shared dates, saved-data routing, BTC alias/other crypto/
+ETF behavior, manual and existing tracker UI flows, and stale-result removal.
+The existing imported Bitcoin flow also asserts SPY. All original saved-price
+hashes match. Provider requests in these checks use explicit fixtures; the
+hosted app's new output has not been independently verified here.
 
 ## My Tracker
 
@@ -139,7 +163,7 @@ empty model response, with no extra API request. Other explicit ticker examples
 
 Stocks and ETFs use SPY as the common comparison, rather than a category-specific
 fund benchmark. USD currency and historical-coverage checks still apply.
-Crypto comparisons remain against Bitcoin. Vague long-term wording has no
+Other crypto comparisons use Bitcoin; Bitcoin itself uses SPY. Vague long-term wording has no
 invented duration/deadline. Existing forecasts and calculations are retained.
 
 ## Request-format recovery
@@ -337,8 +361,9 @@ their saved snapshot; new cases and **Update prices** request data from Yahoo.
 
 - The simulated entry is the first common daily close after publication.
 - Investment returns use adjusted USD closing prices; both chart lines start at 100.
-- Equities use SPY as a broad US equity ETF comparison. Crypto uses Bitcoin,
-  which is a comparison asset rather than a broad crypto-market index.
+- Stocks, ETFs and Bitcoin use the S&P 500 ETF (SPY) as a comparison. Other
+  crypto uses Bitcoin, which is not a broad crypto-market index. Comparisons
+  use common observation dates; Bitcoin-versus-SPY excludes SPY non-trading dates.
 - Holding periods are 1, 3, 6 and 12 months, then complete annual anniversaries,
   plus the latest common closing observation. Returns are cumulative from entry.
 - Price targets are checked separately from dividend-adjusted investment returns.
