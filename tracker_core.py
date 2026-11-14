@@ -8,9 +8,9 @@ import pandas as pd
 
 from analysis_core import positive_number, resolve_deadline, resolve_target, validated_split_review
 from case_analysis import analyse_comparisons, comparison_dates
-from market_data import provider_symbol
+from market_data import provider_symbol, history_archive
 
-IMPORT_VERSION = "2026-11-14.14"
+IMPORT_VERSION = "2026-11-14.15"
 SCHEMA_VERSION = 1
 MAX_ITEMS = 100
 MAX_BYTES = 512 * 1024
@@ -45,6 +45,8 @@ def prediction_record(row):
     result["target_basis"] = _text(row.get("target_basis") or "", 400)
     result["deadline_basis"] = _text(row.get("deadline_basis") or "", 400)
     result["reviewed_splits"] = validated_split_review(row.get("reviewed_splits"))
+    if history_archive(row):
+        result["history_archive"] = row["history_archive"]
     result["time_frame"] = result["time_frame"] or "Not specified"
     raw_url = _text(row.get("video_url") or "", 1000)
     if raw_url:

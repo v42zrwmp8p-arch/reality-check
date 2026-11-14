@@ -34,6 +34,12 @@ def main():
             chart.to_csv(out / "chart_data.csv", index_label="Date")
             (out / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
             flat = {k: v for k, v in summary.items() if k not in {"price_target", "deadline_result", "comparisons", "requested_benchmark_symbols", "unavailable_benchmarks"}}
+            target = summary["price_target"]
+            close = target.get("close_comparison") or {}
+            flat.update(target_usd=target.get("target_usd"), target_status=target["status"],
+                        target_close_date=close.get("date"), target_close_usd=close.get("close_usd"),
+                        target_difference_usd=close.get("difference_usd"),
+                        target_difference_pct=close.get("difference_pct"))
             for symbol, values in summary["comparisons"].items():
                 flat[symbol + "_return_pct"] = values["return_pct"]
                 flat["difference_vs_" + symbol + "_pp"] = values["difference_pp"]

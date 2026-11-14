@@ -11,7 +11,7 @@ is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.14` checks that Streamlit's entry script and all twelve
+Release `2026-11-14.15` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
@@ -35,10 +35,10 @@ from these runtime and simulated-response tests.
 
 ## Iconic market calls
 
-Release `2026-11-14.14` focuses **Case Database** on selected memorable market
+Release `2026-11-14.15` focuses **Case Database** on selected memorable market
 calls, with the heading **Iconic market calls**. The database remains the last
 navigation item; new visits still start with Import TikTok. Automatic import
-still supports TikTok only. The five active cases are:
+still supports TikTok only. The nine active cases are:
 
 - Roaring Kitty / GameStop, 4 August 2020: the dated original YouTube description
   explicitly states a bullish view. No numeric target or exact horizon is
@@ -66,6 +66,31 @@ still supports TikTok only. The five active cases are:
   against contemporary Bloomberg coverage. These are nominal USD prices,
   without a simulated trade, benchmark or prediction verdict. The USD 2
   takeover offer is not plotted as if it were a stock-market closing price.
+- Elon Musk / Dogecoin, 28 April 2021: the Dogefather tweet before SNL. No
+  USD 1 target or forecast deadline is attributed to the post. The simulated
+  entry is 29 April, with both Bitcoin and SPY comparisons.
+- Dave Portnoy / SafeMoon, 17 May 2021: announced USD 40,000 holding and support
+  for the original V1 token. Uses an archived CoinGecko USD-price snapshot
+  through 4 October 2021, before the V2 migration. No V1/V2 price splice is
+  made. Transfer taxes and reflection rewards are excluded.
+- Paul Pelosi / Nvidia: a spouse-owned options purchase in Nancy Pelosi's
+  signed 21 December 2023 disclosure. Uses the conservatively later public
+  date of 22 December recorded by Capitol Trades, with simulated share entry
+  on 26 December. This is a share comparison after disclosure, not an options
+  profit calculation; the strike and expiry do not become a price forecast.
+- Ryan Cohen / original Bed Bath & Beyond: the 6 March 2022 letter and
+  7 March public filing/news, followed by the August stake sale. Simulated
+  entry is 8 March. The original BBBY archive ends on 2 May 2023; later
+  cancellation without value is shown separately using the issuer 8-K.
+  The later company that reused BBBY is not connected to this history.
+
+The two archived cases are explicitly price-only comparisons: asset, Bitcoin
+and/or SPY all use closing-price changes, excluding dividends. Their cutoffs
+and sources are shown. Data and provenance are in `case_sources.json`.
+`history_archive` is a fixed, asset-checked identifier, not an arbitrary file
+path. Archive failure cannot silently request a modern asset with the same
+name. Browser tracking preserves the identifier; refresh does not replace
+these historical series. Missing SafeMoon High/Low data remain missing.
 
 All ten original cases, including Nikola Motors, Metahero, Kadena and MultiVAC,
 were removed from the active CSV. The original ten-row dataset is retained only in
@@ -80,23 +105,47 @@ follower/view counts are left blank rather than invented. The selected cases
 do not constitute a representative sample.
 
 The previous release added saved Yahoo Finance chart observations for TSLA.
-All fourteen pre-update price CSVs remain byte-identical. The earlier release added GME
+All fourteen pre-update price CSVs remain byte-identical. This release adds
+DOGE-USD and NVDA Yahoo observations, plus the two bounded archives. The earlier release added GME
 and COIN and prepended older rows to BTC-USD and SPY without changing any
 existing observation. Current hashes are recorded in `project_info.json`.
-Four active cases have saved comparisons through 12 November 2026. Bear Stearns
-uses its separate historical-context data in `bear_stearns_history.json`.
+Six active cases have saved comparisons through 12 November 2026, and two
+have the bounded historical snapshots above. Bear Stearns uses its separate
+historical-context data in `bear_stearns_history.json`.
 
 The Cathie record explicitly lists the reviewed split date and ratio. Target
 evaluation proceeds only if those events exactly match the observed history;
 unreviewed, mismatched or additional splits retain the manual-review guard.
 This metadata and the evaluation convention survive saving to My Tracker.
-The normal import/manual target calculation is unchanged.
+The normal import/manual target calculation is shared with the database.
 
-All 119 tests pass, including active-case membership, source/date consistency,
+All 132 tests pass, including active-case membership, source/date consistency,
 split safety, context-only handling and chart, stale database selection recovery,
-all five database views, tracker preservation and four-case batch export. Automated
+all nine database views, tracker preservation and eight-case batch export. The
+new checks cover source timing, archived asset identity, consistent price-only
+comparisons, missing archives, tracker refresh and target-relative gaps. Automated
 requests use saved data or simulated responses. Hosted rendering has not been
 independently verified here.
+
+## Distance from a price target
+
+An explicit numeric target shows the observed closing price and how far it is
+above or below the target. The difference is `(close / target - 1) * 100`, using
+the target as denominator. Dollar differences are also included in JSON and
+the batch summary CSV. This is separate from the investment's return.
+
+For a covered deadline, the last observed close on or before that deadline is
+used. Otherwise it is the latest available close, without a final-miss verdict.
+The displayed date identifies the actual observation. Nominal Close is used,
+not dividend-adjusted Close, with the existing split-review gate applied first.
+Missing/invalid closing data produce no distance figure. An earlier intraday
+target hit remains a hit even if the evaluation closing price is below target.
+
+For the reviewed ARK example, the 31 December 2025 close is USD 449.72 against
+the split-adjusted USD 1,000 target: 55.03% below target, despite a positive
+investment return by that date. Year-end remains an explicit project convention
+for ARK's model year. Import, manual and tracker results use the same functions;
+older cached numeric-target calculations are discarded once to recalculate.
 
 ## Crypto comparisons
 
@@ -430,9 +479,10 @@ An exact deadline can be recorded in `deadline`. Alternatively, supply
 publication.
 Vague statements such as next few weeks are preserved without an invented date.
 
-The collection has five records. Four have saved daily comparisons through
-12 November 2026. Bear Stearns shows a historical-context chart around the
-statement, without a simulated stock return.
+The collection has nine records. Six have saved daily comparisons through
+12 November 2026; SafeMoon V1 and original BBBY use their labelled historical
+cutoffs. Bear Stearns shows a historical-context chart around the statement,
+without a simulated stock return.
 Calculated examples work from their saved snapshot; new cases and
 **Update prices** request data from Yahoo.
 
@@ -474,10 +524,10 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_iconic_cases.py test_special_cases.py test_dual_crypto.py test_bitcoin_benchmark.py test_tracker.py test_photo_import.py test_etf_import.py test_format_recovery.py test_target_extraction.py test_import_runtime.py test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py
+python -m unittest test_added_cases.py test_target_gap.py test_iconic_cases.py test_special_cases.py test_dual_crypto.py test_bitcoin_benchmark.py test_tracker.py test_photo_import.py test_etf_import.py test_format_recovery.py test_target_extraction.py test_import_runtime.py test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py
 ```
 
-All five curated views and the manual target/reference/deadline flows passed
+All nine curated views and the manual target/reference/deadline flows passed
 Streamlit AppTest checks. The import has additional API-boundary and AppTest
 checks with clearly labelled test fixtures. The table was tested with twenty records. Charts
 with elapsed and future deadlines were rendered for visual inspection.

@@ -3,8 +3,8 @@
   "delivery": "GitHub-backed Streamlit application source",
   "publicly_deployed": null,
   "saved_price_cutoff": "2026-11-12",
-  "examples": 5,
-  "calculated_examples": 4,
+  "examples": 9,
+  "calculated_examples": 8,
   "requirements": {
     "streamlit": "1.67.0",
     "pandas": "3.1.1",
@@ -17,14 +17,16 @@
     "jsonschema": "4.26.0",
     "gallery-dl": "1.32.20"
   },
-  "price_source": "Yahoo Finance: live requests via yfinance; special-case saved additions via the public chart endpoint.",
-  "original_claims_source": "Five sourced iconic market calls documented in case_sources.json. All ten original supplied TikTok cases retired from the active database.",
+  "price_source": "Yahoo Finance live via yfinance and saved chart-endpoint observations; explicitly bounded CoinGecko V1 and original BBBY price archives for two historical cases.",
+  "original_claims_source": "Nine sourced iconic market calls/public investment signals in case_sources.json; all original supplied TikTok cases remain retired.",
   "case_identity": "Unique case per public source and asset",
   "browser_visual_qa": "Unavailable: preview relay missing",
   "file_sha256": {
+    "prices/BBBY-LEGACY.csv": "6810092c50b7ebb9f5528fdc23d86a73866078a420645bba960d926877ffd432",
     "prices/BTC-USD.csv": "21c0b9b6bb690e2ae0356236e0fcaa62d3a98be2b15d38d2cef1c025990f61ac",
     "prices/COIN.csv": "92bb2db5b271160b4791bb64be7b6e014d4e79af3e91976b0c81cc88c61cb761",
     "prices/CROX.csv": "5b9a5ed3ccffd941c2f0832bc5f53f5ff62bbd1d5685bb5fd0e6c7d522bd2e8a",
+    "prices/DOGE-USD.csv": "805ed328fe64536bcc884524fec9b6c8f0d17e5817f07e823f24e8d0cb9941ee",
     "prices/GME.csv": "e71da2cf6a6548cb1631a9c16722524e6b299f75774c7a8b9ddef935d269233d",
     "prices/HD.csv": "a781f0acadff0a1cd06377d8017251f090f9edf745731c1c2c088794d0d7be40",
     "prices/HERO10778-USD.csv": "2badbe253fa606cf3faeff5126cba26fb347cab750347821aa8ae923b15d76cc",
@@ -33,6 +35,8 @@
     "prices/MRVL.csv": "3c689c0320f52da4b399f18858b60383a2bfe30f108a84808e7318deb06cdd6e",
     "prices/MTV-USD.csv": "5a30229c12bdfb6518fb884c9037029b8b21331490ee73edcee79e690ac36d9a",
     "prices/MU.csv": "a09d617401768a8c86e45187aa7850f094fd3401b39eeb5c39e06630405e02dd",
+    "prices/NVDA.csv": "4aa0a634e81242d43714bf250d10185528775bfb26ca1fb2577e4572f457e0c2",
+    "prices/SAFEMOON-V1.csv": "bc0e43fbdb0c70723dd0900f59b0737bda58c80856a58176f5690b6bbbbc71bd",
     "prices/SPY.csv": "b906407d3a4a543e5bc5330e3370ce1493be654668060e9f0ae7dac3040bec38",
     "prices/TSLA.csv": "1fafe867ec48c0b9d5dc0dfdab1c4c72890e39d3d2ffc8d2bcb4a3b08f7a7a4b",
     "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41"
@@ -97,7 +101,7 @@
     "Case Database"
   ],
   "validation": {
-    "tests_passed": 119,
+    "tests_passed": 132,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -108,14 +112,14 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-14.14",
+    "full_suite_release": "2026-11-14.15",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
       "seconds": 7.442,
       "scope": "Existing tracker and release-consistency checks; backup UI removed, browser-storage mechanism and source fields retained."
     },
-    "navigation_update": "Five active curated views; fresh visitors still start with Import TikTok, Case Database last. Bear Stearns context has a historical-price chart without a simulated trade.",
+    "navigation_update": "All nine curated views pass AppTest. Import TikTok stays the fresh-session default; Case Database remains last.",
     "bitcoin_benchmark_update": {
       "release": "2026-11-14.10",
       "focused_tests_passed": 41,
@@ -169,9 +173,27 @@
       "previous_price_files_byte_identical": 14,
       "scope": "All original curated cases retired; five-view smoke and retired-selection reset; Bear Stearns historical chart in actual AppTest Vega-Lite output with USD axis, statement-date marker, sourced close and no takeover-offer substitution or simulated trade; four-case batch output.",
       "live_host_verified": false
+    },
+    "added_cases_and_target_gap": {
+      "release": "2026-11-14.15",
+      "tests_passed": 132,
+      "seconds": 41.101,
+      "new_tests": 13,
+      "current_cases": 9,
+      "calculated_cases": 8,
+      "context_only_cases": 1,
+      "previous_price_files_byte_identical": 14,
+      "scope": "Target-relative closing gaps versus investment returns, covered/future/no deadlines, split and missing-data guards, prior hits retained, Cathie/tracker UI, old-result invalidation, batch CSV. Four source-dated additions, archived identity and no live-asset fallback, same price basis for every reference, quotes and terminal-event separation, browser tracker and UI.",
+      "live_groq_requests": false,
+      "live_host_verified": false,
+      "final_focused_checks": {
+        "tests_passed": 3,
+        "scope": "Final archived-history caption/refresh UI; malformed archive identifiers and Cathie target-gap/tracker display.",
+        "logs": "Development logs; no live provider calls."
+      }
     }
   },
-  "app_version": "2026-11-14.14",
+  "app_version": "2026-11-14.15",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -182,14 +204,14 @@
   "tracker": {
     "storage": "Per-browser localStorage on the app origin; no login or cross-device sync. Simple tracker interface without backup/upload/download controls.",
     "limit": 100,
-    "stored_fields": "Whitelisted prediction facts, source link, target/time frame, optional reviewed split events and target/evaluation basis, saved_at; no media/full transcripts/OCR/reports/keys/prices.",
+    "stored_fields": "Whitelisted prediction/source facts, target/time frame, optional split/evaluation basis and reviewed archive identifier, saved_at; no media/full transcripts/OCR/reports/keys/prices.",
     "entry_points": [
       "Reviewed selected TikTok video/photo recommendation",
       "Manual entry before calculation",
-      "Calculated curated examples; Nikola and context-only Bear Stearns excluded"
+      "Calculated curated examples; Bear Stearns context-only excluded"
     ],
     "duplicate_handling": "Same original post + asset updates the existing record; manual identities include ticker/type/date/creator/claim.",
-    "price_updates": "On opening the selected tip, existing live-history path with one-hour cache; explicit refresh clears price cache. No background service.",
+    "price_updates": "On opening ordinary tips: live history with one-hour cache and explicit refresh. Two archived cases always use fixed reviewed asset histories, preserve identity in browser records and disable refresh. No background service.",
     "new_predictions": "Saving requires no available prices. Today: no market call. Fewer than two common later closes: no return.",
     "isolation": "Browser lists and session data separate from the shared import-result cache. No external storage provider.",
     "live_browser_verified": false,
@@ -212,13 +234,17 @@
   "curated_special_cases": [
     "roaring-kitty-gme-20200804",
     "cramer-coinbase-20210413",
-    "ark-tesla-20210319",
     "pompliano-bitcoin-20190624",
-    "cramer-bear-stearns-context-20080311"
+    "ark-tesla-20210319",
+    "cramer-bear-stearns-context-20080311",
+    "musk-dogecoin-20210428",
+    "portnoy-safemoon-20210517",
+    "pelosi-nvidia-20231222",
+    "cohen-bbby-20220307"
   ],
-  "price_snapshot_changes": "Release .14 retains all fourteen prior price CSVs byte-identically. Adds separate sourced Bear Stearns six-close context history, with no backtest. Original supplied cases retained only as regression fixtures.",
+  "price_snapshot_changes": "Release .15 adds DOGE-USD, NVDA, SAFEMOON-V1 and BBBY-LEGACY files; all fourteen previous price CSVs byte-identical. SafeMoon archive ends 2021-10-04; original BBBY archive ends 2023-05-02, with subsequent zero-value cancellation separately sourced. No ticker/token-version splice or fabricated market closes.",
   "collection_heading": "Iconic market calls",
-  "active_case_count": 5,
+  "active_case_count": 9,
   "context_case": "Bear Stearns: six sourced reported closing prices around the statement; no stock-price forecast or equity trade inferred.",
   "retired_original_symbols": [
     "HD",
@@ -244,5 +270,35 @@
     "source": "Court opinion hosted by Justia; March 11 independently corroborated in contemporary Bloomberg reporting archived by FCIC.",
     "simulated_trade": false,
     "benchmark_return": false
+  },
+  "historical_archives": {
+    "safemoon-v1": {
+      "start": "2021-05-17",
+      "end": "2021-10-04",
+      "return_basis": "price",
+      "source": "Archived first-party CoinGecko USD historical table and matching CSV",
+      "missing_data": "High/Low and actions left missing; transfer taxes and reflection rewards excluded"
+    },
+    "bbby-original": {
+      "start": "2022-03-07",
+      "end": "2023-05-02",
+      "return_basis": "price",
+      "source": "Original BBBY OHLC archive cross-checked against contemporaneous reporting",
+      "terminal_event": "Shares cancelled without value, 2023-09-29; separate issuer 8-K, not a daily quote"
+    }
+  },
+  "target_comparison": {
+    "formula_pct": "100 * (observed nominal close / reviewed target - 1)",
+    "formula_usd": "observed nominal close - reviewed target",
+    "date": "Last close on/before a covered deadline, otherwise latest available close; actual date displayed",
+    "safety": "No distance for absent target, invalid close, pre-entry deadline or unreviewed/mismatched split. Earlier intraday target hit remains a hit.",
+    "outputs": "App/manual/import/tracker shared target section; JSON; batch current_summary CSV",
+    "cathie_snapshot_example": {
+      "target_usd": 1000,
+      "close_date": "2025-12-31",
+      "close_usd": 449.72,
+      "difference_pct": -55.028,
+      "deadline_type": "Explicit year-end project convention for ARK model year"
+    }
   }
 }

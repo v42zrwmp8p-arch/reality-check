@@ -26,7 +26,7 @@ def no_network(*args):raise AssertionError('all active numeric cases should use 
 class IconicCaseChecks(unittest.TestCase):
     def test_only_iconic_additions_are_active(self):
         rows=load_examples();by_symbol={row['symbol']:row for row in rows}
-        self.assertEqual(set(by_symbol),{'GME','COIN','TSLA','BTC-USD','BSC'})
+        self.assertEqual(set(by_symbol),{'GME','COIN','TSLA','BTC-USD','BSC','DOGE-USD','SAFEMOON-USD','NVDA','BBBY'})
         self.assertEqual(by_symbol['BSC']['case_type'],'context')
         self.assertFalse({'HD','LOW','CROX','MRVL','TSM','MU','NKLA','HERO','KDA','MTV'} & set(by_symbol))
 
@@ -107,7 +107,7 @@ class IconicCaseChecks(unittest.TestCase):
         self.assertTrue(any('Evaluation date: 2025-12-31' in item.value for item in at.caption))
         self.assertFalse(any('Manual split adjustment required' in item.value for item in at.markdown))
 
-    def test_batch_skips_bear_context_and_calculates_four_cases(self):
+    def test_batch_skips_bear_context_and_calculates_eight_cases(self):
         import analyse_examples
         def histories(row,force_live=False):return get_comparison_histories(row,False,fetch=no_network)
         with tempfile.TemporaryDirectory() as folder:
@@ -116,8 +116,8 @@ class IconicCaseChecks(unittest.TestCase):
             path=Path(folder)/'results'
             summary=pd.read_csv(path/'current_summary.csv')
             status=pd.read_csv(path/'case_status.csv')
-            self.assertEqual(len(summary),4)
-            self.assertEqual(len(status),5)
+            self.assertEqual(len(summary),8)
+            self.assertEqual(len(status),9)
             self.assertIn('Context case',status.loc[status['case_id']==BEAR,'status'].iloc[0])
             self.assertFalse((path/BEAR/'summary.json').exists())
 

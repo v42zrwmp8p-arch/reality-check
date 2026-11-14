@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.14"
+APP_VERSION = "2026-11-14.15"
 tiktok_mode = import_flow(APP_VERSION)
 from market_data import load_examples, provider_symbol, download_history, get_comparison_histories, comparison_symbols
 from case_analysis import analyse_comparisons
@@ -38,7 +38,9 @@ def discard_outdated_comparisons():
         expected = comparison_symbols(row["symbol"], row["asset_type"])
         summary = stored["result"][0]
         recorded = summary.get("requested_benchmark_symbols", [summary.get("benchmark_symbol")])
-        if set(recorded) != set(expected):
+        target = summary.get("price_target") or {}
+        old_target_result = target.get("target_usd") is not None and target.get("close_comparison_version") != 1
+        if set(recorded) != set(expected) or old_target_result:
             st.session_state.pop(key, None)
 
 
@@ -100,6 +102,12 @@ def show_results(row, result, source):
     st.divider()
     st.subheader("What happened next")
     st.caption(f"Simulated entry: {summary['entry_date']} · Last common close: {summary['latest_close_date']} · {source}")
+    if summary.get("history_note"):
+        st.caption(summary["history_note"])
+    if summary.get("terminal_status"):
+        st.info(summary["terminal_status"])
+        st.link_button("Official cancellation filing", summary["terminal_source"])
+    change = "price change" if summary.get("return_basis") == "price" else "return"
     for missing in summary.get("unavailable_benchmarks", []):
         st.warning(f"{benchmark_label(missing)} comparison is unavailable. Showing the available comparison.")
     window = summary["deadline_result"]
@@ -129,15 +137,15 @@ def show_results(row, result, source):
         st.info(f"Forecast deadline: {window['deadline']}. It precedes the simulated entry, so no holding-period return is available by that deadline.")
     st.markdown("**Latest available results**")
     if len(comparisons) == 1:
-        metrics = [("Asset return", f"{summary['asset_return_pct']:+.2f}%"),
-                   (f"{benchmark} return", f"{summary['benchmark_return_pct']:+.2f}%"),
+        metrics = [(f"Asset {change}", f"{summary['asset_return_pct']:+.2f}%"),
+                   (f"{benchmark} {change}", f"{summary['benchmark_return_pct']:+.2f}%"),
                    ("Difference", f"{summary['difference_pp']:+.2f} pp"),
                    ("Largest fall", f"{summary['max_drawdown_pct']:.2f}%")]
         for column, (label, value) in zip(st.columns(4), metrics):
             column.metric(label, value)
     else:
-        returns = [("Asset return", f"{summary['asset_return_pct']:+.2f}%")]
-        returns += [(f"{benchmark_label(symbol)} return", f"{values['return_pct']:+.2f}%") for symbol, values in comparisons.items()]
+        returns = [(f"Asset {change}", f"{summary['asset_return_pct']:+.2f}%")]
+        returns += [(f"{benchmark_label(symbol)} {change}", f"{values['return_pct']:+.2f}%") for symbol, values in comparisons.items()]
         differences = [(f"Difference vs {'Bitcoin' if symbol == 'BTC-USD' else symbol}", f"{values['difference_pp']:+.2f} pp") for symbol, values in comparisons.items()]
         differences.append(("Largest fall", f"{summary['max_drawdown_pct']:.2f}%"))
         for items in (returns, differences):
@@ -148,24 +156,24 @@ def show_results(row, result, source):
     elif "BTC-USD" in comparisons:
         st.caption("Bitcoin is the comparison asset here; it is not a broad crypto-market index.")
     last = pd.Timestamp(summary["latest_close_date"])
-    if last < pd.Timestamp.now(tz="UTC").tz_localize(None).normalize() - pd.Timedelta(days=7):
+    if not summary.get("history_note") and last < pd.Timestamp.now(tz="UTC").tz_localize(None).normalize() - pd.Timedelta(days=7):
         st.info(f"This series ends on {last:%d %b %Y}. Its subsequent performance has not been assessed.")
     st.subheader("Results over time")
     fields = ["period", "observation_date", "asset_return_pct", "benchmark_return_pct", "difference_pp"]
-    names = {"period": "Period", "observation_date": "Observation date", "asset_return_pct": "Asset return (%)",
-             "benchmark_return_pct": "Benchmark return (%)", "difference_pp": "Difference (pp)"}
+    names = {"period": "Period", "observation_date": "Observation date", "asset_return_pct": f"Asset {change} (%)",
+             "benchmark_return_pct": f"Benchmark {change} (%)", "difference_pp": "Difference (pp)"}
     if len(comparisons) > 1:
         primary_short = "Bitcoin" if primary == "BTC-USD" else primary
-        names.update(benchmark_return_pct=primary_short + " return (%)", difference_pp="Difference vs " + primary_short + " (pp)")
+        names.update(benchmark_return_pct=primary_short + f" {change} (%)", difference_pp="Difference vs " + primary_short + " (pp)")
         for symbol in comparisons:
             if symbol != primary:
                 fields += [symbol + "_return_pct", "difference_vs_" + symbol + "_pp"]
-                names[symbol + "_return_pct"] = symbol + " return (%)"
+                names[symbol + "_return_pct"] = symbol + f" {change} (%)"
                 names["difference_vs_" + symbol + "_pp"] = "Difference vs " + symbol + " (pp)"
     display = periods[fields].rename(columns=names)
     st.dataframe(display, hide_index=True, width="stretch", column_config={
         names[field]: st.column_config.NumberColumn(format="%+.2f") for field in fields[2:]})
-    st.caption("Cumulative returns from entry.")
+    st.caption(f"Cumulative {change}s from entry." if change == "return" else "Cumulative price changes from entry.")
     st.download_button("Download period results", periods.to_csv(index=False),
                        file_name=f"{row.get('case_id', 'manual')}_periods.csv", mime="text/csv")
     target = summary["price_target"]
@@ -180,6 +188,11 @@ def show_results(row, result, source):
         else:
             st.subheader(f"Target: {mark}{amount}")
         st.write(("Approximate level: " if target.get("approximate") else "") + target["status"])
+        close = target.get("close_comparison")
+        if close:
+            difference = close["difference_pct"]
+            gap = "at target" if difference == 0 else f"{abs(difference):.2f}% {'below' if difference < 0 else 'above'} target"
+            st.markdown(f"Close on {close['date']}: **{usd(close['close_usd'])}** · **{gap}**.")
         if target.get("creator_deadline"):
             st.caption("Creator deadline: " + target["creator_deadline"])
         if target.get("evaluation_deadline"):
@@ -234,7 +247,7 @@ def example_mode():
         show_nikola()
         return
     track_button(lambda: row, key="curated_track")
-    if st.button("Update prices", key="update_prices"):
+    if not row.get("history_archive") and st.button("Update prices", key="update_prices"):
         live_history.clear()
         st.session_state["live_case"] = case_id
     try:

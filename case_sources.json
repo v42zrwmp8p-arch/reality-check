@@ -1,6 +1,6 @@
 {
   "collection_date": "2026-11-14",
-  "purpose": "Curated iconic market calls, including explicit forecasts, bullish theses and a clearly separated context case.",
+  "purpose": "Nine curated iconic market calls and public investment signals, with source-specific limits and one context-only statement.",
   "cases": [
     {
       "case_id": "roaring-kitty-gme-20200804",
@@ -53,6 +53,51 @@
       "evidence_location": "predictions.csv evidence field",
       "context_chart": "bear_stearns_history.json",
       "context_chart_scope": "Six reported daily closing prices, 2008-03-10 through 2008-03-17; statement date marker only. Historical price context, no simulated trade, benchmark or return verdict."
+    },
+    {
+      "case_id": "musk-dogecoin-20210428",
+      "url": "https://twitter.com/elonmusk/status/1387290679794089986",
+      "published": "2021-04-28",
+      "publisher": "Elon Musk on Twitter",
+      "verification": "Tweet text and date corroborated by contemporaneous Fortune reporting. The Dogefather/SNL promotion has no numeric target. SNL appearance is an event, not a forecast deadline.",
+      "corroboration": "https://finance.yahoo.com/news/dogecoin-surging-again-why-152402880.html",
+      "event_source": "https://www.youtube.com/watch?v=x5RCfQyTDFI",
+      "evidence_location": "predictions.csv evidence field"
+    },
+    {
+      "case_id": "portnoy-safemoon-20210517",
+      "url": "https://twitter.com/stoolpresidente/status/1394379356487757834",
+      "published": "2021-05-17",
+      "publisher": "Dave Portnoy on Twitter",
+      "verification": "Original post reference, text/date and announced USD 40000 holding corroborated in contemporaneous reports. No numeric target or horizon invented.",
+      "corroboration": "https://dailyhive.com/montreal/dave-portnoy-barstool-safemoon",
+      "second_source": "https://www.benzinga.com/markets/cryptocurrency/21/05/21165756/dave-portnoy-wants-to-become-a-leader-in-safemoon-with-40k-investment-invest-at-your-own-r",
+      "history_archive": "safemoon-v1",
+      "evidence_location": "predictions.csv evidence field"
+    },
+    {
+      "case_id": "pelosi-nvidia-20231222",
+      "url": "https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2023/20024186.pdf",
+      "published": "2023-12-22",
+      "filing_signed": "2023-12-21",
+      "actual_transaction_date": "2023-11-22",
+      "publisher": "US House Clerk, Nancy Pelosi disclosure, spouse-owned position",
+      "verification": "Public filing records 50 call options, USD120 strike and 2024-12-20 expiry. Use Capitol Trades public-disclosure date 22 December conservatively; next common close is 26 December. Simulates Nvidia shares, not the reported options, without a price target or deadline inferred from strike/expiry.",
+      "public_date_source": "https://www.capitoltrades.com/trades/20003770148",
+      "evidence_location": "predictions.csv evidence field"
+    },
+    {
+      "case_id": "cohen-bbby-20220307",
+      "url": "https://s.wsj.net/public/resources/documents/bbbletter030622.pdf",
+      "published": "2022-03-07",
+      "letter_date": "2022-03-06",
+      "publisher": "Ryan Cohen / RC Ventures letter",
+      "verification": "Original letter gives 9.8% stake and value-unlocking proposals. Use 7 March public filing/news date conservatively, not purchase dates or a made-up numerical price target. Subsequent August exit corroborated by Reuters. Original security only; unrelated later reuse of ticker must not be connected.",
+      "publication_source": "https://ny1.com/nyc/all-boroughs/ap-top-news/2022/03/07/bed-bath--beyond-shares-soar-as-ryan-cohen-takes-huge-stake",
+      "exit_source": "https://www.investing.com/news/stock-market-news/ryan-cohens-60-million-bed-bath-uturn-triggers-meme-stock-investor-ire-2876320",
+      "cancellation_source": "https://www.sec.gov/Archives/edgar/data/886158/000119312523247428/d579010d8k.htm",
+      "history_archive": "bbby-original",
+      "evidence_location": "predictions.csv evidence field"
     }
   ],
   "price_extensions": [
@@ -142,6 +187,34 @@
       "split_events": {
         "2022-08-25": 3.0
       }
+    },
+    {
+      "symbol": "DOGE-USD",
+      "start_requested": "2021-04-28",
+      "end_exclusive": "2026-11-13",
+      "first_date": "2021-04-28",
+      "last_date": "2026-11-12",
+      "observations": 2025,
+      "currency": "USD",
+      "source": "Yahoo Finance public chart endpoint",
+      "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/DOGE-USD",
+      "retrieved_utc": "2026-11-14T19:46:14+00:00",
+      "split_events": {}
+    },
+    {
+      "symbol": "NVDA",
+      "start_requested": "2023-12-21",
+      "end_exclusive": "2026-11-13",
+      "first_date": "2023-12-21",
+      "last_date": "2026-11-12",
+      "observations": 726,
+      "currency": "USD",
+      "source": "Yahoo Finance public chart endpoint",
+      "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/NVDA",
+      "retrieved_utc": "2026-11-14T19:46:14+00:00",
+      "split_events": {
+        "2024-06-10": 10.0
+      }
     }
   ],
   "price_cutoff": "2026-11-12",
@@ -151,7 +224,11 @@
     "cramer-coinbase-20210413",
     "ark-tesla-20210319",
     "pompliano-bitcoin-20190624",
-    "cramer-bear-stearns-context-20080311"
+    "cramer-bear-stearns-context-20080311",
+    "musk-dogecoin-20210428",
+    "portnoy-safemoon-20210517",
+    "pelosi-nvidia-20231222",
+    "cohen-bbby-20220307"
   ],
   "retired_case_ids": [
     "6930016692546358533-HD",
@@ -165,5 +242,64 @@
     "7026749642477964549-KDA",
     "7026749642477964549-MTV"
   ],
-  "retained_original_cases": "None. All original user-supplied TikTok cases are retired from the active database; the original dataset and price files remain only as regression fixtures."
+  "retained_original_cases": "None. All original user-supplied TikTok cases are retired from the active database; the original dataset and price files remain only as regression fixtures.",
+  "historical_archives": [
+    {
+      "archive_key": "safemoon-v1",
+      "saved_file": "prices/SAFEMOON-V1.csv",
+      "source_url": "https://github.com/yhao21/trypython/blob/a344bfe37a3d10a77e582ec5c4ae40c84325f178/web_scrapping/all_crypto_data/history_csv/safemoon.csv",
+      "raw_file_sha256": "b4230c8ffb227c4d5ab7e93ade58a096c5a4a2cd1de387bdffd6fd9f6c48162a",
+      "saved_file_sha256": "bc0e43fbdb0c70723dd0900f59b0737bda58c80856a58176f5690b6bbbbc71bd",
+      "first_date": "2021-05-17",
+      "last_date": "2021-10-04",
+      "observations": 141,
+      "currency": "USD",
+      "return_basis": "Nominal price changes for asset and all benchmarks, with no synthetic later values; Adj Close is a compatibility column equal to Close.",
+      "live_asset_fallback": false,
+      "origin": "CoinGecko SafeMoon V1 USD historical-data HTML archived alongside the CSV; title, canonical URL, headers and contract address inspected.",
+      "origin_html": "https://github.com/yhao21/trypython/blob/a344bfe37a3d10a77e582ec5c4ae40c84325f178/web_scrapping/all_crypto_data/historical_data/safemoon.html",
+      "original_contract": "0x8076c74c5e3f5852037f31ff0093eeb8c8add8d3",
+      "verification": "May 18 close USD0.00000847 confirmed in the archived first-party HTML. Source contains close/open/volume only; High/Low/actions are left missing, not manufactured.",
+      "boundary": "Snapshot stops 4 October 2021, before V2 migration. No claim about later holding value or realized return; transfer taxes and reflection rewards excluded.",
+      "migration_source": "https://www.lbank.com/ar/support/articles/4413457395481",
+      "archive_commit": {
+        "repository": "yhao21/trypython",
+        "sha": "a344bfe37a3d10a77e582ec5c4ae40c84325f178",
+        "date": "2026-03-31T21:42:08Z",
+        "message": "plt.errorbar"
+      },
+      "source_blob_sha": "d6f4e1aba6921161f3b6ae8a1505b97d8ba6cf07"
+    },
+    {
+      "archive_key": "bbby-original",
+      "saved_file": "prices/BBBY-LEGACY.csv",
+      "source_url": "https://github.com/Stonks/tickers/blob/30ab4744279f6d34d20a438ec98413db96a53f69/tickers/nasdaq/BBBY.csv",
+      "raw_file_sha256": "f93e352a4f0c5f44f726e82fc0c7d5ef8d4e396dd12e9524c2b525aa09dae99d",
+      "saved_file_sha256": "6810092c50b7ebb9f5528fdc23d86a73866078a420645bba960d926877ffd432",
+      "first_date": "2022-03-07",
+      "last_date": "2023-05-02",
+      "observations": 291,
+      "currency": "USD",
+      "return_basis": "Nominal price changes for asset and all benchmarks, with no synthetic later values; Adj Close is a compatibility column equal to Close.",
+      "live_asset_fallback": false,
+      "origin": "Dated Stonks/tickers original BBBY OHLC archive. Source repository pipeline writes daily records from a provider page. Quotes independently cross-checked against contemporaneous AP/Reuters reporting.",
+      "cross_checked_closes": {
+        "2022-03-07": 21.71,
+        "2022-08-17": 23.08,
+        "2022-08-18": 18.55,
+        "2022-08-19": 11.03
+      },
+      "boundary": "Archive stops on 2 May 2023; no fabricated OTC path. Later share cancellation at zero is stated separately using the issuer 8-K, not inserted as a daily market observation.",
+      "cancellation_date": "2023-09-29",
+      "terminal_share_value_usd": 0,
+      "cancellation_source": "https://www.sec.gov/Archives/edgar/data/886158/000119312523247428/d579010d8k.htm",
+      "archive_commit": {
+        "repository": "Stonks/tickers",
+        "sha": "30ab4744279f6d34d20a438ec98413db96a53f69",
+        "date": "2024-03-27T14:40:25Z",
+        "message": "Update README.md"
+      },
+      "source_blob_sha": "385ca153a0dc27af96f3d0bca5e1c18ec0c42931"
+    }
+  ]
 }

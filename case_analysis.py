@@ -3,7 +3,7 @@ import pandas as pd
 from analysis_core import (compare_prices, period_metrics, horizon_table, check_price_target,
                            resolve_target, resolve_deadline, deadline_performance)
 
-IMPORT_VERSION = "2026-11-14.14"
+IMPORT_VERSION = "2026-11-14.15"
 
 
 def comparison_dates(row, histories):
@@ -30,6 +30,9 @@ def analyse_comparisons(row, histories):
         results[symbol] = analyse_case(row, histories["asset"], frame.reindex(dates), symbol)
     primary = next(iter(results))
     summary, periods, chart = results[primary]
+    for key in ("return_basis", "history_note", "terminal_status", "terminal_source"):
+        if key in histories:
+            summary[key] = histories[key]
     summary["requested_benchmark_symbols"] = histories["requested"]
     summary["unavailable_benchmarks"] = histories["unavailable"]
     summary["comparisons"] = {}

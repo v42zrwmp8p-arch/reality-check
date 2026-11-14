@@ -8,7 +8,7 @@ import streamlit as st
 from tracker_core import (prediction_record, tracker_records,
                           forecast_status, forecast_label, tracker_comparison)
 
-IMPORT_VERSION = "2026-11-14.14"
+IMPORT_VERSION = "2026-11-14.15"
 # Register once per process; Streamlit reruns mount the same component.
 _storage = st.components.v2.component("reality_check_tracker_storage_v1",
             js=(Path(__file__).with_name("tracker_storage.js")).read_text(encoding="utf-8"))
@@ -108,7 +108,7 @@ def tracker_mode(histories, show_results, show_nikola, clear_prices):
         if row.get("video_url"):
             st.link_button("Original post", row["video_url"])
         a, b = st.columns(2)
-        refresh = a.button("Refresh prices", key="tracker_refresh")
+        refresh = a.button("Refresh prices", key="tracker_refresh", disabled=bool(row.get("history_archive")))
         if b.button("Remove prediction", key="tracker_remove", disabled=not ready or bool(st.session_state.get("tracker_pending"))):
             queue_change({"kind": "remove", "tracker_id": selected})
         if refresh:

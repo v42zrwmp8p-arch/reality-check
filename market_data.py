@@ -6,8 +6,22 @@ import pandas as pd
 from analysis_core import validated_split_review
 
 ROOT = Path(__file__).resolve().parent
-IMPORT_VERSION = "2026-11-14.14"
+IMPORT_VERSION = "2026-11-14.15"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
+HISTORY_ARCHIVES = {
+    "safemoon-v1": {
+        "symbol": "SAFEMOON-USD", "asset_type": "Crypto", "file_symbol": "SAFEMOON-V1",
+        "source": "Archived CoinGecko daily USD prices (SafeMoon V1)",
+        "history_note": "V1 price history ends on 4 October 2021. Price changes only; transfer taxes and reflection rewards are excluded.",
+    },
+    "bbby-original": {
+        "symbol": "BBBY", "asset_type": "Equity", "file_symbol": "BBBY-LEGACY",
+        "source": "Archived original BBBY daily prices",
+        "history_note": "Original BBBY price history ends on 2 May 2023. Price changes only; later OTC prices are not included.",
+        "terminal_status": "Final outcome: the original shares were cancelled without value on 29 September 2023.",
+        "terminal_source": "https://www.sec.gov/Archives/edgar/data/886158/000119312523247428/d579010d8k.htm",
+    },
+}
 
 
 def load_examples(path=None):
@@ -41,6 +55,7 @@ def load_examples(path=None):
                 row[field] = int(value)
         row["curated"] = True
         row["reviewed_splits"] = validated_split_review(row.get("reviewed_splits"))
+        history_archive(row)
         records.append(row)
     if len({r["case_id"] for r in records}) != len(records):
         raise ValueError("Two rows have the same case ID. Use a distinct ID for each video and asset.")
@@ -59,6 +74,17 @@ def provider_symbol(symbol, asset_type):
 def comparison_symbol(symbol, asset_type):
     """Compare Bitcoin with SPY, and other crypto with Bitcoin."""
     return comparison_symbols(symbol, asset_type)[0]
+
+
+def history_archive(row):
+    """Only explicitly reviewed assets may use these fixed historical datasets."""
+    key = row.get("history_archive")
+    if key in (None, ""):
+        return None
+    archive = HISTORY_ARCHIVES.get(key) if isinstance(key, str) else None
+    if archive is None or row["asset_type"] != archive["asset_type"] or provider_symbol(row["symbol"], row["asset_type"]) != archive["symbol"]:
+        raise ValueError("The historical archive does not match this asset.")
+    return archive
 
 
 def comparison_symbols(symbol, asset_type):
@@ -99,6 +125,10 @@ def download_history(symbol, publication_date, end_date):
 
 def get_case_histories(row, force_live=False, fetch=download_history):
     """Shared data path for the app, batch analysis and a future report notebook."""
+    if history_archive(row):
+        data = get_comparison_histories(row, force_live, fetch)
+        primary = next(iter(data["benchmarks"]))
+        return data["asset"], data["benchmarks"][primary], primary, data["source"]
     supplied = row.get("provider_symbols") or row["symbol"]
     symbol = provider_symbol(supplied.split("|")[0], row["asset_type"])
     benchmark_symbol = comparison_symbol(symbol, row["asset_type"])
@@ -115,6 +145,9 @@ def get_case_histories(row, force_live=False, fetch=download_history):
 
 def get_comparison_histories(row, force_live=False, fetch=download_history):
     """Load the asset and each requested comparison independently."""
+    archive = history_archive(row)
+    if archive:
+        force_live = False
     supplied = row.get("provider_symbols") or row["symbol"]
     symbol = provider_symbol(supplied.split("|")[0], row["asset_type"])
     requested = comparison_symbols(symbol, row["asset_type"])
@@ -129,15 +162,30 @@ def get_comparison_histories(row, force_live=False, fetch=download_history):
             used_live = True
         return frame
 
-    asset = read(symbol)
+    if archive:
+        asset = saved_history(archive["file_symbol"], row["publication_date"])
+        if asset is None:
+            raise ValueError("The reviewed historical price archive is unavailable.")
+    else:
+        asset = read(symbol)
     benchmarks, unavailable = {}, []
     for ticker in requested:
         try:
-            benchmarks[ticker] = read(ticker)
+            frame = read(ticker)
+            if archive:
+                frame = frame.copy()
+                frame["Adj Close"] = frame["Close"]
+            benchmarks[ticker] = frame
         except Exception:
             unavailable.append(ticker)
     if not benchmarks:
         raise ValueError("Comparison prices are unavailable. Please try again later.")
-    return {"asset": asset, "benchmarks": benchmarks, "requested": requested,
+    result = {"asset": asset, "benchmarks": benchmarks, "requested": requested,
             "unavailable": unavailable,
             "source": "New Yahoo Finance download" if used_live else "Saved data snapshot"}
+    if archive:
+        result.update(source=archive["source"], return_basis="price")
+        for key in ("history_note", "terminal_status", "terminal_source"):
+            if key in archive:
+                result[key] = archive[key]
+    return result

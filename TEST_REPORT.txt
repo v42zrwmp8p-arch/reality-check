@@ -1,6 +1,44 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.14
+Current release: 2026-11-14.15
+Full suite: 132 tests passed with Python 3.12 in 41.101 seconds.
+Three final focused checks also passed after caption and identifier-guard cleanup.
+Four additions and target distance:
+- Added source-dated Musk/Dogecoin, Portnoy/SafeMoon V1, Pelosi/Nvidia and
+  Cohen/original BBBY. Nine cases total, eight calculated, one context-only.
+  Original sources, public-date conventions and price provenance recorded.
+- Target section shows nominal close and distance above/below numeric target.
+  Target-relative percentage uses the target as denominator. A covered
+  deadline uses its last observed close; otherwise latest available close.
+  Date is displayed, missing/invalid data and unreviewed splits omit the gap,
+  and a prior target hit stays a hit. Dollar/percentage gaps also exported.
+- ARK year-end snapshot: USD 449.72 versus reviewed USD 1,000 target, 55.03%
+  below target, despite a positive investment return at that date. The same
+  output works in database and tracker. Older cached target results reset.
+- Pelosi entry starts after public disclosure (conservatively 22 December),
+  not the November purchase date. Share comparison only; strike and expiry
+  do not become a forecast. Dogecoin tweet has no invented USD 1 target or
+  SNL forecast deadline; Portnoy's holding amount is not a token price target.
+- Added real Yahoo DOGE/NVDA observations and two verified bounded archives.
+  SafeMoon V1 through 4 October 2021, checked against archived CoinGecko HTML
+  and original V1 contract; no V2 splice or estimated later holding value.
+  Original BBBY OHLC through 2 May 2023, independently checked at four news
+  checkpoints. Later zero-value share cancellation shown separately from
+  daily quotes using issuer 8-K; no reuse of the modern BBBY ticker history.
+- Archived asset and references all use price changes, labelled accordingly.
+  Missing SafeMoon High/Low/actions remain missing. Transfer taxes and
+  reflection rewards excluded. Fixed identifiers are validated and survive
+  tracker serialization. Archive failure never downloads a modern asset as
+  fallback. Refresh cannot replace the reviewed historical asset series.
+- All fourteen pre-update price CSVs are byte-identical; now eighteen files.
+  Existing return formulas, source-import engine v8 and API limits unchanged.
+- Thirteen new tests cover math/date/safety/cache/export, real saved Cathie
+  output, source timing, archive identity/missing data, price basis, reported
+  quote checkpoints, original-share terminal event and browser tracker UI.
+  Requests in tests use snapshots or simulations; no live Groq call, API key
+  inspection or deployed-browser verification in this update.
+
+Previous release 2026-11-14.14 checks:
 Full suite: 119 tests passed with Python 3.12 in 27.484 seconds.
 Database and historical chart update:
 - All original supplied TikTok cases are removed from the active database,

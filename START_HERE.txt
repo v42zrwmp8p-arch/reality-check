@@ -5,12 +5,17 @@ https://finfluencer-reality-check.streamlit.app/
 Besucher brauchen keine Python-Installation und keinen eigenen API-Key.
 
 Bereiche: Import TikTok, Manual Entry, My Tracker, Case Database.
-Die Case Database heisst im Inhalt Iconic market calls und enthaelt fuenf Faelle:
+Die Case Database heisst im Inhalt Iconic market calls und enthaelt neun Faelle:
 Roaring Kitty/GME, Cramer/Coinbase, Cathie Wood/ARK/Tesla, Pompliano/Bitcoin,
-Cramer/Bear Stearns.
-Vier besitzen gespeicherte Kursvergleiche. Bear Stearns zeigt einen historischen
+Cramer/Bear Stearns, Musk/Dogecoin, Portnoy/SafeMoon V1, Pelosi/Nvidia und
+Cohen/Bed Bath & Beyond.
+Acht besitzen gespeicherte Kursvergleiche. Bear Stearns zeigt einen historischen
 Chart fuer 10.-17. Maerz 2008 mit Markierung der Aussage, ohne simulierten Trade.
 Alle urspruenglichen TikTok-Faelle sind aus der aktiven Datenbank entfernt.
+SafeMoon V1 hat einen gekennzeichneten historischen Ausschnitt bis 04.10.2021,
+BBBY bis 02.05.2023; spaetere Aktienannullierung separat mit offizieller Quelle.
+Bei numerischen Kurszielen sieht man den Abstand zum Schlusskurs am Ende des
+Zeitraums beziehungsweise zum letzten verfuegbaren Kurs bei laufenden Prognosen.
 My Tracker speichert die Eintraege im jeweiligen Browser.
 
 Lokaler Start mit Python 3.12:

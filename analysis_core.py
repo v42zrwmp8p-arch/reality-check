@@ -4,7 +4,7 @@ from math import isfinite, isclose
 from datetime import date
 import json
 
-IMPORT_VERSION = "2026-11-14.14"
+IMPORT_VERSION = "2026-11-14.15"
 
 
 def validated_split_review(value):
@@ -162,10 +162,13 @@ def check_price_target(frame, entry_date, last_date, target_usd, basis, deadline
     """Check a nominal USD target separately from dividend-adjusted returns."""
     deadline = pd.Timestamp(deadline) if deadline else None
     result = {"target_usd": target_usd, "basis": basis,
+              "close_comparison_version": 1,
               "creator_deadline": None if deadline is None else str(deadline.date())}
     if target_usd is None:
         result["status"] = "No numeric price target specified"
         return result
+    target_usd = positive_number(target_usd, "Target price")
+    result["target_usd"] = target_usd
     full_window = frame.loc[entry_date:last_date]
     end = min(pd.Timestamp(last_date), deadline) if deadline is not None else last_date
     window = frame.loc[entry_date:end]
@@ -183,6 +186,15 @@ def check_price_target(frame, entry_date, last_date, target_usd, basis, deadline
             result["status"] = "Manual split adjustment required before target evaluation"
             return result
         result["split_adjustment_reviewed"] = True
+    close = window.iloc[-1]["Close"]
+    if pd.notna(close) and isfinite(float(close)) and float(close) > 0:
+        close = float(close)
+        result["close_comparison"] = {
+            "date": str(window.index[-1].date()), "close_usd": close,
+            "difference_usd": close - target_usd,
+            "difference_pct": 100 * (close / target_usd - 1),
+            "period": "deadline" if deadline is not None and deadline <= pd.Timestamp(last_date) else "latest",
+        }
     if window.iloc[0]["Close"] >= target_usd:
         result.update({"status": "At or above target at entry close",
                        "first_intraday_high_date": None,
