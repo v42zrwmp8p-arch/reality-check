@@ -12,7 +12,7 @@ from case_analysis import analyse_case
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-14.5"
+IMPORT_VERSION = "2026-11-14.6"
 
 
 def service_key():
@@ -105,7 +105,7 @@ def import_report(state):
             "provider_error": state.get("provider_error"), "compatibility_mode": state.get("compatibility_mode", False),
             "analysed_at": state.get("analysed_at"), "transcript": state.get("transcript"),
             "extraction_checks": state.get("extraction_checks", []),
-            "post_processing_targets": [{field: row.get(field) for field in ["asset", "symbol", "target_type", "target_value", "target_approximate", "reference_price", "currency", "target_recovered"]} for row in state.get("raw_drafts", [])],
+            "post_processing_targets": [{field: row.get(field) for field in ["asset", "symbol", "asset_type", "target_type", "target_value", "target_approximate", "reference_price", "currency", "target_recovered"]} for row in state.get("raw_drafts", [])],
             "extraction_result_count": len(state.get("raw_drafts", [])),
             "review_list_count": len(state.get("drafts", []))}
 
@@ -146,7 +146,7 @@ def review_fields(state):
     if not symbol.strip():
         st.caption("Choose a suggested match or enter the ticker.")
     a, b, c = st.columns([1, 1, 2])
-    kinds = ["Choose asset type", "Equity", "Crypto"]
+    kinds = ["Choose asset type", "Equity", "Crypto", "ETF"]
     kind = a.selectbox("Asset type", kinds, index=kinds.index(draft.get("asset_type")) if draft.get("asset_type") in kinds else 0, key=prefix + "kind")
     published = b.date_input("Publication date", value=details["publication_date"], max_value=date.today(), key=prefix + "published")
     creator = c.text_input("Creator", value=details["creator"], key=prefix + "creator")

@@ -20,8 +20,8 @@ def load_examples(path=None):
         row = series.to_dict()
         date = pd.to_datetime(row["publication_date"], errors="raise")
         row["publication_date"] = str(date.date())
-        if row["asset_type"] not in {"Equity", "Crypto"}:
-            raise ValueError("Asset type must be Equity or Crypto.")
+        if row["asset_type"] not in {"Equity", "ETF", "Crypto"}:
+            raise ValueError("Asset type must be Equity, ETF or Crypto.")
         for field in ["target_usd", "target_value", "reference_price", "horizon_value"]:
             row[field] = float(row[field]) if row.get(field) not in (None, "") else None
             if row[field] is not None and (not isfinite(row[field]) or row[field] <= 0):

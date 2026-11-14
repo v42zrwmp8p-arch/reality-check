@@ -1,16 +1,35 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.5
-63 tests passed with Python 3.12:
+Current release: 2026-11-14.6
+70 tests passed with Python 3.12 in 17.277 seconds:
 - 10 original calculation/data checks
 - 9 Groq/input checks
 - 10 identifier/transcript/creator regression checks
 - 8 background-task/cache checks
-- 9 Streamlit AppTest flows
+- 10 Streamlit AppTest flows
 - 3 mixed-release and safe-diagnostic checks
 - 9 multiple-target recovery checks
 - 5 request-format recovery/error-detail checks
+- 6 ETF-scope and source-recovery checks
 
+
+Confirmed ETF scope mismatch
+- The supplied real v5 report completes two model calls with empty arrays.
+  Its own system prompt permits only individual stocks and cryptocurrencies,
+  while the transcript highlights ETFs. This is a concrete scope mismatch,
+  not an HTTP error or a missing numeric forecast.
+- ETF is now accepted in the extraction schema, prompt, review validator,
+  manual form, CSV validator and Yahoo search results. SPY is the common ETF
+  comparison, not a fund-category benchmark. Price math is unchanged.
+- Replaying the actual source and empty response now recovers XLE, SMH and
+  XLV with no extra model call. These are source-derived ETF examples; NVIDIA,
+  AMD and Micron mentioned as holdings are not additional recommendations.
+- Tests also recover VYM/VTI from different wording, reject explicit negative/
+  leveraged context, retain an existing model fund name without duplication,
+  and exercise ETF lookup, review and both input modes. UI price fixtures are
+  labelled functional fixtures, not actual ETF performance.
+- This replay verifies post-processing of the observed failure. A new live
+  model answer with the widened prompt has not been verified here.
 
 HTTP 400 request rejection
 - The supplied stockdads report has request_failed before a model answer. The
@@ -60,7 +79,7 @@ Runtime correction
   helpers in dependency order and verifies matching versions/function types.
 - Queue, semaphore, task registry and lock retain identity across the reload.
   Normal widget reruns do not reload helpers. An incompatible deployment stops
-  rather than silently running old code. Engine v5 isolates old cached results.
+  rather than silently running old code. Engine v6 isolates old cached results.
 - The dependency-file change requests a fresh deployment without changing
   installed dependency versions. Actual Cloud restart remains unverified here.
 - The optional import report records the exact extraction request JSON,
@@ -124,7 +143,7 @@ Provider and storage boundaries
 - Successful speech is retained for extraction retry. Original video/audio/
   frame files remain temporary and are deleted after processing or failure.
 - The bounded public-source cache remains shared. Edits and manually added
-  recommendations stay private. Engine v5 invalidates older source results.
+  recommendations stay private. Engine v6 invalidates older source results.
 - Free usage requires a Groq Free account. Code cannot inspect billing tier;
   it never changes billing settings. Separate speech/text limits still apply.
 

@@ -49,7 +49,7 @@ class ImportChecks(unittest.TestCase):
         base = {**DRAFT, "publication_date": None}
         with self.assertRaisesRegex(ImportProblem, "publication date"):
             reviewed_case(base, VIDEO)
-        with self.assertRaisesRegex(ImportProblem, "Equity or Crypto"):
+        with self.assertRaisesRegex(ImportProblem, "asset type"):
             reviewed_case(dict(base, publication_date="2023-06-26", asset_type="Unknown"), VIDEO)
 
     def test_targets_horizons_and_currency_are_checked(self):

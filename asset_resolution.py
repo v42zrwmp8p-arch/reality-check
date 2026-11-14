@@ -5,7 +5,7 @@ import re
 
 from market_data import provider_symbol
 
-IMPORT_VERSION = "2026-11-14.5"
+IMPORT_VERSION = "2026-11-14.6"
 
 # Identifiers only: these mappings contain no video claims, targets or outcomes.
 ASSETS = [
@@ -55,12 +55,12 @@ def search_candidates(name, kind):
     for quote in quotes:
         symbol = quote.get("symbol", "")
         quote_type = quote.get("quoteType")
-        asset_type = "Crypto" if quote_type == "CRYPTOCURRENCY" else "Equity" if quote_type == "EQUITY" else None
+        asset_type = {"CRYPTOCURRENCY": "Crypto", "EQUITY": "Equity", "ETF": "ETF"}.get(quote_type)
         if not asset_type or kind not in (None, "Unknown", asset_type):
             continue
         if asset_type == "Crypto" and not symbol.endswith("-USD"):
             continue
-        if asset_type == "Equity" and quote.get("exchange") not in {"NMS", "NGM", "NCM", "NYQ", "ASE", "PCX", "PNK", "OQB", "OQX"}:
+        if asset_type in {"Equity", "ETF"} and quote.get("exchange") not in {"NMS", "NGM", "NCM", "NYQ", "ASE", "PCX", "PNK", "OQB", "OQX"}:
             continue
         try:
             symbol = provider_symbol(symbol, asset_type)
@@ -158,4 +158,39 @@ def explicit_buy_list_candidates(transcript):
                          "currency": None, "time_frame": stated, "deadline": None,
                          "horizon_value": horizon, "horizon_unit": unit})
             seen.add(symbol)
+    return rows
+
+
+def explicit_etf_candidates(transcript):
+    """Recover literal ETF tickers in an explicit suggestion to buy/hold ETFs.
+
+    This uses source wording, not a fixed list of funds. Holdings mentioned
+    inside an ETF are not turned into separate recommendations.
+    """
+    text = " ".join(re.sub(r"\[\d+:\d+\]\s*", "", transcript).split())
+    positive = (r"\byou\s+(?:can|could|should|may)\b.{0,80}\b(?:buy|hold|own|invest\s+in)\b.{0,35}\bETFs?\b"
+                r"|\b(?:buy|hold|own)\s+these\s+ETFs?\b|\bETFs?\s+to\s+buy\b")
+    if not re.search(positive, text, re.I):
+        return []
+    if re.search(r"\b(?:don't|do not|never|avoid|not)\s+(?:buy(?:ing)?|own(?:ing)?|hold(?:ing)?|invest(?:ing)?\s+in)\s+(?:\w+\s+){0,2}ETFs?\b", text, re.I):
+        return []
+    rows, seen = [], set()
+    for mention in re.finditer(r"\bticker(?:\s+symbol)?\s*[:$-]?\s*([A-Z][A-Z0-9.-]{0,14})\b", text):
+        symbol = mention[1].rstrip(".")
+        before = text[max(0, mention.start() - 140):mention.start()]
+        if re.search(r"\b(?:leveraged|inverse|short|bear)\b", before, re.I):
+            continue
+        directly_named = re.search(r"\bETF\s*[,;:]?\s*(?:with\s+)?$", before, re.I)
+        earlier_one = rows and re.search(r"\b(?:the\s+)?one\s+before\b(?:\s+\w+){0,9}\s*$", before, re.I)
+        if symbol in seen or not (directly_named or earlier_one):
+            continue
+        evidence = " ".join((before + mention[0]).split()[-20:])
+        rows.append({"asset": symbol, "symbol": symbol, "asset_type": "ETF",
+                     "claim": "Named as an ETF example in a discussion of buying ETFs.",
+                     "evidence": evidence, "evidence_time": None,
+                     "target_type": "none", "target_value": None, "target_approximate": False,
+                     "reference_price": None, "currency": None,
+                     "time_frame": "long term" if re.search(r"\blong[ -]term\b", text, re.I) else None,
+                     "deadline": None, "horizon_value": None, "horizon_unit": None})
+        seen.add(symbol)
     return rows

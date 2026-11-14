@@ -11,11 +11,11 @@ is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.5` checks that Streamlit's entry script and all five import
+Release `2026-11-14.6` checks that Streamlit's entry script and all five import
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v5. The dependency file also changed to request
+results are isolated by engine v6. The dependency file also changed to request
 a fresh Community Cloud deployment, with the same dependency versions.
 
 The reported combination of new menu labels and the old no-result message
@@ -32,6 +32,28 @@ available if extraction fails after successful speech recognition.
 This makes a remaining real model failure inspectable instead of guessing
 from successful transcription alone. Live model accuracy is still separate
 from these runtime and simulated-response tests.
+
+## ETF recommendations
+
+Release 2026-11-14.6 fixes an overly narrow extraction scope. The supplied
+v5 ETF report shows two successful requests returning empty arrays while the
+system prompt explicitly allowed only individual stocks and crypto. ETFs
+are now allowed in the prompt and schema, as a distinct ETF asset type in
+import review, manual entry, CSV loading and Yahoo search suggestions.
+
+A conservative source fallback recognizes literal ETF ticker introductions
+within an explicit suggestion to buy/hold ETFs, including a later reference
+to the previously shown ETF. It does not use a fixed list of fund symbols.
+It excludes holding-company mentions, explicit negative advice and explicit
+leveraged/inverse context; it invents no target from historical performance.
+The recorded source now recovers XLE, XLV and SMH even when replaying its real
+empty model response, with no extra API request. Other explicit ticker examples
+(VYM/VTI) are tested as well. This is source recovery, not a new live model test.
+
+Stocks and ETFs use SPY as the common comparison, rather than a category-specific
+fund benchmark. USD currency and historical-coverage checks still apply.
+Crypto comparisons remain against Bitcoin. Vague long-term wording has no
+invented duration/deadline. Existing forecasts and calculations are retained.
 
 ## Request-format recovery
 
@@ -260,7 +282,7 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py test_format_recovery.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py test_format_recovery.py test_etf_import.py
 ```
 
 All ten curated views and the manual target/reference/deadline flows passed

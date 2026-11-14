@@ -11,7 +11,7 @@ from analysis_core import positive_number
 from charts import comparison_chart
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.5"
+APP_VERSION = "2026-11-14.6"
 tiktok_mode = import_flow(APP_VERSION)
 
 ROOT = Path(__file__).resolve().parent
@@ -137,7 +137,7 @@ def show_method():
     with st.expander("How the comparison works"):
         st.write("The simulated purchase uses the first common closing price after publication. Both chart lines start at 100.")
         st.write("Returns use adjusted USD closing prices, including vendor split and dividend adjustments. The largest fall is the maximum daily closing-price drawdown from an earlier peak.")
-        st.write("Equities are compared with the SPY ETF; crypto with Bitcoin. Price targets are checked separately from investment returns.")
+        st.write("Stocks and ETFs are compared with SPY; crypto with Bitcoin. Price targets are checked separately from investment returns.")
         st.write("A price multiple uses either the simulated entry close or an explicitly supplied creator reference. For example, 2× means a 100% price gain and 10× means a 900% gain.")
         st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication.")
         st.caption("Market data: Yahoo Finance via yfinance. Videos are linked, not hosted. Trading costs and taxes are excluded.")
@@ -187,8 +187,8 @@ def manual_mode():
     st.subheader("Manual Entry")
     st.caption("Enter an investment prediction yourself.")
     left, middle, right = st.columns([2, 1, 2])
-    ticker = left.text_input("Yahoo Finance ticker", value="AAPL", key="manual_ticker", help="USD stocks, ADRs and crypto, for example AAPL, MRVL or KDA-USD.")
-    kind = middle.selectbox("Asset type", ["Equity", "Crypto"], key="manual_type")
+    ticker = left.text_input("Yahoo Finance ticker", value="AAPL", key="manual_ticker", help="USD stocks, ETFs and crypto, for example AAPL, XLE or KDA-USD.")
+    kind = middle.selectbox("Asset type", ["Equity", "Crypto", "ETF"], key="manual_type")
     published = right.date_input("Publication date", value=date(2023, 6, 26), max_value=date.today(), key="manual_date")
     value_input, reference_input, reference_type = None, None, None
     target_approximate = False

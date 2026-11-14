@@ -37,6 +37,33 @@ class ImportUiChecks(unittest.TestCase):
     @patch("tiktok_ui.service_key", return_value="fixture-key")
     @patch("tiktok_ui.submit_import")
     @patch("market_data.download_history")
+    def test_imported_and_manual_etf_comparisons_use_spy(self, download, submit, key):
+        from asset_resolution import explicit_etf_candidates
+        from test_etf_import import SOURCE
+        rows = explicit_etf_candidates(SOURCE["transcript"])
+        submit.return_value = (completed(rows), False)
+        # Use a saved series only as a functional UI fixture, not ETF performance.
+        frame = pd.read_csv(ROOT / "prices" / "SPY.csv", index_col="Date", parse_dates=True)
+        download.side_effect = lambda symbol, *args: (frame.copy(), symbol)
+        at = app(); at.text_input(key="tt_link").set_value(VIDEO).run()
+        at.button(key="tt_analyse").click().run()
+        self.assertEqual(len(at.selectbox(key="tt_choice").options), 3)
+        self.assertEqual(at.selectbox(key="tt_review_0_kind").value, "ETF")
+        at.button(key="tt_calculate").click().run()
+        self.assertFalse(at.exception)
+        self.assertFalse(at.error)
+        self.assertEqual(at.session_state["tt_result"]["result"][0]["benchmark_symbol"], "SPY")
+        at.radio(key="mode").set_value("Manual Entry").run()
+        at.text_input(key="manual_ticker").set_value("VTI").run()
+        at.selectbox(key="manual_type").set_value("ETF").run()
+        at.button(key="manual_calculate").click().run()
+        self.assertFalse(at.exception)
+        self.assertFalse(at.error)
+        self.assertEqual(at.session_state["manual_result"]["row"]["asset_type"], "ETF")
+
+    @patch("tiktok_ui.service_key", return_value="fixture-key")
+    @patch("tiktok_ui.submit_import")
+    @patch("market_data.download_history")
     def test_recorded_amc_target_review_and_approximate_result(self, download, submit, key):
         from test_target_extraction import FIXTURE, AMC
         from target_extraction import recover_multiple
@@ -119,7 +146,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertTrue(any("Fixture transcript" in x.value for x in at.text))
         self.assertNotIn("Sampled screen text", [x.label for x in at.expander])
         self.assertIn("Import details", [x.label for x in at.expander])
-        self.assertTrue(any("Import version: 2026-11-14.5" == x.value for x in at.caption))
+        self.assertTrue(any("Import version: 2026-11-14.6" == x.value for x in at.caption))
         at.date_input(key="tt_review_0_published").set_value(None).run()
         at.button(key="tt_calculate").click().run()
         self.assertTrue(any("publication date" in x.value for x in at.error))

@@ -46,7 +46,7 @@
     "limits": "180 seconds, 50 MB, 16 sampled OCR frames, 2 active / 8 total tasks",
     "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change",
-    "engine_version": "groq-whisper-ocr-v5",
+    "engine_version": "groq-whisper-ocr-v6",
     "identifier_handling": "Known identifiers; spelling and bounded Yahoo-search suggestions require review",
     "empty_result_handling": "Explicit supported-list recovery; otherwise one additional model check",
     "recheck": "Explicit extraction-only recheck with 30-second cooldown; original transcript/OCR reused",
@@ -60,7 +60,8 @@
     "numeric_target_recovery": "Single named asset/one explicit future multiple; no extra API call; rejects valuation/past/teaching examples and ambiguous/conflicting targets",
     "format_recovery": "One JSON Object Mode attempt after HTTP 400 chat error; same model/source; local schema validation; no retries of other HTTP errors",
     "error_diagnostics": "HTTP status and whitelisted provider details, connection key redacted",
-    "latest_live_failure": "Stockdads report is request_failed with HTTP-400-mapped message; original provider error details absent, exact cause unconfirmed"
+    "latest_live_failure": "Stockdads report is request_failed with HTTP-400-mapped message; original provider error details absent, exact cause unconfirmed",
+    "etf_support": "ETF is an explicit type across extraction/review/manual/CSV/search. Generic literal ETF-ticker source recovery; no per-video ticker list."
   },
   "system_dependencies": [
     "ffmpeg",
@@ -74,15 +75,22 @@
     "Manual Entry"
   ],
   "validation": {
-    "tests_passed": 63,
+    "tests_passed": 70,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
     "original_price_files_unchanged": true,
     "mixed_release_regression": "Stale helper reload, matching function identities, queue preserved, no reload on ordinary reruns",
     "diagnostic_report": "Exact extraction request JSON, returned content, response ID, parsing status and counts; excludes credentials/headers/tasks/private edits; available after extraction errors",
-    "recorded_amc_replay": "Actual user-provided source/model output replayed through extraction, recovery and ticker resolution; approx 6x with USD 2.25 reference and preserved condition"
+    "recorded_amc_replay": "Actual user-provided source/model output replayed through extraction, recovery and ticker resolution; approx 6x with USD 2.25 reference and preserved condition",
+    "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call"
   },
-  "app_version": "2026-11-14.5",
-  "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording"
+  "app_version": "2026-11-14.6",
+  "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
+  "supported_asset_types": [
+    "Equity",
+    "ETF",
+    "Crypto"
+  ],
+  "etf_comparison": "SPY, a common comparison asset rather than a category-specific ETF benchmark"
 }

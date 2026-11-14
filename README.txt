@@ -30,6 +30,11 @@ network failures are surfaced. No retry loop or provider fallback occurs; HTTP 4
 The planned two-week course usage has no automatic expiration timer.
 
 Import corrections
+- ETFs are now explicitly supported, with an ETF asset type in extraction,
+  review, manual input, CSV rows and lookup suggestions. The old stock/crypto-
+  only prompt was too narrow for the supplied fund video. A source fallback
+  recovers explicit ETF ticker introductions without treating their holdings
+  as stock picks or historical gains as future targets. ETFs use SPY for comparison.
 - HTTP 400 chat requests get one alternate JSON-output attempt with the same
   model/source. Local schema validation still applies. Actual provider error
   fields are retained with the connection key redacted. Other HTTP errors do
@@ -41,9 +46,9 @@ Import corrections
   if the model misses it. The recorded AMC example now yields approximately
   6x from USD 2.25 (about USD 13.50), preserving the condition and small-position
   caution. It does not invent a deadline or reinterpret earnings valuations.
-- Release 2026-11-14.5 prevents a new entry script from using old imported
+- Release 2026-11-14.6 prevents a new entry script from using old imported
   helpers. A version mismatch reloads the helpers once, preserving the queue.
-- Engine v5 isolates older cached analyses. The dependency-file change requests
+- Engine v6 isolates older cached analyses. The dependency-file change requests
   a clean Cloud rebuild with the same dependency versions.
 - Import details displays the active release. Its downloadable report contains
   the exact extraction request JSON, real returned content, model-response
@@ -98,7 +103,7 @@ Useful optional columns
 Legacy target_usd inputs remain readable, but the supplied CSV uses the explicit
 target_type/target_value structure.
 
-Dates use YYYY-MM-DD. Asset type is Equity or Crypto. Use valid CSV quoting for
+Dates use YYYY-MM-DD. Asset type is Equity, ETF or Crypto. Use valid CSV quoting for
 text containing commas; a spreadsheet editor can handle this. Missing engagement
 counts and forecasts stay blank/unspecified, not zero.
 
@@ -189,6 +194,7 @@ test_asset_resolution.py Regressions for the supplied transcript, tickers and cr
 test_import_runtime.py Mixed-release reload, queue preservation and safe diagnostics
 test_target_extraction.py Recorded AMC response replay and false-target guards
 test_format_recovery.py HTTP-error detail/redaction, bounded format switch and quota resume
+test_etf_import.py Recorded ETF-scope failure, generic ticker recovery and fund input
 
 The same functions can be imported into the report notebook. A final notebook
 and the course's PDF deliverable have not been created in this MVP step.
@@ -198,7 +204,7 @@ python analyse_examples.py
 python analyse_examples.py --refresh
 
 Run focused checks
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py test_format_recovery.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py test_format_recovery.py test_etf_import.py
 
 Validation
 All ten curated views passed Streamlit AppTest checks. The nine price cases
