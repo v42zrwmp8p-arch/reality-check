@@ -25,6 +25,11 @@ def histories(row, force_live=False):
     return get_case_histories(row, force_live, fetch=live_history)
 
 
+def usd(value):
+    number = f"{value:,.2f}".rstrip("0").rstrip(".") if value >= 1 else f"{value:.6g}"
+    return "USD " + number
+
+
 def show_recommendation(row):
     st.subheader(row["asset"])
     if not row.get("curated"):
@@ -102,26 +107,26 @@ def show_results(row, result, source):
     })
     st.dataframe(display, hide_index=True, width="stretch", column_config={
         c: st.column_config.NumberColumn(format="%+.2f") for c in ["Asset return (%)", "Benchmark return (%)", "Difference (pp)"]})
-    st.caption("Every return starts at the original entry. Only elapsed periods are shown; a non-trading anniversary uses the last common close on or before that date.")
+    st.caption("Cumulative returns from entry.")
     st.download_button("Download period results", periods.to_csv(index=False),
                        file_name=f"{row.get('case_id', 'manual')}_periods.csv", mime="text/csv")
     target = summary["price_target"]
     if target["target_usd"] is not None:
-        st.subheader("Price target")
-        amount = f"${target['target_usd']:,.2f}" if target["target_usd"] >= 1 else f"${target['target_usd']:.6f}"
-        st.write(f"**{amount}** · {target['status']}")
+        amount = usd(target["target_usd"])
         if target["target_type"] == "multiple":
             multiple = target["target_value"]
-            st.caption(f"{multiple:g}× means a {(multiple - 1) * 100:g}% price increase from the selected reference.")
-            label = "Simulated entry close" if target["reference_type"] == "entry" else "Creator reference price"
-            st.caption(f"{label}: USD {target['reference_price']:,.6f}")
-        st.caption(target["basis"])
+            st.subheader(f"Target: {multiple:g}× ({amount})")
+            if target["reference_type"] == "entry":
+                st.caption("Reference: simulated entry price.")
+        else:
+            st.subheader(f"Target: {amount}")
+        st.write(target["status"])
         if target.get("creator_deadline"):
             st.caption("Creator deadline: " + target["creator_deadline"])
         if target.get("first_intraday_high_date"):
-            st.caption("First observed intraday touch after entry: " + target["first_intraday_high_date"])
+            st.caption("First reached: " + target["first_intraday_high_date"])
         if target.get("first_closing_price_date"):
-            st.caption("First closing price at or above target: " + target["first_closing_price_date"])
+            st.caption("First close at target or above: " + target["first_closing_price_date"])
 
 
 def show_method():
@@ -132,7 +137,8 @@ def show_method():
         st.write("A price multiple uses either the simulated entry close or an explicitly supplied creator reference. For example, 2× means a 100% price gain and 10× means a 900% gain.")
         st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication. Vague time frames are retained as text without inventing an exact date.")
         st.write("The curated collection is illustrative. These examples do not establish a creator ranking or represent all financial content.")
-        st.caption("Market data: Yahoo Finance via yfinance. The saved examples use the supplied TikTok notes; videos are linked, not hosted. Trading costs and investor-specific taxes are excluded.")
+        st.caption("Market data: Yahoo Finance via yfinance. Videos are linked, not hosted. Trading costs and taxes are excluded.")
+        st.caption("Imports use speech recognition and sampled OCR. Review names, tickers and dates. Publication dates use UTC. Public-source analyses may be reused for 24 hours; edits stay private and media files are deleted after processing. Groq usage limits apply.")
 
 
 def example_mode():
@@ -172,8 +178,8 @@ def example_mode():
 
 
 def manual_mode():
-    st.subheader("Check your own case")
-    st.caption("Enter the asset and the date of the recommendation.")
+    st.subheader("Manual Entry")
+    st.caption("Enter an investment prediction yourself.")
     left, middle, right = st.columns([2, 1, 2])
     ticker = left.text_input("Yahoo Finance ticker", value="AAPL", key="manual_ticker", help="USD stocks, ADRs and crypto, for example AAPL, MRVL or KDA-USD.")
     kind = middle.selectbox("Asset type", ["Equity", "Crypto"], key="manual_type")
@@ -185,13 +191,11 @@ def manual_mode():
             value_input = st.text_input("Upside target price (USD)", placeholder="e.g. 142", key="manual_target_price")
         elif target_label == "Price multiple":
             value_input = st.number_input("Target multiple", min_value=1.000001, value=2.0, step=1.0, format="%g", key="manual_multiple")
-            st.caption("2× = doubling (+100%); 10× = tenfold (+900%).")
             reference_label = st.selectbox("Reference price", ["Simulated entry price", "Creator reference price"], key="manual_reference_type")
             reference_type = "entry" if reference_label == "Simulated entry price" else "creator"
             if reference_type == "creator":
                 reference_input = st.text_input("Creator reference price (USD)", placeholder="e.g. 106", key="manual_reference_price")
         deadline = st.date_input("Forecast deadline (optional)", value=None, key="manual_deadline")
-        st.caption("A deadline can be entered even without a numeric target.")
     current_inputs = (ticker, kind, str(published), target_label, str(value_input), reference_type, str(reference_input), str(deadline))
     submitted = st.button("Calculate", type="primary", key="manual_calculate")
     if submitted:
@@ -235,11 +239,14 @@ def manual_mode():
 
 st.title("Reality Check")
 st.write("See what happened after the recommendation.")
-mode = st.radio("Mode", ["TikTok examples", "Your own case", "Import TikTok"], horizontal=True, label_visibility="collapsed", key="mode")
+legacy_modes = {"TikTok examples": "TikTok Case Database", "Your own case": "Manual Entry"}
+if st.session_state.get("mode") in legacy_modes:
+    st.session_state["mode"] = legacy_modes[st.session_state["mode"]]
+mode = st.radio("Mode", ["TikTok Case Database", "Import TikTok", "Manual Entry"], horizontal=True, label_visibility="collapsed", key="mode")
 st.divider()
-if mode == "TikTok examples":
+if mode == "TikTok Case Database":
     example_mode()
-elif mode == "Your own case":
+elif mode == "Manual Entry":
     manual_mode()
 else:
     tiktok_mode(histories, show_results, show_nikola)

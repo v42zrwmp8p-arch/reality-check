@@ -12,6 +12,7 @@ from streamlit.testing.v1 import AppTest
 from test_tiktok_import import VIDEO, METADATA, DRAFT
 from tiktok_import import ImportProblem
 from video_pipeline import ImportTask
+from asset_resolution import complete_drafts
 
 ROOT = Path(__file__).resolve().parent
 
@@ -38,9 +39,10 @@ class ImportUiChecks(unittest.TestCase):
         at = app()
         self.assertFalse(at.exception)
         self.assertTrue(at.button(key="tt_analyse").disabled)
-        at.radio(key="mode").set_value("Your own case").run()
+        self.assertEqual(at.radio(key="mode").options, ["TikTok Case Database", "Import TikTok", "Manual Entry"])
+        at.radio(key="mode").set_value("Manual Entry").run()
         self.assertIsNotNone(at.text_input(key="manual_ticker"))
-        at.radio(key="mode").set_value("TikTok examples").run()
+        at.radio(key="mode").set_value("TikTok Case Database").run()
         for index in range(10):
             at.selectbox(key="case_selector").select_index(index).run()
             self.assertFalse(at.exception)
@@ -69,6 +71,7 @@ class ImportUiChecks(unittest.TestCase):
         self.assertEqual(at.text_input(key="tt_review_0_symbol").value, "MRVL")
         self.assertEqual(at.date_input(key="tt_review_0_published").value, date(2023, 6, 26))
         self.assertTrue(any("Fixture transcript" in x.value for x in at.text))
+        self.assertNotIn("Sampled screen text", [x.label for x in at.expander])
         at.date_input(key="tt_review_0_published").set_value(None).run()
         at.button(key="tt_calculate").click().run()
         self.assertTrue(any("publication date" in x.value for x in at.error))
@@ -89,10 +92,14 @@ class ImportUiChecks(unittest.TestCase):
         result = at.session_state["tt_result"]["result"][0]
         self.assertEqual(result["price_target"]["target_usd"], 318)
         self.assertEqual(result["forecast_deadline"], "2025-06-26")
+        self.assertTrue(any(x.value == "Target: 3× (USD 318)" for x in at.subheader))
+        self.assertFalse(any("3× means" in x.value or "106.000000" in x.value or "Derived from 3" in x.value for x in at.caption))
         self.assertEqual(submit.call_count, 1)
         at.button(key="tt_clear").click().run()
         self.assertNotIn("tt_import", at.session_state)
         self.assertNotIn("tt_result", at.session_state)
+        self.assertEqual(at.text_input(key="tt_link").value, "")
+        self.assertFalse(any(x.key and x.key.startswith("tt_review_") for x in at.text_input))
 
     @patch("tiktok_ui.service_key", return_value="fixture-key")
     @patch("tiktok_ui.submit_import")
@@ -102,11 +109,12 @@ class ImportUiChecks(unittest.TestCase):
         at.text_input(key="tt_link").set_value(VIDEO).run()
         at.button(key="tt_analyse").click().run()
         self.assertFalse(at.exception)
-        self.assertTrue(any("No supported" in x.value for x in at.info))
+        self.assertTrue(any("No recommendation identified" in x.value for x in at.info))
         self.assertEqual(len(at.metric), 0)
         self.assertNotIn("tt_import", app().session_state)
         source = completed([DRAFT]); submit.return_value = (source, True)
         at.button(key="tt_clear").click().run()
+        at.text_input(key="tt_link").set_value(VIDEO).run()
         at.button(key="tt_analyse").click().run()
         at.text_area(key="tt_review_0_claim").set_value("Private edited claim").run()
         at.session_state["tt_import"]["drafts"][0]["asset"] = "Local edit"
@@ -114,7 +122,54 @@ class ImportUiChecks(unittest.TestCase):
         other = app(); other.text_input(key="tt_link").set_value(VIDEO).run()
         other.button(key="tt_analyse").click().run()
         self.assertEqual(other.text_area(key="tt_review_0_claim").value, DRAFT["claim"])
-        self.assertTrue(any("Reused an existing" in x.value for x in other.caption))
+        self.assertTrue(any("Loaded a saved analysis" in x.value for x in other.caption))
+
+    @patch("tiktok_ui.service_key", return_value="fixture-key")
+    @patch("tiktok_ui.submit_import")
+    @patch("market_data.download_history")
+    def test_marvel_confirmation_and_bitcoin_missing_ticker(self, download, submit, key):
+        def downloaded(symbol, publication_date, end_date):
+            return pd.read_csv(ROOT / "prices" / f"{symbol}.csv", index_col="Date", parse_dates=True), symbol
+        download.side_effect = downloaded
+        rows = complete_drafts([dict(DRAFT, asset="Marvel", symbol=None),
+                                dict(DRAFT, asset="Bitcoin", symbol=None, asset_type="Crypto", target_type="none", target_value=None)])
+        submit.return_value = (completed(rows), False)
+        at = app(); at.text_input(key="tt_link").set_value(VIDEO).run()
+        at.button(key="tt_analyse").click().run()
+        self.assertTrue(at.button(key="tt_calculate").disabled)
+        self.assertEqual(at.text_input(key="tt_review_0_symbol").value, "")
+        self.assertFalse(at.error)
+        at.button(key="tt_review_0_match_0").click().run()
+        self.assertFalse(at.exception)
+        self.assertEqual(at.text_input(key="tt_review_0_asset").value, "Marvell Technology")
+        self.assertEqual(at.text_input(key="tt_review_0_symbol").value, "MRVL")
+        self.assertFalse(at.button(key="tt_calculate").disabled)
+        at.button(key="tt_calculate").click().run()
+        self.assertFalse(at.error)
+        at.selectbox(key="tt_choice").select_index(1).run()
+        self.assertEqual(at.text_input(key="tt_review_1_symbol").value, "BTC-USD")
+        at.button(key="tt_calculate").click().run()
+        self.assertFalse(at.error)
+        self.assertFalse(at.exception)
+        self.assertEqual(at.session_state["tt_result"]["row"]["symbol"], "BTC-USD")
+
+    @patch("tiktok_ui.service_key", return_value="fixture-key")
+    @patch("tiktok_ui.submit_import")
+    def test_empty_result_has_manual_recovery_and_transcript_recheck(self, submit, key):
+        source = completed([]); source.created -= 60
+        submit.side_effect = [(source, False), (completed([DRAFT]), False)]
+        at = app(); at.text_input(key="tt_link").set_value(VIDEO).run()
+        at.button(key="tt_analyse").click().run()
+        at.button(key="tt_add").click().run()
+        self.assertFalse(at.exception)
+        self.assertTrue(at.button(key="tt_calculate").disabled)
+        self.assertEqual(source.future.result()["data"]["drafts"], [])
+        at.text_input(key="tt_review_0_symbol").set_value("TSM").run()
+        self.assertFalse(at.button(key="tt_calculate").disabled)
+        at.button(key="tt_refresh").click().run()
+        self.assertFalse(at.exception)
+        self.assertEqual(at.text_input(key="tt_review_0_symbol").value, "MRVL")
+        self.assertTrue(submit.call_args.kwargs["refresh"])
 
     @patch("tiktok_ui.service_key", return_value="fixture-key")
     @patch("tiktok_ui.submit_import")

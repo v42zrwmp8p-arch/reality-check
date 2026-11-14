@@ -1,61 +1,75 @@
-REALITY CHECK - VALIDATION
+REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Groq migration
-- 29 tests passed with Python 3.12: ten original calculation/data checks,
-  eight Groq/input checks, six pipeline lifecycle checks and five AppTest flows.
-- Groq HTTP responses in automated tests are simulated fixtures. No actual
-  Groq API credential was read from chat, screenshots or local files.
-- Only GROQ_API_KEY is read by the import. There are no Supadata requests,
-  account-upgrade operations, billing-setting calls or fallback providers.
-- API checks cover multipart speech input, timestamped transcripts, silent
-  audio, strict-schema prediction output, truncated output, safe errors and
-  usage-limit waiting. Non-success responses do not trigger a request loop.
-- Pipeline checks cover shared in-flight work and completed-source reuse,
-  isolation after key rotation, private review edits, bounded queueing,
-  temporary-media cleanup, empty results, duration limits and reuse of a
-  completed transcription when prediction extraction must be retried.
-- UI checks cover multiple assets, corrected inputs, missing publication date,
-  numeric targets/currency, creator reference, exact/duration horizons,
-  limit waiting/retry, changed links, no-result videos and session clearing.
-- All ten curated views still render; the manual mode remains available.
+Current update
+42 tests passed with Python 3.12 in 12.984 seconds:
+- 10 original calculation/data checks
+- 8 Groq/input checks
+- 10 identifier/transcript/creator regression checks
+- 7 background-task/cache checks
+- 7 Streamlit AppTest flows
 
-Real media check (development environment, 14 November 2026)
-- The supplied Crocs/Marvell TikTok was downloaded directly (63 seconds).
-- FFmpeg produced a 63.072-second MP3 of 378851 bytes.
-- Tesseract processed 16 sampled frames and produced 5511 text characters.
-- Crocs and 106 appeared in the OCR output; Marvell and 142 were not matched
-  in that OCR text. This is sampled OCR, not complete visual comprehension.
-- A failed intermediate download was traced to local certificate-store
-  selection. Using the system trust store resolved it; TLS verification is
-  still enabled. No certificate checks, login or access gates were bypassed.
-- Media files were created in a temporary directory and deleted afterwards.
-- These observations do not establish deployment-host accessibility or the
-  accuracy of an actual Groq transcription/prediction response.
+Reproduced reported problems
+- The supplied failing AI-stock transcript is a regression input. Explicit
+  list recovery returns TSM and MU with the shared ten-year horizon, no
+  numerical target, no unnamed third pick and no incidental company picks.
+  The researcher's U handle is not treated as a recommended stock.
+- The same transcript retains both picks even when a simulated model returns
+  an empty array. Partial output can recover the missed explicit list item.
+  This exercises actual deterministic recovery, not a real AI response.
+- Negated/hypothetical buy lists and incidental customer mentions do not
+  qualify for this explicit-list fallback. Ordinary videos remain empty.
+- Bitcoin receives BTC-USD without a network search. Other known names use
+  the same registry. Similar spellings such as Marvel offer a confirmed match.
+- AppTest confirms accepting Marvell Technology fills MRVL and permits
+  calculation. A blank ticker disables calculation instead of causing an error.
+- Unknown-name search is bounded to six queries per extraction; candidates
+  require confirmation. Search filters use simulated Yahoo responses.
+- A real Yahoo search for Palantir returned no usable candidates here. Live
+  search availability is unconfirmed; manual entry and known identifiers work
+  independently of it. Search failure does not discard the recommendation.
+- Creator extraction prefers a canonical @handle over a numeric UID. Short
+  links can use their resolved canonical link. Unknown identity stays blank.
+- Clear this import removes the link, results, selection and review fields.
+- Empty results allow a session-local manually added recommendation and an
+  explicit extraction recheck. Media/audio are not processed again.
+- Source refresh observes a 30-second cooldown and existing provider waits.
 
-Existing analytical checks
-- Return, benchmark percentage-point difference and maximum-drawdown arithmetic.
-- Calendar anniversaries, prior common close on non-trading dates, no unelapsed
-  horizon returns, covered-deadline annotation and preservation of later history.
-- Explicit 2x/10x targets, creator reference, absolute target and future deadline.
-- Free-text prose does not silently create a numeric target.
-- A twenty-row collection with repeated assets keeps distinct cases/targets.
-- Batch analysis retains nine calculated cases and Nikola's separate status.
-- Original saved price files are unchanged. Existing chart rendering was
-  visually checked during the preceding target/deadline update.
+Interface and existing behavior
+- Modes: TikTok Case Database, Import TikTok, Manual Entry, in that order.
+- All ten curated views render; manual entry remains available without a key.
+- Sampled screen text is hidden; OCR still supports background analysis.
+- Crocs displays Target: 3x (USD 318), without a six-decimal reference or
+  repeated multiple explanation. Raw supplied-notes/basis labels are hidden.
+- Existing target/deadline arithmetic, chart annotation, cumulative periods,
+  benchmark differences and drawdown checks still pass.
+- All eleven original saved-price SHA256 hashes match. The curated CSV,
+  original calculations and Nikola's separate status are unchanged.
 
-Dependencies
-Python requirements resolved successfully in a clean pip dry-run.
-The deployed import also needs FFmpeg/Tesseract from packages.txt.
+Provider and storage boundaries
+- Groq HTTP responses in automated tests are labelled simulated fixtures.
+  No actual credential was read from chat, screenshots, secrets or local files.
+- Only GROQ_API_KEY is used. There are no Supadata calls or paid fallbacks.
+- The prompt explicitly includes buy lists without numerical targets and
+  distinguishes earnings multiples from forecast price multiples.
+- An empty result without supported-list recovery gets one additional model
+  check. HTTP and rate-limit errors do not trigger a request loop.
+- Successful speech is retained for extraction retry. Original video/audio/
+  frame files remain temporary and are deleted after processing or failure.
+- The bounded public-source cache remains shared. Edits and manually added
+  recommendations stay private. Engine v2 invalidates previous v1 results.
+- Free usage requires a Groq Free account. Code cannot inspect billing tier;
+  it never changes billing settings. Separate speech/text limits still apply.
+
+Previous real media evidence
+The 63-second Crocs/Marvell video downloaded successfully in development.
+FFmpeg produced a 63.072-second MP3 of 378851 bytes. Sixteen OCR frames found
+Crocs/106, but not Marvell/142. The system trust store resolved a local
+certificate-selection issue without disabling TLS checks. Media were deleted.
 
 Verification limits
-The public app URL previously led this browser to Streamlit's access/not-found
-page. No deployed Groq end-to-end result has been confirmed here. Live key
-acceptance, account/model entitlement, deployment-host TikTok access and real
-recognition quality must still be checked in the deployed app. Test fixtures
-must not be presented as a real provider result.
-
-Costs and availability
-A Groq Free account is required for free usage. The app cannot inspect account
-billing tier; paid Groq accounts may incur API charges. Audio and text-model
-limits are separate and shared by visitors. At a limit the app waits for a
-user retry; it does not switch providers or change any subscription.
+The user reported working deployed transcription in the preceding version,
+plus recognition/identifier failures addressed here. This update has not yet
+been verified against real Groq responses in the deployed app. The app URL
+previously led this browser to Streamlit's access/not-found page. AppTest is a
+functional UI check, not browser visual QA or proof of model accuracy. Generic
+Yahoo search, TikTok availability and future recognition remain provider-dependent.

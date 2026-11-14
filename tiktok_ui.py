@@ -23,10 +23,35 @@ def service_key():
     return value.strip() if isinstance(value, str) else ""
 
 
-def clear_import():
+def clear_import(clear_link=False):
     for key in list(st.session_state):
         if key in {"tt_import", "tt_result", "tt_choice"} or key.startswith("tt_review_"):
             del st.session_state[key]
+    if clear_link:
+        st.session_state["tt_link"] = ""
+
+
+def use_ticker_match(prefix, candidate):
+    st.session_state[prefix + "asset"] = candidate["asset"]
+    st.session_state[prefix + "symbol"] = candidate["symbol"]
+    st.session_state[prefix + "kind"] = candidate["asset_type"]
+    state = st.session_state.get("tt_import")
+    if state:
+        state["drafts"][st.session_state.get("tt_choice", 0)].update(candidate)
+
+
+def add_recommendation():
+    state = st.session_state["tt_import"]
+    state["drafts"].append({"asset": "", "symbol": None, "asset_type": "Unknown", "claim": "", "target_type": "none"})
+    st.session_state["tt_choice"] = len(state["drafts"]) - 1
+    st.session_state.pop("tt_result", None)
+
+
+def start_import(url, key, refresh=False):
+    task, reused = submit_import(url, key, refresh=refresh)
+    clear_import()
+    st.session_state["tt_import"] = {"engine": ENGINE_VERSION, "url": url, "task": task,
+                                    "status": "pending", "reused": reused}
 
 
 def _same_link(value, expected):
@@ -71,10 +96,6 @@ def job_status(state):
 def transcript_section(state):
     with st.expander("Transcript"):
         st.text(state.get("transcript") or "No speech was detected.")
-        st.caption("Speech recognition may mishear names and numbers. Check important details against the original video.")
-    with st.expander("Sampled screen text"):
-        st.text(state.get("screen_text") or "No readable screen text was detected.")
-        st.caption(state.get("screen_note", ""))
 
 
 def review_fields(state):
@@ -85,14 +106,20 @@ def review_fields(state):
     details = metadata_details(state["metadata"])
     prefix = "tt_review_" + str(choice) + "_"
     st.subheader("Review the extracted details")
-    st.caption("These are AI suggestions. Correct the asset, date, target and time frame before calculating. A suggested ticker is not independently verified.")
+    st.caption("Check the details before calculating.")
+    for index, candidate in enumerate(draft.get("ticker_suggestions", [])):
+        st.button(f"Use {candidate['asset']} ({candidate['symbol']})", key=prefix + f"match_{index}",
+                  on_click=use_ticker_match, args=(prefix, candidate))
     if draft.get("evidence"):
-        st.text("Suggested supporting excerpt: " + str(draft["evidence"]))
-    if draft.get("evidence_time"):
-        st.caption("Approximate video timestamp: " + str(draft["evidence_time"]))
+        with st.expander("Source excerpt"):
+            st.text(str(draft["evidence"]))
+            if draft.get("evidence_time"):
+                st.caption(str(draft["evidence_time"]))
     a, b = st.columns(2)
     asset = a.text_input("Asset name", value=str(draft.get("asset") or ""), key=prefix + "asset")
     symbol = b.text_input("Yahoo Finance ticker", value=str(draft.get("symbol") or ""), key=prefix + "symbol")
+    if not symbol.strip():
+        st.caption("Choose a suggested match or enter the ticker.")
     a, b, c = st.columns([1, 1, 2])
     kinds = ["Choose asset type", "Equity", "Crypto"]
     kind = a.selectbox("Asset type", kinds, index=kinds.index(draft.get("asset_type")) if draft.get("asset_type") in kinds else 0, key=prefix + "kind")
@@ -109,14 +136,11 @@ def review_fields(state):
         default_value = draft.get("target_value") if draft.get("target_type") == target_type else None
         target_value = st.text_input("Target price (USD)" if target_type == "price" else "Target multiple", value=str(default_value) if default_value is not None else "", key=prefix + target_type + "_value")
         if target_type == "multiple":
-            st.caption("2× = doubling (+100%); 10× = tenfold (+900%).")
             refs = {"entry": "Simulated entry price", "creator": "Creator reference price"}
             reference_type = st.selectbox("Reference price", list(refs), format_func=refs.get,
                                          index=1 if draft.get("reference_price") is not None else 0, key=prefix + "reference_type")
             if reference_type == "creator":
                 reference_price = st.text_input("Creator reference price (USD)", value=str(draft.get("reference_price") or ""), key=prefix + "reference_price")
-            else:
-                st.caption("The entry close is your comparison reference when the creator did not give one.")
         if target_type == "price" or reference_type == "creator":
             currency = st.selectbox("Currency of the stated price", ["Other / unclear", "USD"],
                                     index=1 if draft.get("currency") == "USD" else 0, key=prefix + "currency")
@@ -140,8 +164,6 @@ def review_fields(state):
         horizon_value = a.text_input("Time-frame length", value=str(duration) if duration_valid else "", key=prefix + "duration")
         units = ["days", "weeks", "months", "years"]
         horizon_unit = b.selectbox("Time-frame unit", units, index=units.index(draft["horizon_unit"]) if duration_valid else 2, key=prefix + "unit")
-    else:
-        st.caption("Vague wording is retained without inventing an exact deadline.")
     values = {"asset": asset, "symbol": symbol, "asset_type": kind, "publication_date": published,
               "creator": creator, "claim": claim, "target_type": target_type, "target_value": target_value,
               "reference_type": reference_type, "reference_price": reference_price, "currency": currency,
@@ -153,7 +175,7 @@ def review_fields(state):
 
 def tiktok_mode(histories, show_results, show_nikola):
     st.subheader("Import a TikTok recommendation")
-    st.caption("Paste a public TikTok up to three minutes long. Groq transcribes the speech and identifies predictions; sampled screen text is read with OCR. Review the details before calculating. Shared usage limits can temporarily pause imports.")
+    st.caption("Paste a TikTok link and review the detected recommendations. Maximum video length: 3 minutes.")
     link = st.text_input("TikTok video link", placeholder="https://www.tiktok.com/@creator/video/…", key="tt_link")
     key = service_key()
     if not key:
@@ -167,10 +189,7 @@ def tiktok_mode(histories, show_results, show_nikola):
     if st.button("Analyse video", type="primary", disabled=not key or busy_or_ready, key="tt_analyse"):
         try:
             url = clean_tiktok_url(link)
-            task, reused = submit_import(url, key)
-            clear_import()
-            st.session_state["tt_import"] = {"engine": ENGINE_VERSION, "url": url, "task": task,
-                                            "status": "pending", "reused": reused}
+            start_import(url, key)
             st.rerun()
         except ImportProblem as exc:
             st.error(str(exc))
@@ -179,23 +198,37 @@ def tiktok_mode(histories, show_results, show_nikola):
     if not same:
         st.info("Press Analyse video to load the changed link.")
         return
-    if st.button("Clear this import", key="tt_clear", help="Clears your current view and edits. Source-derived results for this public video may remain in the shared server cache for up to 24 hours."):
-        clear_import()
-        st.rerun()
+    st.button("Clear this import", key="tt_clear", on_click=clear_import, args=(True,),
+              help="Clears the link, results and your edits.")
     job_status(state)
     if state["status"] != "completed":
         return
     st.link_button("Original video", state["url"])
     if state.get("reused"):
-        st.caption("Reused an existing analysis of this public video. No new transcription or prediction request was started for this import.")
-    st.caption("Source analysis time (UTC): " + state["analysed_at"])
+        st.caption("Loaded a saved analysis of this video.")
     transcript_section(state)
+    count = len(state["drafts"])
+    if count:
+        st.caption(f"{count} recommendation{'s' if count != 1 else ''} found")
+    a, b = st.columns(2)
+    a.button("Add a recommendation", key="tt_add", on_click=add_recommendation)
+    can_refresh = time.time() >= state["task"].created + 30
+    if b.button("Check extraction again", key="tt_refresh", disabled=not key,
+                help="Rechecks the existing transcript without transcribing the video again."):
+        if not can_refresh:
+            st.info(f"Try again in {max(1, int(state['task'].created + 30 - time.time()))} seconds.")
+        else:
+            try:
+                start_import(state["url"], key, refresh=True)
+                st.rerun()
+            except ImportProblem as exc:
+                st.error(str(exc))
     if not state["drafts"]:
-        st.info("No supported stock or crypto buy/upside prediction was detected. You can still use Your own case to enter an asset and date manually.")
+        st.info("No recommendation identified. Check the transcript, try again or add one manually.")
         return
     values, mode, choice = review_fields(state)
     signature = json.dumps({"url": state["url"], "choice": choice, "mode": mode, "values": values}, default=str, sort_keys=True)
-    if st.button("Calculate checked case", type="primary", key="tt_calculate"):
+    if st.button("Calculate checked case", type="primary", key="tt_calculate", disabled=not values["symbol"].strip()):
         st.session_state.pop("tt_result", None)
         try:
             if mode == "Exact deadline" and not values["deadline"]:
@@ -228,4 +261,4 @@ def tiktok_mode(histories, show_results, show_nikola):
             show_results(row, stored["result"], stored["source"])
         st.download_button("Download checked case", json.dumps(row, indent=2),
                            file_name=row["case_id"] + ".json", mime="application/json")
-        st.caption("Your checked details stay in this session and are not added to the curated collection. Source-derived results for the public video may be reused by other visitors for up to 24 hours; your edits are not shared. Original video/audio/frame files are deleted after processing. Groq has its own data policy.")
+        st.caption("Your edits stay in this session.")

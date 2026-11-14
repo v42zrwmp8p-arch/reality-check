@@ -102,6 +102,26 @@ class PipelineChecks(unittest.TestCase):
         with self.assertRaisesRegex(ImportProblem, "queued"):
             pipeline.submit_import(VIDEO, "fixture-key")
 
+    @patch("video_pipeline.GroqClient")
+    @patch("video_pipeline.read_screen_text", return_value=("", "Fixture"))
+    @patch("video_pipeline.prepare_audio", return_value=Path("unused-fixture.mp3"))
+    @patch("video_pipeline.read_video", return_value=(Path("unused-fixture.mp4"), {"duration": 60}))
+    def test_explicit_recheck_reuses_media_and_has_cooldown(self, read, audio, screen, client):
+        client.return_value.transcribe.return_value = "Fixture speech"
+        client.return_value.extract.side_effect = [[], [DRAFT]]
+        task, _ = pipeline.submit_import(VIDEO, "fixture-key")
+        self.assertEqual(task.future.result(timeout=5)["data"]["drafts"], [])
+        held, reused = pipeline.submit_import(VIDEO, "fixture-key", refresh=True)
+        self.assertIs(held, task); self.assertTrue(reused)
+        task.created -= 60
+        refreshed, reused = pipeline.submit_import(VIDEO, "fixture-key", refresh=True)
+        self.assertFalse(reused)
+        self.assertEqual(refreshed.future.result(timeout=5)["data"]["drafts"][0]["symbol"], "MRVL")
+        self.assertEqual(read.call_count, 1)
+        self.assertEqual(audio.call_count, 1)
+        self.assertEqual(client.return_value.transcribe.call_count, 1)
+        self.assertEqual(client.return_value.extract.call_count, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

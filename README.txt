@@ -1,8 +1,8 @@
 REALITY CHECK - STREAMLIT MVP
 
 What is included
-A Python app with three flows: curated TikTok examples, manual input and a
-Groq-backed public TikTok import with editable extracted recommendations.
+A Python app with three flows: TikTok Case Database, Import TikTok and Manual
+Entry, in that order. Imports have editable extracted recommendations.
 Nine of ten curated assets have daily-price comparisons. Nikola keeps its
 separate documented cancellation outcome and historical-data gap.
 
@@ -23,11 +23,25 @@ Public clips are limited to three minutes and 50 MB. Two background tasks may
 run simultaneously, with at most eight tasks queued/running. Completed public
 source analyses are reused in memory for up to 24 hours (32 entries), including
 across visitors. User edits and checked cases remain session-local. Clearing
-an import clears its current view, not the shared public-source cache. Temporary
+an import clears its link, results and edits, not the shared public-source cache. Temporary
 original video/audio/frame files are deleted after processing, including on failure.
 OCR samples at most 16 frames; it can miss visual-only information. Limits and
 network failures are surfaced. No automatic retry or provider fallback occurs.
 The planned two-week course usage has no automatic expiration timer.
+
+Import corrections
+- Known identifiers fill missing tickers, including Bitcoin -> BTC-USD.
+- Similar names (e.g. Marvel/Marvell) offer a match for the user to confirm.
+- Other missing tickers can receive Yahoo search suggestions; search failures
+  still allow manual entry. Search candidates are not auto-selected.
+- Creator handles use the canonical video link; numeric account IDs are hidden.
+- Buy lists do not require numerical targets. Known explicit buy-list name/ticker
+  pairs can recover missed items, with no invented target or unnamed stock.
+- Otherwise empty extraction gets one bounded second model check, not a loop.
+- Check extraction again reruns only prediction extraction, reusing speech/OCR.
+  A 30-second source cooldown and existing Groq limits still apply.
+- Add a recommendation creates a private editable item without reprocessing.
+- Raw sampled screen text and redundant target explanations are hidden from UI.
 
 Start
 python -m pip install -r requirements.txt
@@ -140,6 +154,7 @@ case_analysis.py       Combines the data into one case's results
 analysis_core.py       Return, drawdown, horizon and explicit target functions
 charts.py              Full-history chart and covered-deadline annotations
 tiktok_import.py       Groq requests, extraction schema and reviewed-input validation
+asset_resolution.py    Known identifiers, spelling/search suggestions and explicit-list recovery
 video_pipeline.py      Public video retrieval, audio/OCR, background tasks and source cache
 tiktok_ui.py           Link import, job progress, editable review and optional transcript
 analyse_examples.py    Batch CSV/JSON outputs using the same functions as the app
@@ -149,6 +164,7 @@ test_mvp.py            Focused checks of calculations and adding more examples
 test_tiktok_import.py  API/error/input checks with simulated responses
 test_tiktok_ui.py      Functional import UI checks with simulated responses
 test_video_pipeline.py Temporary-file, shared-task, retry and cache lifecycle checks
+test_asset_resolution.py Regressions for the supplied transcript, tickers and creator IDs
 
 The same functions can be imported into the report notebook. A final notebook
 and the course's PDF deliverable have not been created in this MVP step.
@@ -158,7 +174,7 @@ python analyse_examples.py
 python analyse_examples.py --refresh
 
 Run focused checks
-python -m unittest test_mvp.py test_tiktok_import.py test_video_pipeline.py test_tiktok_ui.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py
 
 Validation
 All ten curated views passed Streamlit AppTest checks. The nine price cases

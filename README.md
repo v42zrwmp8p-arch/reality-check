@@ -5,6 +5,10 @@ happened afterwards. Choose a curated example, enter a USD stock/crypto ticker
 and publication date, or import a public TikTok link for review. The app shows a full-history chart, cumulative returns,
 benchmark differences, drawdown and fixed holding periods.
 
+The three modes are **TikTok Case Database**, **Import TikTok**, then
+**Manual Entry**. Prices and targets use short labels; supporting methodology
+is kept in the expandable explanation.
+
 ## Deploy online
 
 The app is prepared for Streamlit Community Cloud. Visitors use its browser
@@ -63,6 +67,13 @@ It does not use login cookies, proxies or access-bypass mechanisms. TikTok may
 reject requests from some hosting environments even when a link works elsewhere.
 No supported recommendations produces an empty result, not an invented stock.
 
+Extraction includes buy lists and bullish picks without a numeric target.
+A small identifier registry can recover known name+ticker pairs explicitly
+introduced as buy-list items. It does not treat customer/competitor mentions
+as picks, invent an unnamed teaser, or supply price targets from an asset name.
+An otherwise empty result receives one extra model check. This is bounded
+and remains subject to the same Groq usage limits.
+
 The analysis runs in a bounded background queue: two active tasks and up to
 eight queued/running tasks. Progress is shown while it runs. A Groq usage limit
 produces a waiting message, using the provider's retry time when supplied;
@@ -73,8 +84,14 @@ Speech and prediction models have separate account-level quotas. Free does not
 mean unlimited or guaranteed availability. Check current limits in your Groq
 console and https://console.groq.com/docs/rate-limits.
 
-Review one detected asset at a time. Dates/creator identity come from video
-metadata. A missing date or uncertain ticker must be completed by the user.
+Review one detected asset at a time. Publication dates come from video metadata
+in UTC; creator handles come from the canonical video link when available,
+with nonnumeric metadata as a fallback. Internal numeric account IDs are hidden.
+Known identifiers, including Bitcoin -> BTC-USD, are filled independently of
+the model. Similar spellings such as Marvel/Marvell require confirmation.
+For other missing identifiers, a bounded Yahoo search offers candidates;
+search failure leaves manual entry available. A search result is not silently
+selected. A missing date or uncertain ticker must be completed by the user.
 Numeric targets, currencies, reference prices and horizons stay editable. Vague
 time frames retain their original wording without an invented deadline. Only
 long stock/crypto comparisons and upside forecasts are supported in this version.
@@ -82,14 +99,21 @@ long stock/crypto comparisons and upside forecasts are supported in this version
 The transcript is available directly after analysis. OCR samples up to sixteen
 frames with English text recognition. Small text, logos, briefly visible names
 and complex graphics can be missed; this is not full visual video understanding.
-If OCR fails, the interface clearly says the result uses speech only.
+The OCR text is not shown in the interface; the transcript remains available.
+OCR failure does not prevent speech-only analysis.
 
 Source-derived results for the same public video and connection are reused
 across visitors in server memory for up to 24 hours, with at most 32 entries.
 Concurrent requests for the same source share work. User corrections, checked
 cases and market results stay session-local and are never written to that shared
 source cache or to the curated CSV. Cache contents disappear on a server restart.
-**Clear this import** clears your view/edits, not the shared public-source cache.
+**Clear this import** clears the link, result and edits, not the shared
+public-source cache. **Check extraction again** reuses the transcript/OCR and
+reruns the extraction, without downloading or transcribing the same video
+again. It is limited to one new run per 30 seconds per cached video/connection.
+**Add a recommendation** creates a session-local editable item when a pick
+was missed; it does not assert that the model found one. The engine version
+changed so the previous version's cached failures are not reused.
 Original video, audio and frame files are temporary and deleted after processing,
 including on failure. Groq's own data-processing policy applies separately.
 A checked case can be downloaded as JSON; the app does not rehost videos.
@@ -103,7 +127,7 @@ UI tests use labelled simulated provider responses, not a hidden real API key.
 Technical integration does not establish copyright/platform/privacy permission.
 The planned course prototype runs for two weeks; removal remains a later code change.
 
-The import is isolated in `tiktok_import.py`, `video_pipeline.py` and
+The import is isolated in `tiktok_import.py`, `asset_resolution.py`, `video_pipeline.py` and
 `tiktok_ui.py`. Removing its import, mode option and call from `app.py`, plus
 these helper modules, removes the feature without reverting unrelated work.
 
@@ -167,7 +191,7 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_mvp.py test_tiktok_import.py test_video_pipeline.py test_tiktok_ui.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py
 ```
 
 All ten curated views and the manual target/reference/deadline flows passed

@@ -5,27 +5,49 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from hashlib import sha256
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
 from threading import BoundedSemaphore, Lock
 import time
+from urllib.parse import urlsplit
 
 import pytesseract
 from PIL import Image, ImageOps
 import yt_dlp
 
 from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url
+from asset_resolution import complete_drafts
 
 MAX_SECONDS = 180
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_FRAMES = 16
-ENGINE_VERSION = "groq-whisper-ocr-v1"
+ENGINE_VERSION = "groq-whisper-ocr-v2"
 _POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="video-import")
 _SLOTS = BoundedSemaphore(8)
 _TASKS = OrderedDict()
 _LOCK = Lock()
 CACHE_SECONDS = 24 * 60 * 60
+
+
+def creator_name(info, original_url):
+    """Prefer a handle from the canonical video URL; never show a numeric UID."""
+    for url in [info.get("webpage_url"), original_url]:
+        try:
+            parsed = urlsplit(url or "")
+            if parsed.hostname not in {"tiktok.com", "www.tiktok.com", "m.tiktok.com"}:
+                continue
+            found = re.match(r"/@([A-Za-z0-9_.]+)/video/", parsed.path)
+            if found and not found[1].isdigit():
+                return "@" + found[1]
+        except ValueError:
+            continue
+    for field in ["uploader_id", "uploader"]:
+        value = str(info.get(field) or "").strip()
+        if value and not value.lstrip("@").isdigit():
+            return value[:100]
+    return ""
 
 
 class _QuietLog:
@@ -76,7 +98,7 @@ def read_video(url, folder):
         published = datetime.strptime(str(info.get("upload_date")), "%Y%m%d").date().isoformat()
     except ValueError:
         pass
-    metadata = {"createdAt": published, "author": {"username": info.get("uploader_id") or info.get("uploader")},
+    metadata = {"createdAt": published, "author": {"username": creator_name(info, url)},
                 "stats": {"views": info.get("view_count")}, "video_id": str(info.get("id") or ""), "duration": duration}
     return videos[0], metadata
 
@@ -145,7 +167,10 @@ def _process(task, url, api_key):
         if not data["transcript"].strip() and not data.get("screen_text", "").strip():
             data["drafts"] = []
         else:
-            data["drafts"] = client.extract(data["transcript"], data.get("screen_text", ""))
+            if "raw_drafts" not in data:
+                data["raw_drafts"] = client.extract(data["transcript"], data.get("screen_text", ""))
+            task.progress = "Matching names to tickers…"
+            data["drafts"] = complete_drafts(data["raw_drafts"])
         data["analysed_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         return {"ok": True, "data": deepcopy(data)}
     except ImportProblem as exc:
@@ -156,7 +181,7 @@ def _process(task, url, api_key):
         return {"ok": False, "error": "The video analysis did not complete. Please try again later or use manual input.", "retry_after": None}
 
 
-def submit_import(url, api_key):
+def submit_import(url, api_key, *, refresh=False):
     """Reuse in-flight/completed public analyses; at most two active, eight total."""
     url = clean_tiktok_url(url)
     if not isinstance(api_key, str) or not api_key.strip():
@@ -170,11 +195,15 @@ def submit_import(url, api_key):
         existing = _TASKS.get(identity)
         if existing:
             _TASKS.move_to_end(identity)
-            if not existing.future.done() or existing.future.result()["ok"] or now < existing.retry_at:
+            if (not existing.future.done() or now < existing.retry_at
+                    or (existing.future.result()["ok"] and (not refresh or now < existing.created + 30))):
                 return existing, True
         if not _SLOTS.acquire(blocking=False):
             raise ImportProblem("Several video analyses are already queued. Please try again shortly.")
         task = ImportTask(existing.checkpoint if existing else None)
+        if refresh:
+            for field in ["raw_drafts", "drafts", "analysed_at"]:
+                task.checkpoint.pop(field, None)
         try:
             task.future = _POOL.submit(_process, task, url, api_key)
         except Exception:
