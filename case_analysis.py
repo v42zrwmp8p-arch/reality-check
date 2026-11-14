@@ -3,7 +3,7 @@ import pandas as pd
 from analysis_core import (compare_prices, period_metrics, horizon_table, check_price_target,
                            resolve_target, resolve_deadline, deadline_performance)
 
-IMPORT_VERSION = "2026-11-14.12"
+IMPORT_VERSION = "2026-11-14.13"
 
 
 def comparison_dates(row, histories):
@@ -51,9 +51,14 @@ def analyse_case(row, asset, benchmark, benchmark_symbol):
         raise ValueError("The available history starts too late to represent entry after this video.")
     goal = resolve_target(row, float(asset.loc[entry, "Close"]))
     deadline, deadline_basis = resolve_deadline(row)
-    target_check = check_price_target(asset, entry, last, goal["target_usd"], goal["basis"], deadline)
+    target_check = check_price_target(asset, entry, last, goal["target_usd"], goal["basis"], deadline, row.get("reviewed_splits"))
     target_check.update(goal)
     target_check["approximate"] = bool(row.get("target_approximate"))
+    deadline_result = deadline_performance(prices, deadline, deadline_basis)
+    if row.get("deadline_basis"):
+        deadline_result["label"] = "Evaluation date"
+        target_check["evaluation_deadline"] = target_check["creator_deadline"]
+        target_check["creator_deadline"] = None
     summary = {
         "asset": row["asset"], "symbol": row["symbol"], "asset_type": row["asset_type"],
         "case_id": row.get("case_id", "manual"), "publication_date": row["publication_date"],
@@ -64,7 +69,7 @@ def analyse_case(row, asset, benchmark, benchmark_symbol):
         "entry_close_usd": float(asset.loc[entry, "Close"]),
         "latest_close_usd": float(asset.loc[last, "Close"]),
         "forecast_deadline": deadline, "deadline_basis": deadline_basis,
-        "deadline_result": deadline_performance(prices, deadline, deadline_basis),
+        "deadline_result": deadline_result,
         "price_target": target_check, **period_metrics(prices),
     }
     return summary, horizon_table(prices), 100 * prices / prices.iloc[0]

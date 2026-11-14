@@ -3,7 +3,7 @@ import importlib
 from threading import RLock
 
 _LOCK = RLock()
-MODULES = ("market_data", "case_analysis", "charts", "asset_resolution", "target_extraction", "tracker_core", "tracker_ui", "tiktok_import", "photo_import", "video_pipeline", "tiktok_ui")
+MODULES = ("analysis_core", "market_data", "case_analysis", "charts", "asset_resolution", "target_extraction", "tracker_core", "tracker_ui", "tiktok_import", "photo_import", "video_pipeline", "tiktok_ui")
 
 
 def import_flow(expected_version):

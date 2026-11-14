@@ -43,7 +43,7 @@ class MvpChecks(unittest.TestCase):
         self.assertIn("Manual split adjustment", split["status"])
 
     def test_table_can_grow_with_more_cases(self):
-        original = pd.read_csv(ROOT / "predictions.csv", keep_default_na=False)
+        original = pd.read_csv(ROOT / "test_fixtures" / "original_predictions.csv", keep_default_na=False)
         added = original.copy()
         added["case_id"] = ""
         added["video_url"] = [f"https://example.invalid/video/additional-{i}" for i in range(len(added))]
@@ -68,7 +68,7 @@ class MvpChecks(unittest.TestCase):
         self.assertIsNone(result["price_target"]["target_usd"])
 
     def test_repeated_stock_different_dates(self):
-        row = next(r for r in load_examples() if r["symbol"] == "MRVL")
+        row = next(r for r in load_examples(ROOT / "test_fixtures" / "original_predictions.csv") if r["symbol"] == "MRVL")
         asset, benchmark, symbol, _ = get_case_histories(row)
         first, _, _ = analyse_case(row, asset, benchmark, symbol)
         later = dict(row, case_id="different-marvell-video", publication_date="2024-01-02", target_type="none", target_value=None, projection="Another claim")
@@ -119,7 +119,7 @@ class MvpChecks(unittest.TestCase):
         self.assertFalse(any(layer.get("mark", {}).get("type") == "rule" for layer in future["layer"]))
 
     def test_curated_results_preserved_and_targets_migrated(self):
-        for row in load_examples():
+        for row in load_examples(ROOT / "test_fixtures" / "original_predictions.csv"):
             if row["symbol"] == "VTIQ / NKLA":
                 continue
             asset, benchmark, symbol, _ = get_case_histories(row)

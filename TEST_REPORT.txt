@@ -1,6 +1,33 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.12
+Current release: 2026-11-14.13
+Full suite: 119 tests passed with Python 3.12 in 31.517 seconds.
+Iconic collection update:
+- Nine active cases: GME, COIN, TSLA, BTC, Bear Stearns, Nikola Motors,
+  Metahero, Kadena and MultiVAC. HD/LOW/CROX/MRVL/TSM/MU removed from active CSV.
+  Original ten-row notes retained only as a regression fixture; price files
+  retained for those tests. Existing personal tracker data are not deleted.
+- ARK's original 2021 Tesla expected-value target is USD 3,000 for model year
+  2025. Official Tesla split source verifies 2022-08-25 three-for-one event.
+  The target is manually converted to USD 1,000 on the current series basis.
+  Year-end 2025 is a labelled project evaluation convention, not an exact
+  deadline attributed to ARK. Description retains the original USD 3,000.
+- Matching reviewed split dates/ratios permit evaluation; absent, mismatched
+  or extra events retain the existing manual-review block. Tracker preserves
+  the approved split metadata, target basis and evaluation convention.
+- Bear Stearns quote has a separate statement date (2008-03-11) and linked
+  CNN context-interview date (2008-03-23). It concerned broker-held customer
+  funds. No stock-return calculation, market-price request or save button.
+- TSLA saved Yahoo chart data added through 2026-11-12. All thirteen previous
+  price files remain byte-identical. No source-import engine/cache change.
+- Seven new tests check active membership, Cathie evaluation and split guard,
+  tracker preservation, context-only UI, retired selector reset and batch
+  output (seven calculated cases / nine status rows). Existing checks render
+  all nine database views and retain original arithmetic regression coverage.
+- Twelve helpers use release .13, with analysis_core loaded before dependants.
+- No live Groq request or deployed Streamlit UI verified in this update.
+
+Previous release 2026-11-14.12 checks:
 Full suite: 112 tests passed with Python 3.12 in 27.438 seconds.
 Special cases update:
 - Three sourced cases: Roaring Kitty/GME (2020-08-04), Cramer/COIN (2021-04-13)

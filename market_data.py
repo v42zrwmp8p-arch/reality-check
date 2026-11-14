@@ -3,9 +3,10 @@ from pathlib import Path
 from math import isfinite
 import re
 import pandas as pd
+from analysis_core import validated_split_review
 
 ROOT = Path(__file__).resolve().parent
-IMPORT_VERSION = "2026-11-14.12"
+IMPORT_VERSION = "2026-11-14.13"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
 
 
@@ -39,6 +40,7 @@ def load_examples(path=None):
                     raise ValueError("Followers and video views must be nonnegative numbers or blank.")
                 row[field] = int(value)
         row["curated"] = True
+        row["reviewed_splits"] = validated_split_review(row.get("reviewed_splits"))
         records.append(row)
     if len({r["case_id"] for r in records}) != len(records):
         raise ValueError("Two rows have the same case ID. Use a distinct ID for each video and asset.")

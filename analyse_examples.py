@@ -19,6 +19,9 @@ def main():
     summaries, periods, states = [], [], []
     for row in load_examples():
         case_id = row["case_id"]
+        if row.get("case_type") == "context":
+            states.append({"case_id": case_id, "status": "Context case; no share-price return calculated"})
+            continue
         if row["symbol"] in {"VTIQ / NKLA", "VTIQ", "NKLA", "NKLAQ"}:
             states.append({"case_id": case_id, "status": "Historical series incomplete; terminal share value USD 0 confirmed"})
             continue

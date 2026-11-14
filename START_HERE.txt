@@ -5,9 +5,11 @@ https://finfluencer-reality-check.streamlit.app/
 Besucher brauchen keine Python-Installation und keinen eigenen API-Key.
 
 Bereiche: Import TikTok, Manual Entry, My Tracker, Case Database.
-Die Case Database enthaelt 13 ausgewaehlte Faelle, darunter Roaring Kitty/GME,
-Jim Cramer/Coinbase und Pomplianos Bitcoin-Prognose. Zwoelf besitzen gespeicherte
-Kursauswertungen; Nikola zeigt den separaten Aktienannullierungsstatus.
+Die Case Database heisst im Inhalt Iconic market calls und enthaelt neun Faelle:
+Roaring Kitty/GME, Cramer/Coinbase, Cathie Wood/ARK/Tesla, Pompliano/Bitcoin,
+Cramer/Bear Stearns, Nikola Motors sowie Metahero, Kadena und MultiVAC.
+Sieben besitzen gespeicherte Kursauswertungen. Nikola Motors zeigt den
+Aktienannullierungsstatus; Bear Stearns ist ein Kontextfall ohne Aktienrendite.
 My Tracker speichert die Eintraege im jeweiligen Browser.
 
 Lokaler Start mit Python 3.12:
@@ -17,4 +19,4 @@ python -m streamlit run app.py
 Fuer lokalen TikTok-Import werden zusaetzlich FFmpeg, Tesseract und ein eigener
 GROQ_API_KEY benoetigt. Einrichtung und Grenzen stehen in README.md.
 Neue oeffentliche Quellen als weitere Zeilen in predictions.csv aufnehmen.
-Quellenpruefung der drei neuen Beispiele: case_sources.json.
+Quellenpruefung der oeffentlichen Beispiele: case_sources.json.

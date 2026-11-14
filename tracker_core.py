@@ -6,11 +6,11 @@ from urllib.parse import urlsplit, urlunsplit
 
 import pandas as pd
 
-from analysis_core import positive_number, resolve_deadline, resolve_target
+from analysis_core import positive_number, resolve_deadline, resolve_target, validated_split_review
 from case_analysis import analyse_comparisons, comparison_dates
 from market_data import provider_symbol
 
-IMPORT_VERSION = "2026-11-14.12"
+IMPORT_VERSION = "2026-11-14.13"
 SCHEMA_VERSION = 1
 MAX_ITEMS = 100
 MAX_BYTES = 512 * 1024
@@ -42,6 +42,9 @@ def prediction_record(row):
         raise ValueError("The publication date cannot be in the future.")
     result = {name: _text(row.get(name) or "", limit) for name, limit in TEXT_FIELDS.items()}
     result["asset"] = result["asset"] or symbol
+    result["target_basis"] = _text(row.get("target_basis") or "", 400)
+    result["deadline_basis"] = _text(row.get("deadline_basis") or "", 400)
+    result["reviewed_splits"] = validated_split_review(row.get("reviewed_splits"))
     result["time_frame"] = result["time_frame"] or "Not specified"
     raw_url = _text(row.get("video_url") or "", 1000)
     if raw_url:

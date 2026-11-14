@@ -1,6 +1,33 @@
 """Shared calculations for the examples, a future notebook and the website."""
 import pandas as pd
-from math import isfinite
+from math import isfinite, isclose
+from datetime import date
+import json
+
+IMPORT_VERSION = "2026-11-14.13"
+
+
+def validated_split_review(value):
+    """Explicit reviewed event dates/ratios, never an automatic price adjustment."""
+    if value in (None, ""):
+        return None
+    if isinstance(value, str):
+        try:
+            value = json.loads(value)
+        except ValueError:
+            raise ValueError("Reviewed split events must be valid JSON.") from None
+    if not isinstance(value, dict) or not 1 <= len(value) <= 10:
+        raise ValueError("Reviewed split events need dates and positive ratios.")
+    result = {}
+    for day, ratio in value.items():
+        try:
+            day = date.fromisoformat(day).isoformat()
+        except (TypeError, ValueError):
+            raise ValueError("Use valid dates for reviewed split events.") from None
+        if isinstance(ratio, bool):
+            raise ValueError("Use numeric reviewed split ratios.")
+        result[day] = positive_number(ratio, "Reviewed split ratio")
+    return result
 
 
 def positive_number(value, label):
@@ -58,7 +85,7 @@ def resolve_deadline(row):
             raise ValueError("Use a valid forecast deadline date.")
         if pd.isna(deadline):
             raise ValueError("Use a valid forecast deadline date.")
-        basis = "Specified end date"
+        basis = row.get("deadline_basis") or "Specified end date"
     elif row.get("horizon_value") not in (None, ""):
         amount = positive_number(row["horizon_value"], "Time-frame length")
         unit = str(row.get("horizon_unit", "")).strip().lower().rstrip("s")
@@ -131,7 +158,7 @@ def horizon_table(prices):
     return pd.DataFrame(records)
 
 
-def check_price_target(frame, entry_date, last_date, target_usd, basis, deadline=None):
+def check_price_target(frame, entry_date, last_date, target_usd, basis, deadline=None, reviewed_splits=None):
     """Check a nominal USD target separately from dividend-adjusted returns."""
     deadline = pd.Timestamp(deadline) if deadline else None
     result = {"target_usd": target_usd, "basis": basis,
@@ -145,9 +172,17 @@ def check_price_target(frame, entry_date, last_date, target_usd, basis, deadline
     if window.empty:
         result["status"] = "Deadline precedes the simulated entry"
         return result
-    if "Stock Splits" in full_window and (full_window["Stock Splits"].fillna(0) != 0).any():
-        result["status"] = "Manual split adjustment required before target evaluation"
-        return result
+    observed = {}
+    if "Stock Splits" in full_window:
+        observed = {str(pd.Timestamp(day).date()): float(value) for day, value in full_window["Stock Splits"].dropna().items() if value != 0}
+    review = validated_split_review(reviewed_splits)
+    if observed or review:
+        matches = (review is not None and observed.keys() == review.keys()
+                   and all(isclose(value, review[day], rel_tol=1e-9) for day, value in observed.items()))
+        if not matches:
+            result["status"] = "Manual split adjustment required before target evaluation"
+            return result
+        result["split_adjustment_reviewed"] = True
     if window.iloc[0]["Close"] >= target_usd:
         result.update({"status": "At or above target at entry close",
                        "first_intraday_high_date": None,

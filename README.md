@@ -11,7 +11,7 @@ is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.12` checks that Streamlit's entry script and all eleven
+Release `2026-11-14.13` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
@@ -33,12 +33,12 @@ This makes a remaining real model failure inspectable instead of guessing
 from successful transcription alone. Live model accuracy is still separate
 from these runtime and simulated-response tests.
 
-## Curated special cases
+## Iconic market calls
 
-Release `2026-11-14.12` adds three documented examples at the top of **Case
-Database**, which remains the last navigation item. The neutral name reflects
-that these selected sources also include YouTube and a newsletter. The automatic
-import feature still supports TikTok only. New visitors still open Import TikTok.
+Release `2026-11-14.13` focuses **Case Database** on selected memorable market
+calls, with the heading **Iconic market calls**. The database remains the last
+navigation item; new visits still start with Import TikTok. Automatic import
+still supports TikTok only. The nine active cases are:
 
 - Roaring Kitty / GameStop, 4 August 2020: the dated original YouTube description
   explicitly states a bullish view. No numeric target or exact horizon is
@@ -47,9 +47,28 @@ import feature still supports TikTok only. New visitors still open Import TikTok
   recommends buying some at the following day's direct listing, ideally below
   USD 475. That purchase-price ceiling is not treated as a forecast target.
   The first simulated entry is the 14 April 2021 closing price.
+- Cathie Wood / ARK Invest / Tesla, 19 March 2021: ARK's expected-value price
+  target was USD 3,000 for 2025. The 25 August 2022 three-for-one split makes
+  that USD 1,000 on the saved series' share basis. The original target stays
+  visible in the description. Year-end 2025 is explicitly our evaluation
+  convention for the model year, rather than an exact day attributed to ARK.
 - Anthony Pompliano / Bitcoin, 24 June 2019: the original Pomp Letter gives
   a USD 100,000 target by 31 December 2021 and around 70-75% confidence. The case
   shows positive returns by that deadline while the target was not reached.
+- Jim Cramer / Bear Stearns, 11 March 2008: a context-only record. The linked
+  23 March CNN interview explains that the reassurance concerned broker-held
+  customer funds. No share-price forecast, simulated equity return or tracker
+  entry is inferred. A contemporary 17 March report corroborates the statement
+  date; it is distinct from the linked interview's publication date.
+- Nikola Motors: the retained original case, with the separate cancelled-share
+  status and documented historical-price gap.
+- Metahero, Kadena and MultiVAC: the three retained original crypto predictions,
+  each with the supplied 10x target.
+
+Home Depot, Lowe's, Crocs, Marvell, TSM and Micron were removed from the active
+CSV. The original ten-row dataset is retained only in
+`test_fixtures/original_predictions.csv`, with its price files, for regression
+checks. Existing personal tracker records are not deleted.
 
 These are hypothetical investments after the public statement, not reconstructions
 of the creators' own trades, option positions or portfolio profit. Each case has
@@ -58,20 +77,24 @@ Sources and verification notes are recorded in `case_sources.json`. Historical
 follower/view counts are left blank rather than invented. Other examples retain
 the supplied counts. The selected cases do not constitute a representative sample.
 
-Saved Yahoo Finance chart-endpoint observations were added for GME and COIN.
-Only earlier rows were prepended to BTC-USD (864 days) and SPY (221 sessions),
-with the old header/row bytes retained exactly and previous hashes recorded.
-All nine original calculated examples have identical summaries, period results
-and chart values. The other nine original price files are byte-identical.
-The collection now has 13 cases, 12 with saved comparisons through 12 November
-2026; Nikola retains its separate cancelled-share status and historical-data gap.
+Saved Yahoo Finance chart observations were added for TSLA. All thirteen
+pre-update price files remain byte-identical. The earlier release added GME
+and COIN and prepended older rows to BTC-USD and SPY without changing any
+existing observation. Current hashes are recorded in `project_info.json`.
+Seven active cases have saved comparisons through 12 November 2026; Nikola
+is status-only and Bear Stearns is context-only.
 
-The five special-case checks cover source/date consistency and saved-data
-availability, a gain versus an unmet deadline target, purchase ceiling versus
-forecast, original price-row hashes, and the featured UI/newsletter tracker flow.
-The growth test and database smoke test now use the actual number of rows.
-All 112 tests pass; after the final caption/integrity-check adjustment, two focused
-checks also passed. Hosted rendering has not been independently verified here.
+The Cathie record explicitly lists the reviewed split date and ratio. Target
+evaluation proceeds only if those events exactly match the observed history;
+unreviewed, mismatched or additional splits retain the manual-review guard.
+This metadata and the evaluation convention survive saving to My Tracker.
+The normal import/manual target calculation is unchanged.
+
+All 119 tests pass, including active-case membership, source/date consistency,
+split safety, context-only handling, stale database selection recovery, all nine
+database views, tracker preservation and seven-case batch export. Automated
+requests use saved data or simulated responses. Hosted rendering has not been
+independently verified here.
 
 ## Crypto comparisons
 
@@ -101,7 +124,7 @@ are not rewritten and automatically use the current comparisons when opened.
 The source-import engine/cache stays at v8; the change needs no new TikTok
 transcription. The release guard now covers case_analysis/charts as well.
 
-All 112 tests pass, including ten dual-reference checks: three-series
+The current suite includes ten dual-reference checks: three-series
 alignment and arithmetic, both deadline differences, chart labels, a weekend
 target hit, saved-data routing, missing-reference behavior, batch exports,
 manual/import/tracker UI and old-result invalidation. Requests in automated
@@ -119,7 +142,7 @@ The shared import engine/cache identity stays at v8 because this is a UI change.
 Release `2026-11-14.8` adds a personal **My Tracker** area. **Track this
 prediction** saves the selected, reviewed TikTok recommendation or the current
 manual entry without calculating returns or requiring available market data.
-Non-cancelled curated examples can also be saved. Re-saving the same post and
+Calculated curated examples can also be saved. Re-saving the same post and
 asset updates its target/details instead of adding a duplicate; different posts
 and assets stay separate. Manual entries include optional creator, source link
 and prediction text so the stored tip can be identified later.
@@ -136,6 +159,7 @@ MVP store, without account-based sync or transactional multi-tab guarantees.
 
 The saved record is a whitelist: asset, ticker/type, publication date, creator,
 short prediction, original link, target/reference, time frame and saved time.
+Curated split-review and evaluation-basis metadata are retained when present.
 Video/audio/images, full transcripts/OCR, import reports, API keys and downloaded
 price histories are excluded. These records are independent of the shared
 24-hour source-import cache. No media is downloaded or transcribed when opening
@@ -395,19 +419,20 @@ stock remain separate cases. There is no fixed ten-example limit.
 Targets belong to individual recommendations: `target_type` is `none`, `price`
 or `multiple`; `target_value` contains the price or factor. Multiples use
 `reference_type=entry`, or `reference_type=creator` with a `reference_price`.
-For example, the Crocs record uses 3 times a USD 106 reference. A 2x multiple
+A 2x multiple
 means a 100% price increase, and 10x means 900%. Curated table free-text claims are not parsed
 for numerical targets. Existing `target_usd` inputs remain readable for legacy data.
 
 An exact deadline can be recorded in `deadline`. Alternatively, supply
 `horizon_value` and `horizon_unit` (days, weeks, months or years), measured from
-publication. The ten-year TSM/Micron horizons resolve to 21 December 2034.
+publication.
 Vague statements such as next few weeks are preserved without an invented date.
 
-The collection has thirteen records. Twelve have saved daily price histories
-through 12 November 2026. Nikola remains visible with a documented cancellation
-outcome and a clearly labelled historical-data gap. Existing examples work from
-their saved snapshot; new cases and **Update prices** request data from Yahoo.
+The collection has nine records. Seven have saved daily comparisons through
+12 November 2026. Nikola Motors shows its cancellation outcome and historical
+data gap. Bear Stearns is a context-only statement with no stock return.
+Calculated examples work from their saved snapshot; new cases and
+**Update prices** request data from Yahoo.
 
 ## Method
 
@@ -424,7 +449,8 @@ their saved snapshot; new cases and **Update prices** request data from Yahoo.
   Later observations remain visible. Future or uncovered deadlines are labelled
   without extending or estimating the price history.
 - A forecast without a deadline is not declared false merely because a chosen
-  observation period has ended. The ten-year TSM and Micron horizons are still running.
+  observation period has ended. The ARK year-end evaluation convention is labelled
+  separately from an exact creator deadline.
 - The curated examples are illustrative and do not establish a creator ranking.
 
 ## Shared Python code
@@ -446,16 +472,16 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py test_format_recovery.py test_etf_import.py
+python -m unittest test_iconic_cases.py test_special_cases.py test_dual_crypto.py test_bitcoin_benchmark.py test_tracker.py test_photo_import.py test_etf_import.py test_format_recovery.py test_target_extraction.py test_import_runtime.py test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py
 ```
 
-All ten curated views and the manual target/reference/deadline flows passed
+All nine curated views and the manual target/reference/deadline flows passed
 Streamlit AppTest checks. The import has additional API-boundary and AppTest
 checks with clearly labelled test fixtures. The table was tested with twenty records. Charts
 with elapsed and future deadlines were rendered for visual inspection.
 A live-browser QA pass was not available in the development environment. See `TEST_REPORT.txt` and
 `README.txt` for details, and `NIKOLA_NOTES.txt` for the historical-source search.
 
-The manual interface uses structured targets and an optional deadline. Creator,
-video link and free-text claim fields are retained in curated records rather
-than requested in the manual form. `charts.py` supplies the chart annotation.
+The manual interface uses structured targets and an optional deadline. Its
+optional source fields identify a saved tracker entry. `charts.py` supplies
+the chart annotation.

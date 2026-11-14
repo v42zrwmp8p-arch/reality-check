@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.12"
+APP_VERSION = "2026-11-14.13"
 tiktok_mode = import_flow(APP_VERSION)
 from market_data import load_examples, provider_symbol, download_history, get_comparison_histories, comparison_symbols
 from case_analysis import analyse_comparisons
@@ -53,15 +53,17 @@ def show_recommendation(row):
         st.caption(f"Recommendation date: {row['publication_date']} · {row['symbol']}")
         return
     creator = row.get("creator") or "Your entry"
-    st.caption(f"{creator} · Published {row['publication_date']} · {row['symbol']}")
+    date_label = "Statement" if row.get("case_type") == "context" else "Published"
+    st.caption(f"{creator} · {date_label} {row['publication_date']} · {row['symbol']}")
     if row.get("case_note"):
         st.caption(row["case_note"])
     st.write(row.get("projection") or "No prediction text entered.")
     if row.get("evidence"):
         with st.expander("Source excerpt"):
             st.text(row["evidence"])
-    horizon = row.get("time_frame") or "Not specified"
-    st.caption(f"Creator's time frame: {horizon}")
+    if row.get("case_type") != "context":
+        horizon = row.get("time_frame") or "Not specified"
+        st.caption(f"Creator's time frame: {horizon}")
     reach = []
     for key, label in [("followers", "followers"), ("video_views", "video views")]:
         value = row.get(key)
@@ -71,7 +73,7 @@ def show_recommendation(row):
         st.caption(" · ".join(reach))
     link = row.get("video_url", "")
     if urlparse(link).scheme in {"http", "https"}:
-        st.link_button("Original post", link)
+        st.link_button("Source and context" if row.get("case_type") == "context" else "Original post", link)
 
 
 def show_nikola():
@@ -101,17 +103,18 @@ def show_results(row, result, source):
     for missing in summary.get("unavailable_benchmarks", []):
         st.warning(f"{benchmark_label(missing)} comparison is unavailable. Showing the available comparison.")
     window = summary["deadline_result"]
+    deadline_label = window.get("label", "Forecast deadline")
     additional = {"Benchmark_" + symbol: benchmark_label(symbol) for symbol in comparisons if symbol != primary}
     st.altair_chart(comparison_chart(normalized, row["symbol"], benchmark, window, additional), width="stretch")
     if window["status"] == "elapsed":
         values = window["metrics"]
         if len(comparisons) == 1:
-            st.markdown(f"**By forecast deadline ({window['deadline']}):** "
+            st.markdown(f"**By {deadline_label.lower()} ({window['deadline']}):** "
                         f"asset **{values['asset_return_pct']:+.2f}%**, "
                         f"benchmark **{values['benchmark_return_pct']:+.2f}%**, "
                         f"difference **{values['difference_pp']:+.2f} pp**.")
         else:
-            st.markdown(f"**By forecast deadline ({window['deadline']}):** asset **{values['asset_return_pct']:+.2f}%**.")
+            st.markdown(f"**By {deadline_label.lower()} ({window['deadline']}):** asset **{values['asset_return_pct']:+.2f}%**.")
             for symbol, comparison in comparisons.items():
                 metrics = comparison["deadline_result"]["metrics"]
                 st.markdown(f"{benchmark_label(symbol)}: **{metrics['benchmark_return_pct']:+.2f}%** · "
@@ -179,6 +182,8 @@ def show_results(row, result, source):
         st.write(("Approximate level: " if target.get("approximate") else "") + target["status"])
         if target.get("creator_deadline"):
             st.caption("Creator deadline: " + target["creator_deadline"])
+        if target.get("evaluation_deadline"):
+            st.caption("Evaluation date: " + target["evaluation_deadline"])
         if target.get("first_intraday_high_date"):
             st.caption("First reached: " + target["first_intraday_high_date"])
         if target.get("first_closing_price_date"):
@@ -200,6 +205,7 @@ def show_method():
 
 
 def example_mode():
+    st.subheader("Iconic market calls")
     try:
         examples = load_examples()
     except (ValueError, FileNotFoundError) as exc:
@@ -209,11 +215,16 @@ def example_mode():
         st.info("No examples have been added to the table yet.")
         return
     by_id = {row["case_id"]: row for row in examples}
+    if st.session_state.get("case_selector") not in by_id:
+        st.session_state.pop("case_selector", None)
     default = next((i for i, row in enumerate(examples) if row["case_id"] == "roaring-kitty-gme-20200804"), 0)
     case_id = st.selectbox("Choose a case", list(by_id), index=default,
         format_func=lambda key: f"{by_id[key].get('case_title') or (by_id[key]['asset'] + ' — ' + by_id[key]['creator'])} · {by_id[key]['publication_date']}", key="case_selector")
     row = by_id[case_id]
     show_recommendation(row)
+    if row.get("case_type") == "context":
+        st.info("Context case: no share-price return is calculated for this statement.")
+        return
     if row["symbol"] in {"VTIQ / NKLA", "VTIQ", "NKLA", "NKLAQ"}:
         show_nikola()
         return

@@ -1,6 +1,6 @@
 {
   "collection_date": "2026-11-14",
-  "purpose": "Curated educational special cases; public statements, not the creators actual trading returns.",
+  "purpose": "Curated iconic market calls, including explicit forecasts, bullish theses and a clearly separated context case.",
   "cases": [
     {
       "case_id": "roaring-kitty-gme-20200804",
@@ -24,6 +24,32 @@
       "published": "2019-06-24",
       "publisher": "The Pomp Letter",
       "verification": "Original newsletter title and body. Explicit USD 100,000 target, deadline 2021-12-31 and stated 70-75% confidence.",
+      "evidence_location": "predictions.csv evidence field"
+    },
+    {
+      "case_id": "ark-tesla-20210319",
+      "url": "https://www.ark-invest.com/articles/valuation-models/tesla-price-target-2",
+      "published": "2021-03-19",
+      "publisher": "ARK Invest; original article by Tasha Keeney",
+      "verification": "Original published expected-value target. Model year 2025 is evaluated at year-end as an explicit convention, not an attributed exact deadline.",
+      "original_target_usd": 3000,
+      "current_series_target_usd": 1000,
+      "reviewed_splits": {
+        "2022-08-25": 3
+      },
+      "split_source": "https://ir.tesla.com/press-release/tesla-announces-three-one-stock-split",
+      "evidence_location": "predictions.csv evidence field"
+    },
+    {
+      "case_id": "cramer-bear-stearns-context-20080311",
+      "url": "https://transcripts.cnn.com/show/rs/date/2008-03-23/segment/01",
+      "statement_date": "2008-03-11",
+      "source_published": "2008-03-23",
+      "publisher": "CNN transcript of Cramer context interview",
+      "date_source": "https://www.nexttv.com/blog/cnbcs-cramer-bear-stearns-fine-120186",
+      "date_source_published": "2008-03-17",
+      "verification": "Contemporaneous report dates the Mad Money statement March 11. In the CNN interview Cramer explains it concerned customer funds. No equity trade or stock return is inferred.",
+      "analysis_type": "context_only",
       "evidence_location": "predictions.csv evidence field"
     }
   ],
@@ -99,8 +125,43 @@
       "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/SPY",
       "retrieved_utc": "2026-11-14T16:20:32+00:00",
       "split_events": {}
+    },
+    {
+      "symbol": "TSLA",
+      "start_requested": "2021-03-19",
+      "end_exclusive": "2026-11-13",
+      "first_date": "2021-03-19",
+      "last_date": "2026-11-12",
+      "observations": 1421,
+      "currency": "USD",
+      "source": "Yahoo Finance public chart endpoint",
+      "endpoint": "https://query1.finance.yahoo.com/v8/finance/chart/TSLA",
+      "retrieved_utc": "2026-11-14T16:42:56+00:00",
+      "split_events": {
+        "2022-08-25": 3.0
+      }
     }
   ],
   "price_cutoff": "2026-11-12",
-  "historical_reach": "Followers/views for these historical calls are left blank; no historical reach is invented."
+  "historical_reach": "Followers/views for these historical calls are left blank; no historical reach is invented.",
+  "active_case_ids": [
+    "roaring-kitty-gme-20200804",
+    "cramer-coinbase-20210413",
+    "ark-tesla-20210319",
+    "pompliano-bitcoin-20190624",
+    "cramer-bear-stearns-context-20080311",
+    "6824248973004410118-VTIQ-NKLA",
+    "7026749642477964549-HERO",
+    "7026749642477964549-KDA",
+    "7026749642477964549-MTV"
+  ],
+  "retired_case_ids": [
+    "6930016692546358533-HD",
+    "6930016692546358533-LOW",
+    "7249072169680948526-CROX",
+    "7249072169680948526-MRVL",
+    "7450979443658525958-TSM",
+    "7450979443658525958-MU"
+  ],
+  "retained_original_cases": "Nikola Motors plus Metahero, Kadena and MultiVAC. Retired original rows remain solely as regression fixtures."
 }

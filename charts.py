@@ -2,7 +2,7 @@
 import altair as alt
 import pandas as pd
 
-IMPORT_VERSION = "2026-11-14.12"
+IMPORT_VERSION = "2026-11-14.13"
 
 
 def comparison_chart(normalized, asset_label, benchmark_label, deadline_result, additional_labels=None):
@@ -24,7 +24,7 @@ def comparison_chart(normalized, asset_label, benchmark_label, deadline_result, 
     if deadline_result.get("status") == "elapsed":
         deadline = deadline_result["deadline"]
         observation = deadline_result["observation_date"]
-        marker = alt.Data(values=[{"Date": deadline, "Label": "Forecast deadline"}])
+        marker = alt.Data(values=[{"Date": deadline, "Label": deadline_result.get("label", "Forecast deadline")}])
         layers.append(alt.Chart(marker).mark_rule(color="#343B37", strokeDash=[6, 4]).encode(x="Date:T"))
         right_half = pd.Timestamp(deadline) > normalized.index[0] + (normalized.index[-1] - normalized.index[0]) / 2
         layers.append(alt.Chart(marker).mark_text(align="right" if right_half else "left",

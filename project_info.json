@@ -3,8 +3,8 @@
   "delivery": "GitHub-backed Streamlit application source",
   "publicly_deployed": null,
   "saved_price_cutoff": "2026-11-12",
-  "examples": 13,
-  "calculated_examples": 12,
+  "examples": 9,
+  "calculated_examples": 7,
   "requirements": {
     "streamlit": "1.67.0",
     "pandas": "3.1.1",
@@ -18,12 +18,14 @@
     "gallery-dl": "1.32.20"
   },
   "price_source": "Yahoo Finance: live requests via yfinance; special-case saved additions via the public chart endpoint.",
-  "original_claims_source": "User-supplied TikTok notes plus three manually verified original public sources documented in case_sources.json.",
+  "original_claims_source": "Four retained user-supplied TikTok cases plus five sourced iconic market calls documented in case_sources.json.",
   "case_identity": "Unique case per public source and asset",
   "browser_visual_qa": "Unavailable: preview relay missing",
   "file_sha256": {
     "prices/BTC-USD.csv": "21c0b9b6bb690e2ae0356236e0fcaa62d3a98be2b15d38d2cef1c025990f61ac",
+    "prices/COIN.csv": "92bb2db5b271160b4791bb64be7b6e014d4e79af3e91976b0c81cc88c61cb761",
     "prices/CROX.csv": "5b9a5ed3ccffd941c2f0832bc5f53f5ff62bbd1d5685bb5fd0e6c7d522bd2e8a",
+    "prices/GME.csv": "e71da2cf6a6548cb1631a9c16722524e6b299f75774c7a8b9ddef935d269233d",
     "prices/HD.csv": "a781f0acadff0a1cd06377d8017251f090f9edf745731c1c2c088794d0d7be40",
     "prices/HERO10778-USD.csv": "2badbe253fa606cf3faeff5126cba26fb347cab750347821aa8ae923b15d76cc",
     "prices/KDA-USD.csv": "7d056fdb9e3b79c93fcfa1d54021b44af56b19b58cd1298961ff21a632007a9a",
@@ -32,13 +34,12 @@
     "prices/MTV-USD.csv": "5a30229c12bdfb6518fb884c9037029b8b21331490ee73edcee79e690ac36d9a",
     "prices/MU.csv": "a09d617401768a8c86e45187aa7850f094fd3401b39eeb5c39e06630405e02dd",
     "prices/SPY.csv": "b906407d3a4a543e5bc5330e3370ce1493be654668060e9f0ae7dac3040bec38",
-    "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41",
-    "prices/COIN.csv": "92bb2db5b271160b4791bb64be7b6e014d4e79af3e91976b0c81cc88c61cb761",
-    "prices/GME.csv": "e71da2cf6a6548cb1631a9c16722524e6b299f75774c7a8b9ddef935d269233d"
+    "prices/TSLA.csv": "1fafe867ec48c0b9d5dc0dfdab1c4c72890e39d3d2ffc8d2bcb4a3b08f7a7a4b",
+    "prices/TSM.csv": "e9afa6632fa75529959f13b0b4981d96e830008bf623b1447cd7bd3d5dbbea41"
   },
   "live_app_verification": "Supplied app URL reached Streamlit access/not-found page during browser checks",
   "target_schema": "Explicit none/price/multiple with entry or creator reference and target_approximate flag",
-  "forecast_deadline": "Exact date or structured duration from publication",
+  "forecast_deadline": "Exact date or structured duration; ARK model-year target uses an explicitly labelled year-end evaluation convention.",
   "tiktok_import": {
     "provider": "Direct public TikTok video/photo retrieval + Groq + local Tesseract OCR",
     "secret_name": "GROQ_API_KEY",
@@ -96,7 +97,7 @@
     "Case Database"
   ],
   "validation": {
-    "tests_passed": 112,
+    "tests_passed": 119,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -107,14 +108,14 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-14.12",
+    "full_suite_release": "2026-11-14.13",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
       "seconds": 7.442,
       "scope": "Existing tracker and release-consistency checks; backup UI removed, browser-storage mechanism and source fields retained."
     },
-    "navigation_update": "Existing UI compatibility check passed (all ten curated cases plus Manual Entry); separate AppTest smoke verified Import TikTok as the fresh-session default and database last.",
+    "navigation_update": "All nine active curated views and Manual Entry pass AppTest; Import TikTok stays the fresh-session default and Case Database remains last.",
     "bitcoin_benchmark_update": {
       "release": "2026-11-14.10",
       "focused_tests_passed": 41,
@@ -144,9 +145,22 @@
       "calculated_cases": 12,
       "source_manifest": "case_sources.json",
       "live_host_verified": false
+    },
+    "iconic_case_update": {
+      "release": "2026-11-14.13",
+      "tests_passed": 119,
+      "seconds": 31.517,
+      "new_tests": 7,
+      "current_cases": 9,
+      "calculated_cases": 7,
+      "context_only_cases": 1,
+      "status_only_cases": 1,
+      "previous_price_files_byte_identical": 13,
+      "scope": "Active membership and retired selector recovery; ARK source/share-basis review and year-end evaluation label; unreviewed, wrong or extra split events blocked; tracker preservation; Bear context-only no price request; seven-case batch export.",
+      "live_host_verified": false
     }
   },
-  "app_version": "2026-11-14.12",
+  "app_version": "2026-11-14.13",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -157,11 +171,11 @@
   "tracker": {
     "storage": "Per-browser localStorage on the app origin; no login or cross-device sync. Simple tracker interface without backup/upload/download controls.",
     "limit": 100,
-    "stored_fields": "Whitelisted prediction facts, source link, target/time frame and saved_at; no media/full transcripts/OCR/reports/keys/prices.",
+    "stored_fields": "Whitelisted prediction facts, source link, target/time frame, optional reviewed split events and target/evaluation basis, saved_at; no media/full transcripts/OCR/reports/keys/prices.",
     "entry_points": [
       "Reviewed selected TikTok video/photo recommendation",
       "Manual entry before calculation",
-      "Non-cancelled curated examples"
+      "Calculated curated examples; Nikola and context-only Bear Stearns excluded"
     ],
     "duplicate_handling": "Same original post + asset updates the existing record; manual identities include ticker/type/date/creator/claim.",
     "price_updates": "On opening the selected tip, existing live-history path with one-hour cache; explicit refresh clears price cache. No background service.",
@@ -187,7 +201,21 @@
   "curated_special_cases": [
     "roaring-kitty-gme-20200804",
     "cramer-coinbase-20210413",
-    "pompliano-bitcoin-20190624"
+    "ark-tesla-20210319",
+    "pompliano-bitcoin-20190624",
+    "cramer-bear-stearns-context-20080311"
   ],
-  "price_snapshot_changes": "New GME/COIN files; only older rows prepended to BTC-USD/SPY. Original CSV header/row bytes preserved; original nine calculated cases unchanged. Previous hashes recorded in case_sources.json."
+  "price_snapshot_changes": "Release .13 adds TSLA only; all thirteen prior price files byte-identical. Release .12 added GME/COIN and older BTC/SPY rows with all original observation bytes retained. Retired cases retained only as regression fixtures.",
+  "collection_heading": "Iconic market calls",
+  "active_case_count": 9,
+  "context_case": "Bear Stearns: broker-customer-funds reassurance, no stock-price forecast or equity return inferred.",
+  "retired_original_symbols": [
+    "HD",
+    "LOW",
+    "CROX",
+    "MRVL",
+    "TSM",
+    "MU"
+  ],
+  "split_review": "ARK 2021 Tesla target USD 3000 converted manually to USD 1000 after verified 2022-08-25 3:1 split. Evaluation requires exact observed/reviewed event match. New or unreviewed events remain blocked."
 }
