@@ -11,7 +11,7 @@ is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.8` checks that Streamlit's entry script and all eight
+Release `2026-11-14.9` checks that Streamlit's entry script and all eight
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
@@ -35,6 +35,11 @@ from these runtime and simulated-response tests.
 
 ## My Tracker
 
+Release `2026-11-14.9` removes the Backup / transfer section and its download,
+upload and restore controls. The caption is simply "Saved in this browser."
+Existing browser records and the optional manual source fields are retained.
+The shared import engine/cache identity stays at v8 because this is a UI change.
+
 Release `2026-11-14.8` adds a personal **My Tracker** area. **Track this
 prediction** saves the selected, reviewed TikTok recommendation or the current
 manual entry without calculating returns or requiring available market data.
@@ -46,9 +51,8 @@ and prediction text so the stored tip can be identified later.
 Records are stored in this browser's localStorage, without a login or new API
 key/database service. They survive ordinary page refreshes and later visits on
 the same app origin/browser. They do not automatically sync across devices or
-browser profiles, and clearing site data removes them. The **Backup / transfer**
-section downloads a JSON file and restores/merges one on another device. Up to
-100 predictions are supported. Browser storage errors are shown, and a save is
+browser profiles, and clearing site data removes them. The interface has no
+backup, upload or transfer controls. Up to 100 predictions are supported. Browser storage errors are shown, and a save is
 acknowledged only after the frontend confirms the write. The browser copy is
 read before each update so unrelated records added by another tab are preserved;
 another open tab loads fresh state on reload or its next save. This is a small
@@ -76,7 +80,8 @@ Unavailable prices do not delete the saved tip. A selected tip can be removed.
 component (`tracker_storage.js`) bridges browser storage and Python using data
 messages, without putting user content into HTML/JavaScript. Tests include
 simulated AppTest storage/provider boundaries and a Node frontend contract test
-for save/reopen, separate browser stores, backup merge, removal and write failure.
+for save/reopen, separate browser stores, removal and write failure. Internal
+JSON-validation/merge helpers remain tested but have no exposed backup interface.
 A real Chromium smoke test could not run in this execution sandbox (browser
 socket creation was denied). Browser persistence on the deployed Streamlit
 host has therefore not been independently verified here.

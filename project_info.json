@@ -104,9 +104,16 @@
     "recorded_amc_replay": "Actual user-provided source/model output replayed through extraction, recovery and ticker resolution; approx 6x with USD 2.25 reference and preserved condition",
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
-    "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries."
+    "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
+    "full_suite_release": "2026-11-14.8",
+    "follow_up": {
+      "release": "2026-11-14.9",
+      "focused_tests_passed": 15,
+      "seconds": 7.442,
+      "scope": "Existing tracker and release-consistency checks; backup UI removed, browser-storage mechanism and source fields retained."
+    }
   },
-  "app_version": "2026-11-14.8",
+  "app_version": "2026-11-14.9",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -115,7 +122,7 @@
   ],
   "etf_comparison": "SPY, a common comparison asset rather than a category-specific ETF benchmark",
   "tracker": {
-    "storage": "Per-browser localStorage on the app origin; no login or cross-device sync. JSON export/merge restore for transfer.",
+    "storage": "Per-browser localStorage on the app origin; no login or cross-device sync. Simple tracker interface without backup/upload/download controls.",
     "limit": 100,
     "stored_fields": "Whitelisted prediction facts, source link, target/time frame and saved_at; no media/full transcripts/OCR/reports/keys/prices.",
     "entry_points": [
@@ -128,6 +135,7 @@
     "new_predictions": "Saving requires no available prices. Today: no market call. Fewer than two common later closes: no return.",
     "isolation": "Browser lists and session data separate from the shared import-result cache. No external storage provider.",
     "live_browser_verified": false,
-    "validation": "Native Streamlit AppTest with simulated storage/API plus Node frontend contract; actual Chromium launch blocked by socket policy."
+    "validation": "Native Streamlit AppTest with simulated storage/API plus Node frontend contract; actual Chromium launch blocked by socket policy.",
+    "backup_interface": false
   }
 }

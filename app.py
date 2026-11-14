@@ -11,7 +11,7 @@ from analysis_core import positive_number
 from charts import comparison_chart
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.8"
+APP_VERSION = "2026-11-14.9"
 tiktok_mode = import_flow(APP_VERSION)
 from tracker_ui import sync_tracker, storage_message, track_button, tracker_mode
 

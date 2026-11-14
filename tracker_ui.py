@@ -1,15 +1,14 @@
 """Personal browser-backed tracker, independent of the shared TikTok cache."""
-import json
 from pathlib import Path
 from uuid import uuid4
 
 import pandas as pd
 import streamlit as st
 
-from tracker_core import (prediction_record, tracker_records, tracker_document, read_tracker,
+from tracker_core import (prediction_record, tracker_records,
                           forecast_status, forecast_label, tracker_comparison)
 
-IMPORT_VERSION = "2026-11-14.8"
+IMPORT_VERSION = "2026-11-14.9"
 # Register once per process; Streamlit reruns mount the same component.
 _storage = st.components.v2.component("reality_check_tracker_storage_v1",
             js=(Path(__file__).with_name("tracker_storage.js")).read_text(encoding="utf-8"))
@@ -78,7 +77,7 @@ def storage_message():
 
 def tracker_mode(histories, show_results, show_nikola, clear_prices):
     st.subheader("My Tracker")
-    st.caption("Saved in this browser. Use a backup to move your tracker to another device.")
+    st.caption("Saved in this browser.")
     rows = st.session_state.get("tracker_items", [])
     ready = st.session_state.get("tracker_ready", False)
     if not ready and not st.session_state.get("tracker_error"):
@@ -129,13 +128,3 @@ def tracker_mode(histories, show_results, show_nikola, clear_prices):
                 st.caption("Your prediction is saved. Prices can be checked again later.")
             except Exception:
                 st.info("Prices are unavailable right now. Your prediction is saved; try again later.")
-    with st.expander("Backup / transfer"):
-        st.download_button("Download tracker", json.dumps(tracker_document(rows), indent=2),
-            file_name="my-tracker.json", mime="application/json", key="tracker_export")
-        uploaded = st.file_uploader("Restore a tracker backup", type=["json"], key="tracker_backup")
-        if st.button("Import tracker", key="tracker_restore", disabled=uploaded is None or not ready or bool(st.session_state.get("tracker_pending"))):
-            try:
-                records = read_tracker(uploaded.getvalue())
-                queue_change({"kind": "merge", "items": records})
-            except ValueError as exc:
-                st.error(str(exc))

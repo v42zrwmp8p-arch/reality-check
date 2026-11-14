@@ -1,6 +1,12 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.8
+Current release: 2026-11-14.9
+15 focused tracker/runtime tests passed with Python 3.12 in 7.442 seconds.
+Backup/transfer controls and the related caption were removed. Existing local
+records and optional manual source fields are retained. Engine v8/cache identity
+is unchanged; helper/app release v9 ensures stale UI code reloads.
+
+Previous full suite (release 2026-11-14.8):
 91 tests passed with Python 3.12 in 23.627 seconds:
 - 10 original calculation/data checks
 - 9 Groq/input checks
