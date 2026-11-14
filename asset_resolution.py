@@ -5,7 +5,7 @@ import re
 
 from market_data import provider_symbol
 
-IMPORT_VERSION = "2026-11-14.4"
+IMPORT_VERSION = "2026-11-14.5"
 
 # Identifiers only: these mappings contain no video claims, targets or outcomes.
 ASSETS = [

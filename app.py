@@ -11,7 +11,7 @@ from analysis_core import positive_number
 from charts import comparison_chart
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-14.4"
+APP_VERSION = "2026-11-14.5"
 tiktok_mode = import_flow(APP_VERSION)
 
 ROOT = Path(__file__).resolve().parent
@@ -137,12 +137,13 @@ def show_method():
     with st.expander("How the comparison works"):
         st.write("The simulated purchase uses the first common closing price after publication. Both chart lines start at 100.")
         st.write("Returns use adjusted USD closing prices, including vendor split and dividend adjustments. The largest fall is the maximum daily closing-price drawdown from an earlier peak.")
-        st.write("Equities are compared with the SPY ETF; crypto with Bitcoin. Price targets are checked separately from investment returns. A forecast without a deadline is not labelled false just because a selected period has ended.")
+        st.write("Equities are compared with the SPY ETF; crypto with Bitcoin. Price targets are checked separately from investment returns.")
         st.write("A price multiple uses either the simulated entry close or an explicitly supplied creator reference. For example, 2× means a 100% price gain and 10× means a 900% gain.")
-        st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication. Vague time frames are retained as text without inventing an exact date.")
-        st.write("The curated collection is illustrative. These examples do not establish a creator ranking or represent all financial content.")
+        st.write("A precise covered deadline is marked in the chart; the later history remains visible. A stated duration is measured from publication.")
         st.caption("Market data: Yahoo Finance via yfinance. Videos are linked, not hosted. Trading costs and taxes are excluded.")
-        st.caption("Imports use speech recognition and sampled OCR. Review names, tickers and dates. Publication dates use UTC. Public-source analyses may be reused for 24 hours; edits stay private and media files are deleted after processing. Groq usage limits apply.")
+        st.caption("Imports use speech recognition and sampled OCR. Review names, tickers and dates. Publication dates use UTC.")
+        st.caption("If a video has already been analysed, the app can reuse the saved result for up to 24 hours.")
+        st.caption("Edits stay private and media files are deleted after processing. Groq usage limits apply.")
         st.caption("App version: " + APP_VERSION)
 
 

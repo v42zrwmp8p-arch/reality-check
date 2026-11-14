@@ -20,12 +20,12 @@ import yt_dlp
 from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url
 from asset_resolution import complete_drafts
 
-IMPORT_VERSION = "2026-11-14.4"
+IMPORT_VERSION = "2026-11-14.5"
 
 MAX_SECONDS = 180
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_FRAMES = 16
-ENGINE_VERSION = "groq-whisper-ocr-v4"
+ENGINE_VERSION = "groq-whisper-ocr-v5"
 # A release reload must not duplicate the queue or release another semaphore.
 if "_POOL" not in globals():
     _POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="video-import")
@@ -157,6 +157,7 @@ def _process(task, url, api_key):
     data = task.checkpoint
     try:
         client = GroqClient(api_key)
+        client.compatibility_mode = bool(data.get("compatibility_mode"))
         if "transcript" not in data:
             task.progress = "Retrieving the public TikTok video…"
             with tempfile.TemporaryDirectory(prefix="reality-check-") as folder:
@@ -178,9 +179,14 @@ def _process(task, url, api_key):
                 data["extraction_checks"] = deepcopy(checks) if isinstance(checks, list) else []
             task.progress = "Matching names to tickers…"
             data["drafts"] = complete_drafts(data["raw_drafts"])
+        data.pop("provider_error", None)
+        data.pop("failed_stage", None)
         data["analysed_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        data["compatibility_mode"] = client.compatibility_mode is True
         return {"ok": True, "data": deepcopy(data)}
     except ImportProblem as exc:
+        data["provider_error"] = exc.provider_error
+        data["compatibility_mode"] = getattr(locals().get("client"), "compatibility_mode", False) is True
         checks = getattr(locals().get("client"), "extraction_checks", [])
         if isinstance(checks, list):
             data["extraction_checks"] = deepcopy(checks)
@@ -188,6 +194,7 @@ def _process(task, url, api_key):
         task.retry_at = time.time() + (max(1, exc.retry_after) if exc.retry_after is not None else 30)
         return {"ok": False, "error": str(exc), "retry_after": exc.retry_after, "data": deepcopy(data)}
     except Exception:
+        data["compatibility_mode"] = getattr(locals().get("client"), "compatibility_mode", False) is True
         checks = getattr(locals().get("client"), "extraction_checks", [])
         if isinstance(checks, list):
             data["extraction_checks"] = deepcopy(checks)
@@ -217,7 +224,7 @@ def submit_import(url, api_key, *, refresh=False):
             raise ImportProblem("Several video analyses are already queued. Please try again shortly.")
         task = ImportTask(existing.checkpoint if existing else None)
         if refresh:
-            for field in ["raw_drafts", "drafts", "analysed_at", "extraction_checks", "failed_stage"]:
+            for field in ["raw_drafts", "drafts", "analysed_at", "extraction_checks", "failed_stage", "provider_error"]:
                 task.checkpoint.pop(field, None)
         try:
             task.future = _POOL.submit(_process, task, url, api_key)

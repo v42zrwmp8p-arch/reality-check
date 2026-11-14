@@ -12,7 +12,7 @@ from case_analysis import analyse_case
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-14.4"
+IMPORT_VERSION = "2026-11-14.5"
 
 
 def service_key():
@@ -102,6 +102,7 @@ def import_report(state):
             "engine": state.get("engine"), "video_url": state["url"],
             "status": state.get("status"), "error": state.get("error"),
             "failed_stage": state.get("failed_stage"),
+            "provider_error": state.get("provider_error"), "compatibility_mode": state.get("compatibility_mode", False),
             "analysed_at": state.get("analysed_at"), "transcript": state.get("transcript"),
             "extraction_checks": state.get("extraction_checks", []),
             "post_processing_targets": [{field: row.get(field) for field in ["asset", "symbol", "target_type", "target_value", "target_approximate", "reference_price", "currency", "target_recovered"]} for row in state.get("raw_drafts", [])],
@@ -112,6 +113,10 @@ def import_report(state):
 def transcript_section(state):
     with st.expander("Transcript"):
         st.text(state.get("transcript") or "No speech was detected.")
+    diagnostic_section(state)
+
+
+def diagnostic_section(state):
     with st.expander("Import details"):
         st.caption("Import version: " + IMPORT_VERSION)
         st.download_button("Download import report", json.dumps(import_report(state), indent=2),
@@ -227,6 +232,8 @@ def tiktok_mode(histories, show_results, show_nikola):
     if state["status"] != "completed":
         if state.get("transcript"):
             transcript_section(state)
+        elif state["status"] == "error":
+            diagnostic_section(state)
         return
     st.link_button("Original video", state["url"])
     if state.get("reused"):

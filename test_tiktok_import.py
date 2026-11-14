@@ -15,7 +15,7 @@ METADATA = {"platform": "tiktok", "type": "video", "createdAt": "2023-06-26T18:0
             "author": {"username": "fixture-creator"}, "stats": {"views": 12345}}
 DRAFT = {"asset": "Marvell", "symbol": "MRVL", "asset_type": "Equity", "claim": "Could rise to USD 142.",
          "evidence": "142", "evidence_time": "00:12", "target_type": "price", "target_value": 142,
-         "reference_price": None, "currency": "USD", "time_frame": None, "deadline": None,
+         "target_approximate": False, "reference_price": None, "currency": "USD", "time_frame": None, "deadline": None,
          "horizon_value": None, "horizon_unit": None}
 
 
@@ -129,7 +129,7 @@ class ImportChecks(unittest.TestCase):
         self.assertNotIn("Authorization", json.dumps(client.extraction_checks))
 
     @patch("tiktok_import.requests.post")
-    def test_provider_errors_are_safe_and_no_retry_or_fallback(self, request):
+    def test_provider_errors_are_safe_with_one_format_fallback_only_for_400(self, request):
         for status in [400, 401, 403, 404, 413, 429, 500]:
             request.reset_mock()
             request.return_value = response({"details": "fixture-key should not be shown"}, status)
@@ -137,7 +137,7 @@ class ImportChecks(unittest.TestCase):
             with self.assertRaises(ImportProblem) as raised:
                 GroqClient("fixture-key").extract("speech", "")
             self.assertNotIn("fixture-key", str(raised.exception))
-            self.assertEqual(request.call_count, 1)
+            self.assertEqual(request.call_count, 2 if status == 400 else 1)
             if status == 429:
                 self.assertEqual(raised.exception.retry_after, 120)
         with self.assertRaises(ImportProblem):

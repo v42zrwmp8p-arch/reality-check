@@ -11,11 +11,11 @@ is kept in the expandable explanation.
 
 ## Release consistency
 
-Release `2026-11-14.4` checks that Streamlit's entry script and all five import
+Release `2026-11-14.5` checks that Streamlit's entry script and all five import
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v4. The dependency file also changed to request
+results are isolated by engine v5. The dependency file also changed to request
 a fresh Community Cloud deployment, with the same dependency versions.
 
 The reported combination of new menu labels and the old no-result message
@@ -32,6 +32,32 @@ available if extraction fails after successful speech recognition.
 This makes a remaining real model failure inspectable instead of guessing
 from successful transcription alone. Live model accuracy is still separate
 from these runtime and simulated-response tests.
+
+## Request-format recovery
+
+The supplied stockdads report fails before a model answer: the old code maps
+HTTP 400 to a generic shorter-video message and discards the actual error body.
+The report therefore does not establish why that particular request failed.
+Release 2026-11-14.5 retains HTTP status and the provider code/type/message/
+parameter/failed-generation fields in diagnostics, redacting the connection key.
+
+A rejected chat request (HTTP 400 only) gets one alternate-format attempt with
+the same Groq model and source, JSON Object Mode and lower reasoning effort.
+The JSON schema is supplied in the prompt and validated locally with jsonschema
+before any case is shown. A second rejection stops. Authentication, permission,
+server and usage-limit errors do not trigger this switch. There is no extra
+audio transcription, new provider or subscription change. This recovery is
+independent of the video/stock names. Its live effect on the supplied failed
+request has not been verified; test fallback outputs are explicitly simulated.
+
+If a usage limit interrupts the alternate request, the source checkpoint and
+chosen output mode are retained. A later user retry does not repeat the rejected
+strict-format request or audio processing. The separately bounded empty-result
+review can still run once, using the chosen output mode. Shared quotas apply to
+all text calls. Raw error diagnostics are available even before speech succeeds.
+
+The three requested method disclaimers were removed from the interface. The
+saved-result sentence now uses the wording approved in the conversation.
 
 ## Approximate and conditional targets
 
@@ -119,7 +145,8 @@ and remains subject to the same Groq usage limits.
 The analysis runs in a bounded background queue: two active tasks and up to
 eight queued/running tasks. Progress is shown while it runs. A Groq usage limit
 produces a waiting message, using the provider's retry time when supplied;
-there is no automatic retry loop. Press **Analyse video** again when available.
+there is no retry loop. Only HTTP 400 chat requests receive the bounded
+output-format switch described above. Press **Analyse video** again when available.
 Successful transcription is retained as a checkpoint if prediction extraction
 hits a limit, so that retry does not transcribe the same audio again.
 Speech and prediction models have separate account-level quotas. Free does not
@@ -233,7 +260,7 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py test_format_recovery.py
 ```
 
 All ten curated views and the manual target/reference/deadline flows passed

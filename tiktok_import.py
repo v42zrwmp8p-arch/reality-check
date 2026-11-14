@@ -8,13 +8,14 @@ from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 import requests
+from jsonschema import validate, ValidationError
 
 from analysis_core import positive_number, resolve_deadline, resolve_target
 from market_data import provider_symbol
 from asset_resolution import explicit_buy_list_candidates, known_asset
 from target_extraction import recover_multiple
 
-IMPORT_VERSION = "2026-11-14.4"
+IMPORT_VERSION = "2026-11-14.5"
 
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"
@@ -24,9 +25,10 @@ EXTRACTION_MODEL = "openai/gpt-oss-20b"
 class ImportProblem(ValueError):
     """A short, safe message suitable for the interface."""
 
-    def __init__(self, message, retry_after=None):
+    def __init__(self, message, retry_after=None, provider_error=None):
         super().__init__(message)
         self.retry_after = retry_after
+        self.provider_error = provider_error or {}
 
 
 def clean_tiktok_url(value):
@@ -113,6 +115,7 @@ class GroqClient:
             raise ImportProblem("The Groq connection has not been configured yet.")
         self.api_key = api_key.strip()
         self.extraction_checks = []
+        self.compatibility_mode = False
 
     def _post(self, path, *, body=None, files=None, data=None):
         try:
@@ -134,16 +137,27 @@ class GroqClient:
             message = "The shared Groq usage limit was reached. Please try again later."
             if wait is not None:
                 message += f" The service suggests waiting {max(1, round(wait))} seconds."
-            raise ImportProblem(message, retry_after=wait)
+            raise ImportProblem(message, retry_after=wait, provider_error={"http_status": 429})
         messages = {
-            400: "Groq could not analyse this input. Try a shorter video or enter the case manually.",
+            400: "Groq rejected the analysis request. Open Import details for the error information.",
             401: "The Groq key was not accepted. The app owner needs to check the connection.",
             403: "The Groq account cannot access the required model. The owner needs to check its model permissions.",
             404: "The required Groq model is unavailable. The app owner needs to check the configuration.",
             413: "The audio is too large for this Groq connection. Try a shorter video.",
         }
         if response.status_code != 200:
-            raise ImportProblem(messages.get(response.status_code, "Groq returned a service error. Please try again later."))
+            details = {"http_status": response.status_code}
+            if len(response.content) <= 2_000_000:
+                try:
+                    error_body = response.json()
+                    error = error_body.get("error", {}) if isinstance(error_body, dict) else {}
+                    if isinstance(error, dict):
+                        for field in ["code", "type", "message", "param", "failed_generation"]:
+                            if isinstance(error.get(field), (str, int, float)):
+                                details[field] = str(error[field]).replace(self.api_key, "[redacted]")[:10000]
+                except (ValueError, TypeError):
+                    pass
+            raise ImportProblem(messages.get(response.status_code, "Groq returned a service error. Please try again later."), provider_error=details)
         if len(response.content) > 2_000_000:
             raise ImportProblem("The analysis response is too large for this prototype.")
         try:
@@ -205,21 +219,30 @@ class GroqClient:
         return recover_multiple(rows[:20], transcript, screen_text)
 
     def _extract_once(self, source, review=False):
+        compatibility = self.compatibility_mode
+        system_prompt = EXTRACTION_PROMPT + ("\n" + EMPTY_REVIEW_PROMPT if review else "")
+        if compatibility:
+            system_prompt += "\nReturn JSON only: one object containing a recommendations array. Match this JSON schema, including every required field: " + json.dumps(EXTRACTION_SCHEMA, separators=(",", ":"))
         payload = {
-            "model": EXTRACTION_MODEL, "temperature": 0, "reasoning_effort": "medium",
+            "model": EXTRACTION_MODEL, "temperature": 0, "reasoning_effort": "low" if compatibility else "medium",
             "max_completion_tokens": 3072,
-            "messages": [{"role": "system", "content": EXTRACTION_PROMPT + ("\n" + EMPTY_REVIEW_PROMPT if review else "")}, {"role": "user", "content": source}],
-            "response_format": {"type": "json_schema", "json_schema": {
+            "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": source}],
+            "response_format": {"type": "json_object"} if compatibility else {"type": "json_schema", "json_schema": {
                 "name": "investment_predictions", "strict": True, "schema": EXTRACTION_SCHEMA}},
         }
         # Record exactly the JSON body, never Authorization headers or the key.
         check = {"model": EXTRACTION_MODEL, "review_pass": review,
-                 "request": payload, "status": "started"}
+                 "request": payload, "status": "started", "compatibility_mode": compatibility}
         self.extraction_checks.append(check)
         try:
             result = self._post("/chat/completions", body=payload)
         except ImportProblem as exc:
-            check.update(status="request_failed", error=str(exc))
+            check.update(status="request_failed", error=str(exc), provider_error=exc.provider_error)
+            if exc.provider_error.get("http_status") == 400 and not compatibility:
+                # Change the rejected output protocol once; do not retry auth,
+                # usage-limit or server errors, and do not retranscribe audio.
+                self.compatibility_mode = True
+                return self._extract_once(source, review=review)
             raise
         try:
             choice = result["choices"][0]
@@ -230,10 +253,12 @@ class GroqClient:
             if choice.get("finish_reason") != "stop":
                 raise ValueError
             parsed = json.loads(choice["message"]["content"])
+            if compatibility:
+                validate(parsed, EXTRACTION_SCHEMA)
             rows = recommendations({"data": parsed})
             check.update(status="parsed", detected_assets=[{field: row.get(field) for field in ["asset", "symbol", "asset_type"]} for row in rows])
             return rows
-        except (KeyError, IndexError, TypeError, ValueError, AttributeError):
+        except (KeyError, IndexError, TypeError, ValueError, AttributeError, ValidationError):
             check["status"] = "invalid_response"
             raise ImportProblem("The recommendation analysis was incomplete or unreadable. Try a shorter video or use manual input.") from None
 

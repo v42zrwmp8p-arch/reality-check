@@ -4,7 +4,7 @@ import re
 
 from asset_resolution import ASSETS
 
-IMPORT_VERSION = "2026-11-14.4"
+IMPORT_VERSION = "2026-11-14.5"
 WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
          "seven": 7, "eight": 8, "nine": 9, "ten": 10}
 MULTIPLE = re.compile(

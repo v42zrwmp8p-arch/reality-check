@@ -1,7 +1,7 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current release: 2026-11-14.4
-58 tests passed with Python 3.12 in 14.976 seconds:
+Current release: 2026-11-14.5
+63 tests passed with Python 3.12:
 - 10 original calculation/data checks
 - 9 Groq/input checks
 - 10 identifier/transcript/creator regression checks
@@ -9,7 +9,27 @@ Current release: 2026-11-14.4
 - 9 Streamlit AppTest flows
 - 3 mixed-release and safe-diagnostic checks
 - 9 multiple-target recovery checks
+- 5 request-format recovery/error-detail checks
 
+
+HTTP 400 request rejection
+- The supplied stockdads report has request_failed before a model answer. The
+  displayed message maps to HTTP 400; the old implementation discarded the
+  provider error body, so the exact rejection cause cannot be reconstructed.
+- The actual source is retained as a credential-free fixture. Simulated 400
+  and success responses test one strict-schema -> JSON Object Mode switch,
+  five independent assets and local validation against the original schema.
+  These fallback outputs are simulated, not a real successful Groq result.
+- Exact whitelisted provider error fields are retained with the connection key
+  redacted. Tests check error details, no retry loop, refusal of malformed
+  fallback output, and quota resume without repeated audio/strict requests.
+- Other HTTP statuses keep their existing stop/wait behavior. A second 400
+  stops. The chosen output mode survives a later quota retry; stale error
+  markers are removed on success. jsonschema 4.26.0 is pinned explicitly.
+- The requested three method passages were removed. The cache wording is now
+  the exact user-approved sentence. Source-range contradiction checks were
+  not added, as requested. AppTest checks the revised method text.
+- Live recovery of this particular failed request remains unverified.
 
 Confirmed AMC target omission
 - The user's actual v3 report shows the current release running, AMC and its
@@ -40,7 +60,7 @@ Runtime correction
   helpers in dependency order and verifies matching versions/function types.
 - Queue, semaphore, task registry and lock retain identity across the reload.
   Normal widget reruns do not reload helpers. An incompatible deployment stops
-  rather than silently running old code. Engine v4 isolates old cached results.
+  rather than silently running old code. Engine v5 isolates old cached results.
 - The dependency-file change requests a fresh deployment without changing
   installed dependency versions. Actual Cloud restart remains unverified here.
 - The optional import report records the exact extraction request JSON,
@@ -99,11 +119,12 @@ Provider and storage boundaries
 - The prompt explicitly includes buy lists without numerical targets and
   distinguishes earnings multiples from forecast price multiples.
 - An empty result without supported-list recovery gets one additional model
-  check. HTTP and rate-limit errors do not trigger a request loop.
+  check. Only HTTP 400 receives one output-format switch; rate-limit and other
+  HTTP errors do not trigger a request loop.
 - Successful speech is retained for extraction retry. Original video/audio/
   frame files remain temporary and are deleted after processing or failure.
 - The bounded public-source cache remains shared. Edits and manually added
-  recommendations stay private. Engine v4 invalidates older source results.
+  recommendations stay private. Engine v5 invalidates older source results.
 - Free usage requires a Groq Free account. Code cannot inspect billing tier;
   it never changes billing settings. Separate speech/text limits still apply.
 

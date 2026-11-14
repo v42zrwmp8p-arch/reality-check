@@ -26,18 +26,24 @@ across visitors. User edits and checked cases remain session-local. Clearing
 an import clears its link, results and edits, not the shared public-source cache. Temporary
 original video/audio/frame files are deleted after processing, including on failure.
 OCR samples at most 16 frames; it can miss visual-only information. Limits and
-network failures are surfaced. No automatic retry or provider fallback occurs.
+network failures are surfaced. No retry loop or provider fallback occurs; HTTP 400 can trigger one output-format switch.
 The planned two-week course usage has no automatic expiration timer.
 
 Import corrections
+- HTTP 400 chat requests get one alternate JSON-output attempt with the same
+  model/source. Local schema validation still applies. Actual provider error
+  fields are retained with the connection key redacted. Other HTTP errors do
+  not trigger this switch; usage limits preserve the source and chosen mode.
+- The supplied failed request has no recorded original error body, so its exact
+  cause and the live success of this recovery remain unconfirmed.
 - Approximate/conditional multiples remain forecasts, with an approximate-target
   flag. A source check recovers a clearly named future multiple for one asset
   if the model misses it. The recorded AMC example now yields approximately
   6x from USD 2.25 (about USD 13.50), preserving the condition and small-position
   caution. It does not invent a deadline or reinterpret earnings valuations.
-- Release 2026-11-14.4 prevents a new entry script from using old imported
+- Release 2026-11-14.5 prevents a new entry script from using old imported
   helpers. A version mismatch reloads the helpers once, preserving the queue.
-- Engine v4 isolates older cached analyses. The dependency-file change requests
+- Engine v5 isolates older cached analyses. The dependency-file change requests
   a clean Cloud rebuild with the same dependency versions.
 - Import details displays the active release. Its downloadable report contains
   the exact extraction request JSON, real returned content, model-response
@@ -182,6 +188,7 @@ test_video_pipeline.py Temporary-file, shared-task, retry and cache lifecycle ch
 test_asset_resolution.py Regressions for the supplied transcript, tickers and creator IDs
 test_import_runtime.py Mixed-release reload, queue preservation and safe diagnostics
 test_target_extraction.py Recorded AMC response replay and false-target guards
+test_format_recovery.py HTTP-error detail/redaction, bounded format switch and quota resume
 
 The same functions can be imported into the report notebook. A final notebook
 and the course's PDF deliverable have not been created in this MVP step.
@@ -191,7 +198,7 @@ python analyse_examples.py
 python analyse_examples.py --refresh
 
 Run focused checks
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py test_target_extraction.py test_format_recovery.py
 
 Validation
 All ten curated views passed Streamlit AppTest checks. The nine price cases
