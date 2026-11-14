@@ -34,6 +34,22 @@ def completed(rows):
 
 
 class ImportUiChecks(unittest.TestCase):
+    @patch("tiktok_ui.service_key", return_value="fixture-key")
+    @patch("tiktok_ui.submit_import")
+    def test_failed_extraction_still_offers_transcript_and_diagnostic_report(self, submit, key):
+        task = ImportTask(); task.future = Future(); task.retry_at = time.time() + 120
+        task.future.set_result({"ok": False, "error": "Fixture unreadable response", "retry_after": 120,
+                                "data": {"transcript": "Public completed speech", "metadata": METADATA,
+                                         "extraction_checks": [{"raw_response_content": "unreadable"}]}})
+        submit.return_value = (task, False)
+        at = app(); at.text_input(key="tt_link").set_value(VIDEO).run()
+        at.button(key="tt_analyse").click().run()
+        self.assertFalse(at.exception)
+        self.assertTrue(any("unreadable response" in item.value for item in at.error))
+        self.assertIn("Import details", [item.label for item in at.expander])
+        self.assertTrue(any("Public completed speech" in item.value for item in at.text))
+        self.assertEqual(len(at.metric), 0)
+
     @patch("tiktok_ui.service_key", return_value="")
     def test_missing_key_does_not_break_existing_modes(self, key):
         at = app()
@@ -72,6 +88,8 @@ class ImportUiChecks(unittest.TestCase):
         self.assertEqual(at.date_input(key="tt_review_0_published").value, date(2023, 6, 26))
         self.assertTrue(any("Fixture transcript" in x.value for x in at.text))
         self.assertNotIn("Sampled screen text", [x.label for x in at.expander])
+        self.assertIn("Import details", [x.label for x in at.expander])
+        self.assertTrue(any("Import version: 2026-11-14.3" == x.value for x in at.caption))
         at.date_input(key="tt_review_0_published").set_value(None).run()
         at.button(key="tt_calculate").click().run()
         self.assertTrue(any("publication date" in x.value for x in at.error))

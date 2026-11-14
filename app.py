@@ -9,7 +9,10 @@ from market_data import load_examples, provider_symbol, download_history, get_ca
 from case_analysis import analyse_case
 from analysis_core import positive_number
 from charts import comparison_chart
-from tiktok_ui import tiktok_mode
+from import_runtime import import_flow
+
+APP_VERSION = "2026-11-14.3"
+tiktok_mode = import_flow(APP_VERSION)
 
 ROOT = Path(__file__).resolve().parent
 st.set_page_config(page_title="Reality Check", layout="wide", initial_sidebar_state="collapsed")
@@ -139,6 +142,7 @@ def show_method():
         st.write("The curated collection is illustrative. These examples do not establish a creator ranking or represent all financial content.")
         st.caption("Market data: Yahoo Finance via yfinance. Videos are linked, not hosted. Trading costs and taxes are excluded.")
         st.caption("Imports use speech recognition and sampled OCR. Review names, tickers and dates. Publication dates use UTC. Public-source analyses may be reused for 24 hours; edits stay private and media files are deleted after processing. Groq usage limits apply.")
+        st.caption("App version: " + APP_VERSION)
 
 
 def example_mode():

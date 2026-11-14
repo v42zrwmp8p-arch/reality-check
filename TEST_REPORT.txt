@@ -1,12 +1,34 @@
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
-Current update
-42 tests passed with Python 3.12 in 12.984 seconds:
+Current release: 2026-11-14.3
+48 tests passed with Python 3.12:
 - 10 original calculation/data checks
-- 8 Groq/input checks
+- 9 Groq/input checks
 - 10 identifier/transcript/creator regression checks
-- 7 background-task/cache checks
-- 7 Streamlit AppTest flows
+- 8 background-task/cache checks
+- 8 Streamlit AppTest flows
+- 3 mixed-release and safe-diagnostic checks
+
+Runtime correction
+- A new entry script with the previous no-result message suggests stale import
+  helpers, but this has not been directly confirmed on the deployment host.
+- The regression deliberately installs an old UI function/version in an
+  already running Python process. The release guard reloads all import
+  helpers in dependency order and verifies matching versions/function types.
+- Queue, semaphore, task registry and lock retain identity across the reload.
+  Normal widget reruns do not reload helpers. An incompatible deployment stops
+  rather than silently running old code. Engine v3 isolates old cached results.
+- The dependency-file change requests a fresh deployment without changing
+  installed dependency versions. Actual Cloud restart remains unverified here.
+- The optional import report records the exact extraction request JSON,
+  actual response content, model/response IDs, finish reason, parsing status,
+  detected assets and final counts. It excludes Authorization headers, API
+  keys, task objects and private edits. A failed extraction still preserves
+  completed speech and diagnostics in the interface. Tests cover invalid
+  provider JSON, error checkpoint preservation and the error-state UI.
+- Direct live diagnosis remains blocked: the supplied app URL again redirected
+  this browser to Streamlit's access/not-found page. No actual failing Groq
+  response has yet been collected; the root cause is still unconfirmed.
 
 Reproduced reported problems
 - The supplied failing AI-stock transcript is a regression input. Explicit

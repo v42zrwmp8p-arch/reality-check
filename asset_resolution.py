@@ -5,6 +5,8 @@ import re
 
 from market_data import provider_symbol
 
+IMPORT_VERSION = "2026-11-14.3"
+
 # Identifiers only: these mappings contain no video claims, targets or outcomes.
 ASSETS = [
     ("Bitcoin", "BTC-USD", "Crypto", ["bitcoin", "btc", "bitcoin btc"]),

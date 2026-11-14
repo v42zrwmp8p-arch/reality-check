@@ -13,6 +13,8 @@ from analysis_core import positive_number, resolve_deadline, resolve_target
 from market_data import provider_symbol
 from asset_resolution import explicit_buy_list_candidates, known_asset
 
+IMPORT_VERSION = "2026-11-14.3"
+
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"
 EXTRACTION_MODEL = "openai/gpt-oss-20b"
@@ -106,6 +108,7 @@ class GroqClient:
         if not isinstance(api_key, str) or not api_key.strip():
             raise ImportProblem("The Groq connection has not been configured yet.")
         self.api_key = api_key.strip()
+        self.extraction_checks = []
 
     def _post(self, path, *, body=None, files=None, data=None):
         try:
@@ -198,20 +201,36 @@ class GroqClient:
         return rows[:20]
 
     def _extract_once(self, source, review=False):
-        result = self._post("/chat/completions", body={
+        payload = {
             "model": EXTRACTION_MODEL, "temperature": 0, "reasoning_effort": "medium",
             "max_completion_tokens": 3072,
             "messages": [{"role": "system", "content": EXTRACTION_PROMPT + ("\n" + EMPTY_REVIEW_PROMPT if review else "")}, {"role": "user", "content": source}],
             "response_format": {"type": "json_schema", "json_schema": {
                 "name": "investment_predictions", "strict": True, "schema": EXTRACTION_SCHEMA}},
-        })
+        }
+        # Record exactly the JSON body, never Authorization headers or the key.
+        check = {"model": EXTRACTION_MODEL, "review_pass": review,
+                 "request": payload, "status": "started"}
+        self.extraction_checks.append(check)
+        try:
+            result = self._post("/chat/completions", body=payload)
+        except ImportProblem as exc:
+            check.update(status="request_failed", error=str(exc))
+            raise
         try:
             choice = result["choices"][0]
+            check.update(model=result.get("model") or EXTRACTION_MODEL,
+                         response_id=result.get("id"), finish_reason=choice.get("finish_reason"),
+                         raw_response_content=choice.get("message", {}).get("content"),
+                         usage=result.get("usage"))
             if choice.get("finish_reason") != "stop":
                 raise ValueError
             parsed = json.loads(choice["message"]["content"])
-            return recommendations({"data": parsed})
-        except (KeyError, IndexError, TypeError, ValueError):
+            rows = recommendations({"data": parsed})
+            check.update(status="parsed", detected_assets=[{field: row.get(field) for field in ["asset", "symbol", "asset_type"]} for row in rows])
+            return rows
+        except (KeyError, IndexError, TypeError, ValueError, AttributeError):
+            check["status"] = "invalid_response"
             raise ImportProblem("The recommendation analysis was incomplete or unreadable. Try a shorter video or use manual input.") from None
 
 

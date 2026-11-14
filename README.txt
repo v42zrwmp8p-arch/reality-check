@@ -30,6 +30,14 @@ network failures are surfaced. No automatic retry or provider fallback occurs.
 The planned two-week course usage has no automatic expiration timer.
 
 Import corrections
+- Release 2026-11-14.3 prevents a new entry script from using old imported
+  helpers. A version mismatch reloads the helpers once, preserving the queue.
+- Engine v3 isolates older cached analyses. The dependency-file change requests
+  a clean Cloud rebuild with the same dependency versions.
+- Import details displays the active release. Its downloadable report contains
+  the exact extraction request JSON, real returned content, model-response
+  identifiers, parsing status and asset counts. It remains available after a
+  failed extraction, without credentials, task objects or private user edits.
 - Known identifiers fill missing tickers, including Bitcoin -> BTC-USD.
 - Similar names (e.g. Marvel/Marvell) offer a match for the user to confirm.
 - Other missing tickers can receive Yahoo search suggestions; search failures
@@ -155,6 +163,7 @@ analysis_core.py       Return, drawdown, horizon and explicit target functions
 charts.py              Full-history chart and covered-deadline annotations
 tiktok_import.py       Groq requests, extraction schema and reviewed-input validation
 asset_resolution.py    Known identifiers, spelling/search suggestions and explicit-list recovery
+import_runtime.py      Entry-script/helper release consistency on Streamlit reruns
 video_pipeline.py      Public video retrieval, audio/OCR, background tasks and source cache
 tiktok_ui.py           Link import, job progress, editable review and optional transcript
 analyse_examples.py    Batch CSV/JSON outputs using the same functions as the app
@@ -165,6 +174,7 @@ test_tiktok_import.py  API/error/input checks with simulated responses
 test_tiktok_ui.py      Functional import UI checks with simulated responses
 test_video_pipeline.py Temporary-file, shared-task, retry and cache lifecycle checks
 test_asset_resolution.py Regressions for the supplied transcript, tickers and creator IDs
+test_import_runtime.py Mixed-release reload, queue preservation and safe diagnostics
 
 The same functions can be imported into the report notebook. A final notebook
 and the course's PDF deliverable have not been created in this MVP step.
@@ -174,7 +184,7 @@ python analyse_examples.py
 python analyse_examples.py --refresh
 
 Run focused checks
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py
 
 Validation
 All ten curated views passed Streamlit AppTest checks. The nine price cases

@@ -12,6 +12,8 @@ from case_analysis import analyse_case
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
+IMPORT_VERSION = "2026-11-14.3"
+
 
 def service_key():
     value = os.environ.get("GROQ_API_KEY", "")
@@ -80,6 +82,7 @@ def poll_import():
     if result["ok"]:
         state.update(deepcopy(result["data"]), status="completed")
     else:
+        state.update(deepcopy(result.get("data", {})))
         state.update(status="error", error=result["error"], retry_at=task.retry_at)
     st.rerun()
 
@@ -93,9 +96,25 @@ def job_status(state):
         poll_import()
 
 
+def import_report(state):
+    """Export only public-source diagnostics, never keys, tasks or private edits."""
+    return {"import_version": IMPORT_VERSION, "analysis_version": state.get("import_version"),
+            "engine": state.get("engine"), "video_url": state["url"],
+            "status": state.get("status"), "error": state.get("error"),
+            "failed_stage": state.get("failed_stage"),
+            "analysed_at": state.get("analysed_at"), "transcript": state.get("transcript"),
+            "extraction_checks": state.get("extraction_checks", []),
+            "extraction_result_count": len(state.get("raw_drafts", [])),
+            "review_list_count": len(state.get("drafts", []))}
+
+
 def transcript_section(state):
     with st.expander("Transcript"):
         st.text(state.get("transcript") or "No speech was detected.")
+    with st.expander("Import details"):
+        st.caption("Import version: " + IMPORT_VERSION)
+        st.download_button("Download import report", json.dumps(import_report(state), indent=2),
+                           file_name="import-report.json", mime="application/json", key="tt_report")
 
 
 def review_fields(state):
@@ -202,6 +221,8 @@ def tiktok_mode(histories, show_results, show_nikola):
               help="Clears the link, results and your edits.")
     job_status(state)
     if state["status"] != "completed":
+        if state.get("transcript"):
+            transcript_section(state)
         return
     st.link_button("Original video", state["url"])
     if state.get("reused"):

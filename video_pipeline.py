@@ -20,14 +20,18 @@ import yt_dlp
 from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url
 from asset_resolution import complete_drafts
 
+IMPORT_VERSION = "2026-11-14.3"
+
 MAX_SECONDS = 180
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_FRAMES = 16
-ENGINE_VERSION = "groq-whisper-ocr-v2"
-_POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="video-import")
-_SLOTS = BoundedSemaphore(8)
-_TASKS = OrderedDict()
-_LOCK = Lock()
+ENGINE_VERSION = "groq-whisper-ocr-v3"
+# A release reload must not duplicate the queue or release another semaphore.
+if "_POOL" not in globals():
+    _POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="video-import")
+    _SLOTS = BoundedSemaphore(8)
+    _TASKS = OrderedDict()
+    _LOCK = Lock()
 CACHE_SECONDS = 24 * 60 * 60
 
 
@@ -164,21 +168,32 @@ def _process(task, url, api_key):
                 data["transcript"] = client.transcribe(audio)
             # Original video/audio/frames are deleted even when a stage fails.
         task.progress = "Identifying the investment predictions…"
+        data["import_version"] = IMPORT_VERSION
         if not data["transcript"].strip() and not data.get("screen_text", "").strip():
             data["drafts"] = []
         else:
             if "raw_drafts" not in data:
                 data["raw_drafts"] = client.extract(data["transcript"], data.get("screen_text", ""))
+                checks = getattr(client, "extraction_checks", [])
+                data["extraction_checks"] = deepcopy(checks) if isinstance(checks, list) else []
             task.progress = "Matching names to tickers…"
             data["drafts"] = complete_drafts(data["raw_drafts"])
         data["analysed_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
         return {"ok": True, "data": deepcopy(data)}
     except ImportProblem as exc:
+        checks = getattr(locals().get("client"), "extraction_checks", [])
+        if isinstance(checks, list):
+            data["extraction_checks"] = deepcopy(checks)
+        data["failed_stage"] = task.progress
         task.retry_at = time.time() + (max(1, exc.retry_after) if exc.retry_after is not None else 30)
-        return {"ok": False, "error": str(exc), "retry_after": exc.retry_after}
+        return {"ok": False, "error": str(exc), "retry_after": exc.retry_after, "data": deepcopy(data)}
     except Exception:
+        checks = getattr(locals().get("client"), "extraction_checks", [])
+        if isinstance(checks, list):
+            data["extraction_checks"] = deepcopy(checks)
+        data["failed_stage"] = task.progress
         task.retry_at = time.time() + 30
-        return {"ok": False, "error": "The video analysis did not complete. Please try again later or use manual input.", "retry_after": None}
+        return {"ok": False, "error": "The video analysis did not complete. Please try again later or use manual input.", "retry_after": None, "data": deepcopy(data)}
 
 
 def submit_import(url, api_key, *, refresh=False):
@@ -202,7 +217,7 @@ def submit_import(url, api_key, *, refresh=False):
             raise ImportProblem("Several video analyses are already queued. Please try again shortly.")
         task = ImportTask(existing.checkpoint if existing else None)
         if refresh:
-            for field in ["raw_drafts", "drafts", "analysed_at"]:
+            for field in ["raw_drafts", "drafts", "analysed_at", "extraction_checks", "failed_stage"]:
                 task.checkpoint.pop(field, None)
         try:
             task.future = _POOL.submit(_process, task, url, api_key)

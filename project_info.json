@@ -45,14 +45,17 @@
     "limits": "180 seconds, 50 MB, 16 sampled OCR frames, 2 active / 8 total tasks",
     "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change",
-    "engine_version": "groq-whisper-ocr-v2",
+    "engine_version": "groq-whisper-ocr-v3",
     "identifier_handling": "Known identifiers; spelling and bounded Yahoo-search suggestions require review",
     "empty_result_handling": "Explicit supported-list recovery; otherwise one additional model check",
     "recheck": "Explicit extraction-only recheck with 30-second cooldown; original transcript/OCR reused",
     "creator": "Canonical video handle preferred; numeric UIDs hidden",
     "screen_text_visible": false,
     "clear_import": "Clears link, result and edits; shared source cache retained",
-    "previous_live_user_test": "User reported successful transcription, plus empty extraction and missing identifiers in the prior version"
+    "previous_live_user_test": "User reported successful transcription, plus empty extraction and missing identifiers in the prior version",
+    "release_guard": "All helpers must match app release; reload once on mismatch",
+    "clean_cloud_build": "Requested via requirements.txt change; deployed restart not independently confirmed",
+    "live_root_cause": "Unconfirmed: actual failing model response not collected; supplied app URL again reached access/not-found page"
   },
   "system_dependencies": [
     "ffmpeg",
@@ -66,10 +69,13 @@
     "Manual Entry"
   ],
   "validation": {
-    "tests_passed": 42,
+    "tests_passed": 48,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
-    "original_price_files_unchanged": true
-  }
+    "original_price_files_unchanged": true,
+    "mixed_release_regression": "Stale helper reload, matching function identities, queue preserved, no reload on ordinary reruns",
+    "diagnostic_report": "Exact extraction request JSON, returned content, response ID, parsing status and counts; excludes credentials/headers/tasks/private edits; available after extraction errors"
+  },
+  "app_version": "2026-11-14.3"
 }

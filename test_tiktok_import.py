@@ -95,7 +95,8 @@ class ImportChecks(unittest.TestCase):
     @patch("tiktok_import.requests.post")
     def test_provider_protocol_and_structured_extraction(self, request):
         request.return_value = response({"choices": [{"finish_reason": "stop", "message": {"content": json.dumps({"recommendations": [DRAFT]})}}]})
-        rows = GroqClient("fixture-key").extract("[00:12] Marvell could rise to 142 dollars", "MRVL")
+        client = GroqClient("fixture-key")
+        rows = client.extract("[00:12] Marvell could rise to 142 dollars", "MRVL")
         self.assertEqual(len(rows), 1)
         self.assertEqual(request.call_count, 1)
         self.assertEqual(request.call_args.args[0], "https://api.groq.com/openai/v1/chat/completions")
@@ -104,9 +105,28 @@ class ImportChecks(unittest.TestCase):
         self.assertTrue(payload["response_format"]["json_schema"]["strict"])
         self.assertFalse(request.call_args.kwargs["allow_redirects"])
         self.assertNotIn("tools", payload)
+        self.assertEqual(client.extraction_checks[0]["detected_assets"][0]["symbol"], "MRVL")
+        self.assertNotIn("fixture-key", json.dumps(client.extraction_checks))
         request.return_value = response({"choices": [{"finish_reason": "length", "message": {"content": "{}"}}]})
         with self.assertRaises(ImportProblem):
             GroqClient("fixture-key").extract("speech", "")
+
+    @patch("tiktok_import.requests.post")
+    def test_exact_extraction_input_and_unreadable_output_are_reported_without_key(self, request):
+        request.return_value = response({"id": "fixture-response-id", "model": "fixture-returned-model",
+                                        "choices": [{"finish_reason": "stop", "message": {"content": "unreadable fixture output"}}]})
+        client = GroqClient("fixture-private-key")
+        with self.assertRaises(ImportProblem):
+            client.extract("[00:00] Public speech", "Public OCR")
+        check = client.extraction_checks[0]
+        self.assertEqual(check["status"], "invalid_response")
+        self.assertEqual(check["raw_response_content"], "unreadable fixture output")
+        self.assertEqual(check["response_id"], "fixture-response-id")
+        self.assertEqual(check["model"], "fixture-returned-model")
+        source = json.loads(check["request"]["messages"][1]["content"])
+        self.assertEqual(source, {"transcript": "[00:00] Public speech", "sampled_screen_text": "Public OCR"})
+        self.assertNotIn("fixture-private-key", json.dumps(client.extraction_checks))
+        self.assertNotIn("Authorization", json.dumps(client.extraction_checks))
 
     @patch("tiktok_import.requests.post")
     def test_provider_errors_are_safe_and_no_retry_or_fallback(self, request):

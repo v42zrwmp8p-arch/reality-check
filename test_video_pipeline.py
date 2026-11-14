@@ -17,6 +17,21 @@ class PipelineChecks(unittest.TestCase):
             pipeline._TASKS.clear()
 
     @patch("video_pipeline.GroqClient")
+    @patch("video_pipeline.read_screen_text", return_value=("", "Fixture"))
+    @patch("video_pipeline.prepare_audio", return_value=Path("unused-fixture.mp3"))
+    @patch("video_pipeline.read_video", return_value=(Path("unused-fixture.mp4"), {"duration": 60}))
+    def test_failed_extraction_keeps_source_and_actual_response_diagnostics(self, read, audio, screen, client):
+        client.return_value.transcribe.return_value = "Public source speech"
+        client.return_value.extraction_checks = [{"raw_response_content": "unreadable fixture", "status": "invalid_response"}]
+        client.return_value.extract.side_effect = ImportProblem("Fixture unreadable response")
+        task, _ = pipeline.submit_import(VIDEO, "fixture-key")
+        result = task.future.result(timeout=5)
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["data"]["transcript"], "Public source speech")
+        self.assertEqual(result["data"]["extraction_checks"][0]["raw_response_content"], "unreadable fixture")
+        self.assertIn("Identifying", result["data"]["failed_stage"])
+
+    @patch("video_pipeline.GroqClient")
     @patch("video_pipeline.read_screen_text", return_value=("MRVL 142", "Fixture OCR"))
     @patch("video_pipeline.prepare_audio")
     @patch("video_pipeline.read_video")

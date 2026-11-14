@@ -9,6 +9,30 @@ The three modes are **TikTok Case Database**, **Import TikTok**, then
 **Manual Entry**. Prices and targets use short labels; supporting methodology
 is kept in the expandable explanation.
 
+## Release consistency
+
+Release `2026-11-14.3` checks that Streamlit's entry script and all four import
+helpers use the same release. A mismatch reloads the helpers in dependency
+order once; ordinary widget reruns keep the shared queue and cache. An
+incomplete deployment is not silently treated as a current import. Old source
+results are isolated by engine v3. The dependency file also changed to request
+a fresh Community Cloud deployment, with the same dependency versions.
+
+The reported combination of new menu labels and the old no-result message
+suggested stale imported code; this has not been directly confirmed on the
+deployment host. A regression test reproduces stale helpers in one running
+Python process and checks recovery, shared queue preservation and normal reruns.
+
+**Import details** shows the active release and offers **Download import
+report**: the exact JSON body sent for extraction (including the source text
+and prompt), actual returned content, response ID, finish reason, parsing
+status, detected assets and final counts. It excludes Authorization headers,
+API keys, task objects and private edits. The transcript and report remain
+available if extraction fails after successful speech recognition.
+This makes a remaining real model failure inspectable instead of guessing
+from successful transcription alone. Live model accuracy is still separate
+from these runtime and simulated-response tests.
+
 ## Deploy online
 
 The app is prepared for Streamlit Community Cloud. Visitors use its browser
@@ -191,7 +215,7 @@ Generate CSV results or run focused checks:
 
 ```bash
 python analyse_examples.py
-python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py
+python -m unittest test_mvp.py test_tiktok_import.py test_asset_resolution.py test_video_pipeline.py test_tiktok_ui.py test_import_runtime.py
 ```
 
 All ten curated views and the manual target/reference/deadline flows passed
