@@ -12,7 +12,7 @@ from case_analysis import analyse_comparisons
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-14.15"
+IMPORT_VERSION = "2026-11-15.1"
 
 
 def service_key():
@@ -46,6 +46,10 @@ def add_recommendation():
     state = st.session_state["tt_import"]
     state["drafts"].append({"asset": "", "symbol": None, "asset_type": "Unknown", "claim": "", "target_type": "none"})
     st.session_state["tt_choice"] = len(state["drafts"]) - 1
+    st.session_state.pop("tt_result", None)
+
+
+def recommendation_changed():
     st.session_state.pop("tt_result", None)
 
 
@@ -128,8 +132,11 @@ def diagnostic_section(state):
 
 def review_fields(state):
     drafts = state["drafts"]
+    # Keep selection and per-asset edits when other recommendations hide their widgets.
+    # clear_import still removes this session state before a different source is loaded.
     choice = st.selectbox("Choose a detected recommendation", range(len(drafts)),
-                          format_func=lambda i: str(drafts[i].get("asset") or f"Recommendation {i + 1}"), key="tt_choice")
+                          format_func=lambda i: str(drafts[i].get("asset") or f"Recommendation {i + 1}"),
+                          key="tt_choice", persist_state="session", on_change=recommendation_changed)
     draft = drafts[choice]
     details = metadata_details(state["metadata"])
     prefix = "tt_review_" + str(choice) + "_"
@@ -144,38 +151,38 @@ def review_fields(state):
             if draft.get("evidence_time"):
                 st.caption(str(draft["evidence_time"]))
     a, b = st.columns(2)
-    asset = a.text_input("Asset name", value=str(draft.get("asset") or ""), key=prefix + "asset")
-    symbol = b.text_input("Yahoo Finance ticker", value=str(draft.get("symbol") or ""), key=prefix + "symbol")
+    asset = a.text_input("Asset name", value=str(draft.get("asset") or ""), key=prefix + "asset", persist_state="session")
+    symbol = b.text_input("Yahoo Finance ticker", value=str(draft.get("symbol") or ""), key=prefix + "symbol", persist_state="session")
     if not symbol.strip():
         st.caption("Choose a suggested match or enter the ticker.")
     a, b, c = st.columns([1, 1, 2])
     kinds = ["Choose asset type", "Equity", "Crypto", "ETF"]
-    kind = a.selectbox("Asset type", kinds, index=kinds.index(draft.get("asset_type")) if draft.get("asset_type") in kinds else 0, key=prefix + "kind")
-    published = b.date_input("Publication date", value=details["publication_date"], max_value=date.today(), key=prefix + "published")
-    creator = c.text_input("Creator", value=details["creator"], key=prefix + "creator")
-    claim = st.text_area("Extracted prediction", value=str(draft.get("claim") or ""), height=85, key=prefix + "claim")
+    kind = a.selectbox("Asset type", kinds, index=kinds.index(draft.get("asset_type")) if draft.get("asset_type") in kinds else 0, key=prefix + "kind", persist_state="session")
+    published = b.date_input("Publication date", value=details["publication_date"], max_value=date.today(), key=prefix + "published", persist_state="session")
+    creator = c.text_input("Creator", value=details["creator"], key=prefix + "creator", persist_state="session")
+    claim = st.text_area("Extracted prediction", value=str(draft.get("claim") or ""), height=85, key=prefix + "claim", persist_state="session")
 
     labels = {"none": "No numeric target", "price": "Price target (USD)", "multiple": "Price multiple"}
     target_type = st.selectbox("Target type", list(labels), format_func=labels.get,
                               index=list(labels).index(draft.get("target_type")) if draft.get("target_type") in labels else 0,
-                              key=prefix + "target_type")
+                              key=prefix + "target_type", persist_state="session")
     target_value, reference_price, reference_type, currency = None, None, None, None
     target_approximate = False
     if target_type != "none":
         default_value = draft.get("target_value") if draft.get("target_type") == target_type else None
-        target_value = st.text_input("Target price (USD)" if target_type == "price" else "Target multiple", value=str(default_value) if default_value is not None else "", key=prefix + target_type + "_value")
-        target_approximate = st.checkbox("Approximate target", value=bool(draft.get("target_approximate")), key=prefix + "approximate")
+        target_value = st.text_input("Target price (USD)" if target_type == "price" else "Target multiple", value=str(default_value) if default_value is not None else "", key=prefix + target_type + "_value", persist_state="session")
+        target_approximate = st.checkbox("Approximate target", value=bool(draft.get("target_approximate")), key=prefix + "approximate", persist_state="session")
         if target_type == "multiple":
             refs = {"entry": "Simulated entry price", "creator": "Creator reference price"}
             reference_type = st.selectbox("Reference price", list(refs), format_func=refs.get,
-                                         index=1 if draft.get("reference_price") is not None else 0, key=prefix + "reference_type")
+                                         index=1 if draft.get("reference_price") is not None else 0, key=prefix + "reference_type", persist_state="session")
             if reference_type == "creator":
-                reference_price = st.text_input("Creator reference price (USD)", value=str(draft.get("reference_price") or ""), key=prefix + "reference_price")
+                reference_price = st.text_input("Creator reference price (USD)", value=str(draft.get("reference_price") or ""), key=prefix + "reference_price", persist_state="session")
         if target_type == "price" or reference_type == "creator":
             currency = st.selectbox("Currency of the stated price", ["Other / unclear", "USD"],
-                                    index=1 if draft.get("currency") == "USD" else 0, key=prefix + "currency")
+                                    index=1 if draft.get("currency") == "USD" else 0, key=prefix + "currency", persist_state="session")
 
-    time_frame = st.text_input("Stated time frame", value=str(draft.get("time_frame") or ""), key=prefix + "time_frame")
+    time_frame = st.text_input("Stated time frame", value=str(draft.get("time_frame") or ""), key=prefix + "time_frame", persist_state="session")
     deadline_default = None
     try:
         deadline_default = date.fromisoformat(str(draft.get("deadline")))
@@ -185,15 +192,15 @@ def review_fields(state):
     duration_valid = isinstance(duration, int) and not isinstance(duration, bool) and duration > 0 and draft.get("horizon_unit") in {"days", "weeks", "months", "years"}
     window_options = ["Not specified / vague", "Exact deadline", "Duration from publication"]
     mode = st.selectbox("Time-frame type", window_options,
-                        index=1 if deadline_default else 2 if duration_valid else 0, key=prefix + "window_type")
+                        index=1 if deadline_default else 2 if duration_valid else 0, key=prefix + "window_type", persist_state="session")
     deadline, horizon_value, horizon_unit = None, None, None
     if mode == "Exact deadline":
-        deadline = st.date_input("Forecast deadline", value=deadline_default, key=prefix + "deadline")
+        deadline = st.date_input("Forecast deadline", value=deadline_default, key=prefix + "deadline", persist_state="session")
     elif mode == "Duration from publication":
         a, b = st.columns(2)
-        horizon_value = a.text_input("Time-frame length", value=str(duration) if duration_valid else "", key=prefix + "duration")
+        horizon_value = a.text_input("Time-frame length", value=str(duration) if duration_valid else "", key=prefix + "duration", persist_state="session")
         units = ["days", "weeks", "months", "years"]
-        horizon_unit = b.selectbox("Time-frame unit", units, index=units.index(draft["horizon_unit"]) if duration_valid else 2, key=prefix + "unit")
+        horizon_unit = b.selectbox("Time-frame unit", units, index=units.index(draft["horizon_unit"]) if duration_valid else 2, key=prefix + "unit", persist_state="session")
     values = {"asset": asset, "symbol": symbol, "asset_type": kind, "publication_date": published,
               "source_kind": state.get("source_kind", "video"),
               "creator": creator, "claim": claim, "target_type": target_type, "target_value": target_value,
@@ -208,7 +215,7 @@ def review_fields(state):
 def tiktok_mode(histories, show_results, show_nikola, track_button=None):
     st.subheader("Import a TikTok recommendation")
     st.caption("Paste a video or photo link. Videos: up to 3 minutes. Photo posts: up to 15 images.")
-    link = st.text_input("TikTok post link", placeholder="https://www.tiktok.com/@creator/…", key="tt_link")
+    link = st.text_input("TikTok post link", placeholder="https://www.tiktok.com/@creator/…", key="tt_link", persist_state="session")
     key = service_key()
     if not key:
         st.info("The TikTok import service has not been connected yet. The app owner needs to complete its setup. The other two modes are ready to use.")

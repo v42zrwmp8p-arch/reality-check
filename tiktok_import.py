@@ -15,7 +15,7 @@ from market_data import provider_symbol
 from asset_resolution import explicit_buy_list_candidates, explicit_etf_candidates, known_asset
 from target_extraction import recover_multiple
 
-IMPORT_VERSION = "2026-11-14.15"
+IMPORT_VERSION = "2026-11-15.1"
 
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"

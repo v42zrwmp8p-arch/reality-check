@@ -101,7 +101,7 @@
     "Case Database"
   ],
   "validation": {
-    "tests_passed": 132,
+    "tests_passed": 136,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -112,7 +112,7 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-14.15",
+    "full_suite_release": "2026-11-15.1",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -191,9 +191,19 @@
         "scope": "Final archived-history caption/refresh UI; malformed archive identifiers and Cathie target-gap/tracker display.",
         "logs": "Development logs; no live provider calls."
       }
+    },
+    "multi_recommendation_state_fix": {
+      "release": "2026-11-15.1",
+      "tests_passed": 136,
+      "seconds": 54.219,
+      "new_tests": 4,
+      "scope": "Session-persistent recommendation selection and per-asset review/conditional fields; stale calculation cleared on selection change; clear/new-source isolation.",
+      "before_fix": "Conditional reviewed target reset from 175 to 142 when reopened; a temporarily hidden import lost its widget state.",
+      "live_groq_requests_in_tests": false,
+      "live_host_verified": false
     }
   },
-  "app_version": "2026-11-14.15",
+  "app_version": "2026-11-15.1",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",

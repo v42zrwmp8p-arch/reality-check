@@ -9,9 +9,21 @@ The four modes are **Import TikTok**, **Manual Entry**, **My Tracker**, then
 **Case Database**. A new visit starts with Import TikTok. Prices and targets use short labels; supporting methodology
 is kept in the expandable explanation.
 
+## Switching between detected recommendations
+
+Release `2026-11-15.1` preserves the selected recommendation, its edited fields
+and conditional target/time-frame inputs for the browser session. Switching to
+another recommendation clears the previous calculated result; Calculate uses
+the current selection. Returning to a recommendation restores its own edits.
+Clear import and a new source reset these values. Public extraction results
+are not changed by private edits. The transcription engine remains v8.
+
+Four new UI regression checks cover switching/calculating, hidden import views,
+conditional fields and clearing/re-importing. The full suite passes 136 checks.
+
 ## Release consistency
 
-Release `2026-11-14.15` checks that Streamlit's entry script and all twelve
+Release `2026-11-15.1` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source

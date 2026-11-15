@@ -23,10 +23,10 @@ old = lambda *args: 'No supported stock or crypto detected'
 tiktok_ui.tiktok_mode = old
 tiktok_ui.IMPORT_VERSION = 'old-loaded-ui'
 video_pipeline.ENGINE_VERSION = 'groq-whisper-ocr-v1'
-flow = import_flow('2026-11-14.15')
+flow = import_flow('2026-11-15.1')
 assert flow is not old
 assert flow is tiktok_ui.tiktok_mode
-assert all(module.IMPORT_VERSION == '2026-11-14.15' for module in modules)
+assert all(module.IMPORT_VERSION == '2026-11-15.1' for module in modules)
 assert video_pipeline.ENGINE_VERSION == 'groq-whisper-ocr-v8'
 assert video_pipeline._POOL is pool
 assert video_pipeline._SLOTS is slots
@@ -46,7 +46,7 @@ assert tiktok_ui.analyse_comparisons is case_analysis.analyse_comparisons
 assert tiktok_import.provider_symbol is market_data.provider_symbol
 assert tiktok_import.recover_multiple is target_extraction.recover_multiple
 with patch('import_runtime.importlib.reload', side_effect=AssertionError('ordinary rerun must not reload')):
-    assert import_flow('2026-11-14.15') is flow
+    assert import_flow('2026-11-15.1') is flow
 print('mixed-release regression passed')
 '''
         result = subprocess.run([sys.executable, "-c", script], cwd=ROOT, capture_output=True, text=True, timeout=30)

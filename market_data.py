@@ -6,7 +6,7 @@ import pandas as pd
 from analysis_core import validated_split_review
 
 ROOT = Path(__file__).resolve().parent
-IMPORT_VERSION = "2026-11-14.15"
+IMPORT_VERSION = "2026-11-15.1"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
 HISTORY_ARCHIVES = {
     "safemoon-v1": {

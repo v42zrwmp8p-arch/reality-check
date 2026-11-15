@@ -1,3 +1,26 @@
+REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
+
+Current release: 2026-11-15.1
+Full suite: 136 tests passed with Python 3.12 in 54.219 seconds.
+Multiple recommendations and reruns:
+- Before the fix, a conditional target field reset the reviewed value 175 to
+  its source value 142 when reopened. Temporarily hiding the import also lost
+  its widget state. The regression log records these failures.
+- Session persistence now covers the source link, selected recommendation and
+  all per-recommendation input fields. Selecting another recommendation clears
+  the prior calculation before a new calculation is requested.
+- Tests exercise first-click calculation of the selected second asset,
+  switching back/forth with edited target/duration/claim, leaving and returning
+  to Import TikTok, conditional target/deadline controls, and Clear/new import.
+- Four new regression tests pass. Private edits do not alter cached source
+  drafts. Clearing an import removes persisted values before a new source.
+- Return/target calculations, extraction engine/models, provider limits,
+  source data, curated membership and personal tracker storage are unchanged.
+- Helper release markers and the entry script move together; engine v8 stays.
+  No live Groq calls or credentials are used by this test suite.
+
+Previous validation report follows.
+
 REALITY CHECK - VALIDATION, 14 NOVEMBER 2026
 
 Current release: 2026-11-14.15
