@@ -1,5 +1,26 @@
 REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
 
+Current release: 2026-11-15.3
+Full suite: 138 tests passed with Python 3.12 in 45.366 seconds.
+Photo overlay OCR:
+- Supplied report: all four photos loaded; two model requests returned empty
+  recommendation lists. The cover buy headline was corrupted in the OCR.
+- Local retrieval of the actual public post and image inspection confirmed
+  the clear headline. The extra light-text pass recovers "You should buy".
+  Additional explanatory text on the other slides is also recovered.
+- Keep the original grayscale OCR; add a bounded light-lettering mask pass
+  at up to 1600 pixels and six seconds. Skip unsuitable masks and retain
+  readable primary text if the optional pass times out.
+- Two new simulated OCR regression tests cover recovered cover context with
+  source/body retained and optional timeout fallback. Full existing suite passes.
+- No new AI model, paid fallback, provider or API call. Engine v9 prevents reuse
+  of the older cached OCR. Live model classification is checked separately.
+- Word document unchanged; post-report test count and app change recorded.
+
+Previous validation report follows.
+
+REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
+
 Current release: 2026-11-15.2
 Full suite: 136 tests passed with Python 3.12 in 45.706 seconds.
 Required ticker guidance:

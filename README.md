@@ -16,10 +16,10 @@ and conditional target/time-frame inputs for the browser session. Switching to
 another recommendation clears the previous calculated result; Calculate uses
 the current selection. Returning to a recommendation restores its own edits.
 Clear import and a new source reset these values. Public extraction results
-are not changed by private edits. The transcription engine remains v8.
+are not changed by private edits. That release did not change the transcription model.
 
 Four new UI regression checks cover switching/calculating, hidden import views,
-conditional fields and clearing/re-importing. The full suite passes 136 checks.
+conditional fields and clearing/re-importing. These checks remain part of the full regression suite.
 
 ## Missing ticker guidance
 
@@ -29,13 +29,28 @@ matches when available, or asks for manual entry. Filling the ticker removes
 the red state; Calculate stays disabled for empty or whitespace-only values.
 The current input is always sent to Python, including when it is cleared.
 
+## Photo text over busy backgrounds
+
+Release `2026-11-15.3` adds an optional light-lettering OCR pass for photo posts.
+The ordinary reading is kept; the additional pass isolates bright neutral text
+from a busy background and has a six-second timeout. A failed extra pass does
+not discard the ordinary text. No new service, model or API call is introduced.
+The full suite passes 138 automated checks.
+Engine v9 separates the new reading from cached earlier imports.
+
+The supplied @401kinvest report showed four retrieved photos but two empty
+model responses. The cover's buy headline was corrupted in its ordinary OCR.
+Reading the actual cover with the additional pass recovers "You should buy";
+the other slides also gain previously missed explanatory text. This local OCR
+check is separate from end-to-end classification on the deployed app.
+
 ## Release consistency
 
-Release `2026-11-15.2` checks that Streamlit's entry script and all twelve
+Release `2026-11-15.3` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v8. The dependency file also changed to request
+results are isolated by engine v9. The dependency file also changed to request
 a fresh Community Cloud deployment. Existing pinned dependencies are retained.
 
 The reported combination of new menu labels and the old no-result message

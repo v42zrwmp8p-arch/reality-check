@@ -54,7 +54,7 @@
     "limits": "Videos: 180 seconds, 50 MB, 16 sampled OCR frames. Photos: 15 images, 8 MB/image, 50 MB total, 12000 text characters. 2 active / 8 total tasks.",
     "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change",
-    "engine_version": "groq-whisper-ocr-v8",
+    "engine_version": "groq-whisper-ocr-v9",
     "identifier_handling": "Known identifiers; spelling and bounded Yahoo-search suggestions require review",
     "empty_result_handling": "Explicit supported-list recovery; otherwise one additional model check",
     "recheck": "Explicit extraction-only recheck with 30-second cooldown; source transcript/OCR reused for video and photo posts",
@@ -86,7 +86,8 @@
       "live_groq_classification_tested": false,
       "streamlit_host_tested": false
     },
-    "photo_share_links": "Full /photo/ URLs supported; shortened photo share links not verified."
+    "photo_share_links": "Full /photo/ URLs supported; shortened photo share links not verified.",
+    "photo_ocr": "Full grayscale reading plus optional 1600-pixel light-lettering mask, PSM 6 and six-second timeout; source text retained on optional-pass failure."
   },
   "system_dependencies": [
     "ffmpeg",
@@ -101,7 +102,7 @@
     "Case Database"
   ],
   "validation": {
-    "tests_passed": 136,
+    "tests_passed": 138,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -112,7 +113,7 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-15.2",
+    "full_suite_release": "2026-11-15.3",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -208,9 +209,21 @@
       "seconds": 45.706,
       "scope": "Required label, field-scoped red empty-state outline, contextual hint, match selection, clear-to-whitespace disables Calculate, manual entry restores calculation. Existing selection persistence retained.",
       "live_groq_requests_in_tests": false
+    },
+    "photo_overlay_fix": {
+      "release": "2026-11-15.3",
+      "supplied_failure": "Four photos downloaded; two parsed empty model responses. Cover OCR lost the readable buy headline.",
+      "local_original_image_verified": true,
+      "headline_recovered": "You should buy",
+      "additional_groq_calls": false,
+      "live_host_verified": false,
+      "new_tests": 2,
+      "scope": "Supplementary cover text retained with original text/source; optional OCR timeout preserves readable first pass.",
+      "tests_passed": 138,
+      "seconds": 45.366
     }
   },
-  "app_version": "2026-11-15.2",
+  "app_version": "2026-11-15.3",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -321,14 +334,15 @@
   "post_report_updates": {
     "report_baseline": "Reality_Check_Report_FINAL.docx",
     "report_updates": [
-      "Validation: 132 to 136 automated tests.",
+      "Validation: 132 to 138 automated tests.",
       "Reference [3]: update the release and source link to the latest app revision."
     ],
     "app_updates": [
       "Selected recommendations and per-asset review edits persist across switches and reruns.",
-      "Missing ticker fields are highlighted in red with instructions until completed."
+      "Missing ticker fields are highlighted in red with instructions until completed.",
+      "Photo imports add a second OCR pass for light text over a busy background."
     ],
-    "latest_release": "2026-11-15.2",
+    "latest_release": "2026-11-15.3",
     "word_document_modified": false
   }
 }

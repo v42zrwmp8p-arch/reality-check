@@ -8,7 +8,7 @@ from unittest.mock import Mock, MagicMock, patch
 import unittest
 
 from gallery_dl.extractor.common import Message
-from PIL import Image
+from PIL import Image, ImageDraw
 
 import photo_import as photos
 from test_tiktok_import import DRAFT, response
@@ -41,6 +41,36 @@ def fake_download(session, url, path, remaining):
 
 
 class PhotoReaderChecks(unittest.TestCase):
+    @patch("photo_import.shutil.which", return_value="tesseract")
+    @patch("photo_import.extractor.find")
+    @patch("photo_import._download_photo")
+    @patch("photo_import.pytesseract.image_to_string")
+    def test_overlay_reading_restores_buy_context_and_keeps_original_text(self, ocr, download, find, binary):
+        # Simulate a readable light headline over a textured/dark cover.
+        def cover(session, url, path, remaining):
+            image = Image.new("RGB", (200, 200), "darkgreen")
+            ImageDraw.Draw(image).rectangle((30, 70, 160, 90), fill="white")
+            image.save(path, format="PNG")
+            return Path(path).stat().st_size
+        download.side_effect = cover
+        find.return_value = fake_extractor(count=1)
+        ocr.side_effect = ["STOCKS / You should Be), 2 / right now", "STOCKS\nYou should buy\nright now"]
+        with tempfile.TemporaryDirectory() as folder:
+            text, metadata = photos.read_photo_post(PHOTO, folder)
+        self.assertIn("[Photo 1]\nSTOCKS / You should Be)", text)
+        self.assertIn("[Additional text reading]\nSTOCKS\nYou should buy\nright now", text)
+        self.assertIn("[Post caption]\nStocks to watch", text)
+        self.assertEqual(metadata["photo_count"], 1)
+        self.assertEqual(ocr.call_count, 2)
+
+    @patch("photo_import.pytesseract.image_to_string")
+    def test_optional_overlay_timeout_retains_readable_primary_text(self, ocr):
+        image = Image.new("RGB", (200, 200), "darkgreen")
+        ImageDraw.Draw(image).rectangle((30, 70, 160, 90), fill="white")
+        ocr.side_effect = ["ASML Holding N.V. 708.62", RuntimeError("fixture timeout")]
+        self.assertEqual(photos.read_photo_text(image), "ASML Holding N.V. 708.62")
+        self.assertEqual(ocr.call_count, 2)
+
     @patch("photo_import.shutil.which", return_value="tesseract")
     @patch("photo_import.extractor.find")
     @patch("photo_import._download_photo", side_effect=fake_download)

@@ -9,13 +9,13 @@ from urllib.parse import urljoin, urlsplit
 
 from gallery_dl import config, extractor
 from gallery_dl.extractor.common import Message
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import Image, ImageChops, ImageOps, UnidentifiedImageError
 import pytesseract
 import requests
 
 from tiktok_import import ImportProblem, clean_tiktok_url
 
-IMPORT_VERSION = "2026-11-15.2"
+IMPORT_VERSION = "2026-11-15.3"
 MAX_PHOTOS = 15
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
 MAX_TOTAL_BYTES = 50 * 1024 * 1024
@@ -69,6 +69,39 @@ def _download_photo(session, url, path, remaining):
     except requests.RequestException:
         raise ImportProblem("A photo could not be reached. Try again later or use Manual Entry.") from None
     raise ImportProblem("The image redirected too many times to process safely.")
+
+
+def read_photo_text(original):
+    """Keep the full reading, plus a bounded pass for light text over photos.
+
+    Background texture can overwhelm sparse-text OCR even when an overlay is
+    clear to a reader. Isolating bright, near-neutral lettering gives that
+    overlay another chance without dropping the original chart/body text.
+    The additional pass is optional: its timeout must not lose readable text.
+    """
+    image = ImageOps.autocontrast(ImageOps.grayscale(original))
+    text = pytesseract.image_to_string(image, lang="eng", config="--psm 11", timeout=8).strip()
+    overlay = original.convert("RGB")
+    overlay.thumbnail((1600, 1600))
+    red, green, blue = overlay.split()
+    darkest = ImageChops.darker(ImageChops.darker(red, green), blue)
+    lightest = ImageChops.lighter(ImageChops.lighter(red, green), blue)
+    bright = darkest.point(lambda value: 255 if value >= 210 else 0)
+    neutral = ImageChops.subtract(lightest, darkest).point(lambda value: 255 if value <= 35 else 0)
+    mask = ImageChops.multiply(bright, neutral)
+    coverage = mask.histogram()[255] / (overlay.width * overlay.height)
+    # A mostly white page or an image without light lettering needs no such pass.
+    if not 0.001 <= coverage <= 0.35:
+        return text
+    try:
+        extra = pytesseract.image_to_string(
+            ImageOps.invert(mask), lang="eng", config="--psm 6", timeout=6,
+        ).strip()
+    except (RuntimeError, OSError, pytesseract.TesseractError):
+        return text
+    if extra and " ".join(extra.casefold().split()) not in " ".join(text.casefold().split()):
+        return (text + "\n\n[Additional text reading]\n" + extra).strip()
+    return text
 
 
 def read_photo_post(url, folder, progress=None):
@@ -140,8 +173,7 @@ def read_photo_post(url, folder, progress=None):
                 with Image.open(path) as original:
                     if original.width * original.height > 20_000_000:
                         raise ImportProblem("An image is too large for this prototype's text reader.")
-                    image = ImageOps.autocontrast(ImageOps.grayscale(original))
-                    text = pytesseract.image_to_string(image, lang="eng", config="--psm 11", timeout=8).strip()
+                    text = read_photo_text(original)
             except (UnidentifiedImageError, OSError, RuntimeError, pytesseract.TesseractError, Image.DecompressionBombError):
                 raise ImportProblem(f"Text could not be read from photo {index}. Try another post or Manual Entry.") from None
             if text:
