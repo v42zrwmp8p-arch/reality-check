@@ -5,7 +5,7 @@ import re
 
 from market_data import provider_symbol
 
-IMPORT_VERSION = "2026-11-15.4"
+IMPORT_VERSION = "2026-11-15.5"
 
 # Identifiers only: these mappings contain no video claims, targets or outcomes.
 ASSETS = [
@@ -193,4 +193,46 @@ def explicit_etf_candidates(transcript):
                      "time_frame": "long term" if re.search(r"\blong[ -]term\b", text, re.I) else None,
                      "deadline": None, "horizon_value": None, "horizon_unit": None})
         seen.add(symbol)
+    return rows
+
+
+def explicit_photo_chart_candidates(text):
+    """Recognise a buy-list cover followed entirely by labelled chart slides.
+
+    Only use this narrow layout when every following slide supplies a company
+    title, exchange/currency line and finance-chart footer. Standalone tickers
+    in the chart site's watchlist strip do not identify the featured stock.
+    """
+    parts = re.split(r"\[Photo (\d+)\]\s*", text)
+    slides = [(int(parts[i]), parts[i + 1]) for i in range(1, len(parts) - 1, 2)]
+    if len(slides) < 2:
+        return []
+    cover = slides[0][1]
+    if not re.search(r"\bstocks?\b.{0,80}\b(?:to|should)\s+buy\b", cover, re.I | re.S):
+        return []
+    if re.search(r"\b(?:not|never|avoid|don't|do not)\b.{0,30}\bbuy\b", cover, re.I | re.S):
+        return []
+    title = (r"(?m)^\s*([A-Z][A-Z0-9.-]{0,14})[ \t]+"
+             r"([A-Z][A-Za-z0-9&.,' -]{2,100}?(?:\b(?:SE|AG|PLC|plc|Limited|Ltd\.?|Inc\.?|Corp\.?|Corporation)|N\.V\.|S\.A\.))\s*$")
+    rows = []
+    for index, body in slides[1:]:
+        headings = list(re.finditer(title, body))
+        currency = re.search(r"(?m)^\s*[A-Z][A-Z /-]{1,25}\s+-\s+([A-Z]{3})\s*$", body)
+        if "More Data from Yahoo Finance" not in body or len(headings) != 1 or not currency:
+            return []
+        heading = headings[0]
+        symbol = None
+        if currency[1] == "USD":
+            try:
+                symbol = provider_symbol(heading[1], "Equity")
+            except ValueError:
+                pass
+        if any(row["asset"].casefold() == heading[2].strip().casefold() for row in rows):
+            continue
+        rows.append({"asset": heading[2].strip(), "symbol": symbol, "asset_type": "Equity",
+                     "claim": "Included in the creator's stocks to buy.",
+                     "evidence": " ".join(heading[0].split()[:20]), "evidence_time": f"Photo {index}",
+                     "target_type": "none", "target_value": None, "target_approximate": False,
+                     "reference_price": None, "currency": None, "time_frame": None,
+                     "deadline": None, "horizon_value": None, "horizon_unit": None})
     return rows

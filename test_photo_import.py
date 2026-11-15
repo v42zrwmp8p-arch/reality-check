@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw
 import photo_import as photos
 from test_tiktok_import import DRAFT, response
 from tiktok_import import GroqClient, ImportProblem
+from asset_resolution import explicit_photo_chart_candidates
 import video_pipeline as pipeline
 
 PHOTO = "https://www.tiktok.com/@drewhelpss/photo/7453626334099590406"
@@ -204,6 +205,24 @@ class PhotoPipelineChecks(unittest.TestCase):
         self.assertEqual(request.call_count, 2)
         self.assertEqual(client.extraction_checks[0]["detected_assets"], [])
         self.assertIn("combine the cover", request.call_args.kwargs["json"]["messages"][0]["content"])
+
+    @patch("tiktok_import.requests.post")
+    def test_chart_titles_exclude_watchlist_tickers_and_recover_foreign_name(self, request):
+        source = ("[Photo 1]\nSTOCKS you should buy right now\n"
+                  "[Photo 2]\nAAPL\nNVDA NVIDIA Corporation\nNASDAQ - USD\nMore Data from Yahoo Finance\n"
+                  "[Photo 3]\nAAPL\nBMW.DE Bayerische Motoren Werke AG\nXETRA - EUR\nMore Data from Yahoo Finance")
+        picks = [dict(DRAFT, asset="NVIDIA", symbol="NVDA"), dict(DRAFT, asset="Apple", symbol="AAPL")]
+        request.return_value = response({"choices": [{"finish_reason": "stop", "message": {
+            "content": json.dumps({"recommendations": picks})}}]})
+        rows = GroqClient("fixture-key").extract(source, "", source_kind="photo")
+        self.assertEqual([row["asset"] for row in rows], ["NVIDIA Corporation", "Bayerische Motoren Werke AG"])
+        self.assertEqual(rows[0]["symbol"], "NVDA")
+        self.assertIsNone(rows[1]["symbol"])
+        self.assertEqual(rows[1]["target_type"], "none")
+        self.assertEqual(request.call_count, 1)
+        self.assertEqual(explicit_photo_chart_candidates(source.replace("should buy", "should not buy")), [])
+        self.assertEqual(explicit_photo_chart_candidates(source.replace("XETRA - EUR", "")), [])
+        self.assertEqual(explicit_photo_chart_candidates(source.replace("More Data from Yahoo Finance", "")), [])
 
 
 class PhotoUiChecks(unittest.TestCase):

@@ -1,5 +1,27 @@
 REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
 
+Current release: 2026-11-15.5
+Full suite: 140 tests passed with Python 3.12 in 47.257 seconds.
+Featured chart identity:
+- The .4 live model included ASML, Vonovia and Alibaba but also Apple and Boeing
+  from the chart site's navigation/watchlist strip. This was not a clean result.
+- A bounded layout check applies only to an explicit buy-list cover followed
+  entirely by Yahoo chart slides, each with one literal company title and an
+  exchange/currency line. Otherwise ordinary extraction remains unchanged.
+- In that layout, title names identify the picks. Matching model details are
+  retained; omitted titles get no invented numerical target or deadline. A
+  non-USD chart retains its name with no automatically selected USD ticker.
+- Actual supplied-post OCR replay returns exactly ASML, Vonovia and Alibaba.
+- New simulated-response test excludes an incidental Apple watchlist entry,
+  recovers a missing foreign company without assigning its EUR ticker to USD,
+  and rejects negative covers and incomplete/unrecognised chart layouts.
+- No new service, model or extra API call. Engine v11 isolates earlier results.
+- Word unchanged. Post-report test count now 140 rather than 132.
+
+Previous validation report follows.
+
+REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
+
 Current release: 2026-11-15.4
 Full suite: 139 tests passed with Python 3.12 in 48.170 seconds.
 Carousel interpretation after OCR:

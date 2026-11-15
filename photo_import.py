@@ -15,7 +15,7 @@ import requests
 
 from tiktok_import import ImportProblem, clean_tiktok_url
 
-IMPORT_VERSION = "2026-11-15.4"
+IMPORT_VERSION = "2026-11-15.5"
 MAX_PHOTOS = 15
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
 MAX_TOTAL_BYTES = 50 * 1024 * 1024

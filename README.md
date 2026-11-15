@@ -55,13 +55,24 @@ The current full suite passes 139 automated checks.
 The .3 live test recovered the headline but still produced an unnamed model
 response; that result was not treated as successful asset identification.
 
+Release `2026-11-15.5` adds a narrow check for explicitly introduced buy lists
+whose following slides are all labelled Yahoo stock charts. Literal company
+titles and exchange/currency lines identify the featured picks; navigation-strip
+tickers are excluded. Matching model details are retained and omitted company
+titles can be recovered without inventing a target or horizon. A non-USD chart
+keeps its company name with an unset USD ticker for review. If any slide lacks
+this layout, normal extraction remains in use. No source-specific ticker list
+is used. This addresses the .4 live result that included Apple and Boeing from
+the watchlist alongside the actual three picks. Engine v11 invalidates it.
+The latest full suite passes 140 automated checks.
+
 ## Release consistency
 
-Release `2026-11-15.4` checks that Streamlit's entry script and all twelve
+Release `2026-11-15.5` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v10. The dependency file also changed to request
+results are isolated by engine v11. The dependency file also changed to request
 a fresh Community Cloud deployment. Existing pinned dependencies are retained.
 
 The reported combination of new menu labels and the old no-result message

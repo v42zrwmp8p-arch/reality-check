@@ -8,7 +8,7 @@ import streamlit as st
 from tracker_core import (prediction_record, tracker_records,
                           forecast_status, forecast_label, tracker_comparison)
 
-IMPORT_VERSION = "2026-11-15.4"
+IMPORT_VERSION = "2026-11-15.5"
 # Register once per process; Streamlit reruns mount the same component.
 _storage = st.components.v2.component("reality_check_tracker_storage_v1",
             js=(Path(__file__).with_name("tracker_storage.js")).read_text(encoding="utf-8"))

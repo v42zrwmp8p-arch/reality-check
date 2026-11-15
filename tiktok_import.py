@@ -12,10 +12,11 @@ from jsonschema import validate, ValidationError
 
 from analysis_core import positive_number, resolve_deadline, resolve_target
 from market_data import provider_symbol
-from asset_resolution import explicit_buy_list_candidates, explicit_etf_candidates, known_asset
+from asset_resolution import (explicit_buy_list_candidates, explicit_etf_candidates,
+                              explicit_photo_chart_candidates, known_asset)
 from target_extraction import recover_multiple
 
-IMPORT_VERSION = "2026-11-15.4"
+IMPORT_VERSION = "2026-11-15.5"
 
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"
@@ -206,6 +207,24 @@ class GroqClient:
             return json.dumps(content, ensure_ascii=False)
         source = encode_source(6000)
         rows = self._extract_once(source)
+        chart_picks = explicit_photo_chart_candidates(transcript) if source_kind == "photo" else []
+        if chart_picks:
+            # In this fully labelled layout, the featured company headings
+            # identify the picks; unrelated watchlist-strip tickers do not.
+            supported = []
+            for pick in chart_picks:
+                pick_name = re.sub(r"[^a-z0-9]", "", pick["asset"].casefold())
+                matching = []
+                for row in rows:
+                    name = re.sub(r"[^a-z0-9]", "", str(row.get("asset") or "").casefold())
+                    same_name = len(name) >= 4 and (pick_name.startswith(name) or name.startswith(pick_name))
+                    same_symbol = pick["symbol"] and row.get("symbol") == pick["symbol"]
+                    if same_name or same_symbol:
+                        matching.append(row)
+                chosen = dict(matching[0]) if matching else dict(pick)
+                chosen.update(asset=pick["asset"], symbol=pick["symbol"], asset_type="Equity")
+                supported.append(chosen)
+            rows = supported
         recovered_rows = explicit_buy_list_candidates(transcript) + explicit_etf_candidates(transcript)
         if not rows and not recovered_rows:
             # One bounded check, not a retry loop. A 429 is surfaced normally.
