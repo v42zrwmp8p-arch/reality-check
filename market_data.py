@@ -6,7 +6,7 @@ import pandas as pd
 from analysis_core import validated_split_review
 
 ROOT = Path(__file__).resolve().parent
-IMPORT_VERSION = "2026-11-15.9"
+IMPORT_VERSION = "2026-11-15.10"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
 # Same Block class-A shares: SQ changed to XYZ on 21 January 2025.
 # OCC notice 55886: https://infomemo.theocc.com/infomemos?number=55886

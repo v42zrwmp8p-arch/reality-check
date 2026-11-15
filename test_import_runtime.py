@@ -23,11 +23,11 @@ old = lambda *args: 'No supported stock or crypto detected'
 tiktok_ui.tiktok_mode = old
 tiktok_ui.IMPORT_VERSION = 'old-loaded-ui'
 video_pipeline.ENGINE_VERSION = 'groq-whisper-ocr-v1'
-flow = import_flow('2026-11-15.9')
+flow = import_flow('2026-11-15.10')
 assert flow is not old
 assert flow is tiktok_ui.tiktok_mode
-assert all(module.IMPORT_VERSION == '2026-11-15.9' for module in modules)
-assert video_pipeline.ENGINE_VERSION == 'groq-whisper-ocr-v14'
+assert all(module.IMPORT_VERSION == '2026-11-15.10' for module in modules)
+assert video_pipeline.ENGINE_VERSION == 'groq-whisper-ocr-v15'
 assert video_pipeline._POOL is pool
 assert video_pipeline._SLOTS is slots
 assert video_pipeline._TASKS is tasks
@@ -45,8 +45,9 @@ assert tracker_core.analyse_comparisons is case_analysis.analyse_comparisons
 assert tiktok_ui.analyse_comparisons is case_analysis.analyse_comparisons
 assert tiktok_import.provider_symbol is market_data.provider_symbol
 assert tiktok_import.recover_multiple is target_extraction.recover_multiple
+assert tiktok_import.review_screen_targets is target_extraction.review_screen_targets
 with patch('import_runtime.importlib.reload', side_effect=AssertionError('ordinary rerun must not reload')):
-    assert import_flow('2026-11-15.9') is flow
+    assert import_flow('2026-11-15.10') is flow
 print('mixed-release regression passed')
 '''
         result = subprocess.run([sys.executable, "-c", script], cwd=ROOT, capture_output=True, text=True, timeout=30)
@@ -68,7 +69,7 @@ else:
 
     def test_diagnostic_report_excludes_credentials_tasks_and_private_edits(self):
         report = import_report({"url": "https://www.tiktok.com/@fixture/video/123456",
-                                "engine": "groq-whisper-ocr-v14", "transcript": "public source",
+                                "engine": "groq-whisper-ocr-v15", "transcript": "public source",
                                 "drafts": [{"claim": "private edited claim"}], "raw_drafts": [],
                                 "api_key": "fixture-secret-key", "task": object(),
                                 "extraction_checks": [{"detected_assets": []}]})

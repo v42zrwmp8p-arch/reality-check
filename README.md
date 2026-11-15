@@ -66,6 +66,38 @@ is used. This addresses the .4 live result that included Apple and Boeing from
 the watchlist alongside the actual three picks. Engine v11 invalidates it.
 The latest full suite passes 140 automated checks.
 
+## Conflicting source targets
+
+Release `2026-11-15.10` cross-checks extraction against explicit timestamped
+or numbered price-target lists. A qualifying frame has a price-target heading,
+one forecast year and at least two complete ticker/amount lines. The guard
+applies to matched rows, not every number in a video. It uses no ticker-specific
+price assumptions, market outcomes, new model or extra API call.
+
+Distinct frames supply independent readings; repeated OCR of one frame is not
+another vote. A written value has support when seen in at least two frames and
+at least two thirds of the parsed readings. A conflicting model value, or
+unresolved disagreement across frames, triggers a review flag. The price field
+starts empty and Calculate stays disabled until a user chooses or enters a
+checked value (or removes the numeric target). Tracking validates the same
+field. Choosing a suggested screen value also replaces the matching dollar
+amount in the extracted summary, retaining the other wording.
+
+A single clear forecast year in such a heading fills a missing time frame for
+matched assets. Existing full dates, durations or stated time text are retained;
+multiple heading years are left unresolved. The review form still labels any
+year-end evaluation convention. This is a bounded source check, not proof that
+all OCR or speech is correct. In reaction videos, quoted and personal forecasts
+may genuinely differ; users can enter the intended forecast rather than being
+forced to accept the written one.
+
+The reported crypto-source replay flags SOL, LINK and ambiguous INJ readings,
+and fills 2025 without inventing a creator deadline. It does not silently choose
+between conflicting forecasts. Six new checks cover the recorded source,
+unseen symbols, duplicate frames/history/year guards, video/photo paths and
+review/calculation/selection flows. Full suite: 170 tests. Engine v15 isolates
+earlier cached imports. Report files are unchanged.
+
 ## Company descriptions
 
 Release `2026-11-15.9` adds an optional current Yahoo Finance company profile

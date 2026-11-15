@@ -54,7 +54,7 @@
     "limits": "Videos: 180 seconds, 50 MB, 16 sampled OCR frames. Photos: 15 images, 8 MB/image, 50 MB total, 12000 text characters. 2 active / 8 total tasks.",
     "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change",
-    "engine_version": "groq-whisper-ocr-v14",
+    "engine_version": "groq-whisper-ocr-v15",
     "identifier_handling": "Known identifiers; spelling and bounded Yahoo-search suggestions require review",
     "empty_result_handling": "Literal buy-list, ETF, featured photo-chart and visual NOW/year price-table recovery; otherwise one bounded model recheck, retaining the full 6000-character screen-text input.",
     "recheck": "Explicit extraction-only recheck with 30-second cooldown; source transcript/OCR reused for video and photo posts",
@@ -90,7 +90,8 @@
     "photo_ocr": "Full grayscale reading plus optional light-lettering and bright green/yellow text masks, with bounded local OCR passes. No images are sent to Groq.",
     "photo_carousel_context": "The cover buy heading applies to featured named assets on following slides; watchlist/navigation tickers and chart-range controls are excluded. Generic unnamed Unknown rows are discarded, with the existing single empty-result recheck retained.",
     "video_ocr": "Up to 16 frames at width 1152; preserve line layout, highlighted lettering and later frames within a 6000-character budget. One failed frame does not discard other readings.",
-    "extraction_reasoning_effort": "low; same model and unchanged 3072-token completion cap"
+    "extraction_reasoning_effort": "low; same model and unchanged 3072-token completion cap",
+    "source_target_check": "Explicit headed year/price-target lists; independent repeated frame readings; conflicting or unresolved values require an explicit user price choice before Calculate/Track. No automatic selection by market plausibility."
   },
   "system_dependencies": [
     "ffmpeg",
@@ -105,7 +106,7 @@
     "Case Database"
   ],
   "validation": {
-    "tests_passed": 164,
+    "tests_passed": 170,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -116,7 +117,7 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-15.9",
+    "full_suite_release": "2026-11-15.10",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -274,9 +275,25 @@
       "new_tests": 3,
       "provider_boundaries": "Simulated in automated tests; live NVIDIA profile request verified separately",
       "report_files_modified": false
+    },
+    "source_target_conflicts": {
+      "release": "2026-11-15.10",
+      "tests_passed": 170,
+      "seconds": 59.846,
+      "new_tests": 6,
+      "recorded_fixture": "test_fixtures/crypto_target_conflicts.json",
+      "recorded_flags": [
+        "SOL",
+        "LINK",
+        "INJ"
+      ],
+      "shared_year": "2025",
+      "live_ai_in_tests": false,
+      "new_ai_calls": 0,
+      "report_files_modified": false
     }
   },
-  "app_version": "2026-11-15.9",
+  "app_version": "2026-11-15.10",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -387,7 +404,7 @@
   "post_report_updates": {
     "report_baseline": "Reality_Check_Report_FINAL.docx",
     "report_updates": [
-      "Validation: 132 to 164 automated tests.",
+      "Validation: 132 to 170 automated tests.",
       "Reference [3]: update the release and source link to the latest app revision."
     ],
     "app_updates": [
@@ -399,9 +416,10 @@
       "Uncertain target currency is visibly flagged for confirmation. Manual Entry values persist across navigation and target-type changes.",
       "Literal ticker recovery merges existing model names without duplicate picks; former equity ticker SQ resolves to current Block ticker XYZ.",
       "Truncated model replies no longer discard independently readable stock/target tables. Same text model uses low reasoning effort with the original token cap; service-limit errors remain visible.",
-      "Optional current Yahoo company descriptions below company headings: up to two short sentences, separately loaded and cached; no AI; missing profiles and historical-security archives omitted."
+      "Optional current Yahoo company descriptions below company headings: up to two short sentences, separately loaded and cached; no AI; missing profiles and historical-security archives omitted.",
+      "Transcript/screen-target conflicts are flagged in explicitly headed price lists. Conflicting numeric fields start empty and require user selection/entry; a clear shared forecast year fills missing time frames. No new AI model or API call."
     ],
-    "latest_release": "2026-11-15.9",
+    "latest_release": "2026-11-15.10",
     "word_document_modified": false
   },
   "company_descriptions": {

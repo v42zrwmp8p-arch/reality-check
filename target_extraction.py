@@ -1,12 +1,86 @@
 """Conservative recovery of an explicit future multiple missed by the model."""
 from copy import deepcopy
+from collections import Counter, defaultdict
+from math import isclose, isfinite
 import re
 
 from asset_resolution import ASSETS, known_asset
 
-IMPORT_VERSION = "2026-11-15.9"
+IMPORT_VERSION = "2026-11-15.10"
 WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
          "seven": 7, "eight": 8, "nine": 9, "ten": 10}
+
+
+def review_screen_targets(rows, text):
+    """Flag conflicting literal price-list readings, without choosing a forecast.
+
+    Only clearly headed year/price-target lists qualify. Repeated OCR passes
+    of one frame do not count as independent sightings. No market-price or
+    asset-specific plausibility thresholds are used.
+    """
+    blocks = re.split(r"\[(\d{2}:\d{2}|Photo \d+)\]\s*", text)
+    frames = defaultdict(set)
+    years = set()
+    for index in range(1, len(blocks) - 1, 2):
+        stamp, body = blocks[index:index + 2]
+        headers = [line for line in body.splitlines()
+                   if re.search(r"\b(?:price\s+targets?|target\s+prices?)\b", line, re.I)]
+        for header in headers:
+            if re.search(r"\b(?:historical|backtest|hypothetical|not|previous|past)\b", header, re.I):
+                continue
+            named_years = re.findall(r"\b20\d{2}\b", header)
+            if len(set(named_years)) != 1:
+                continue
+            year = named_years[0]
+            pairs = set()
+            for symbol, amount in re.findall(
+                    r"(?m)^\s*\$([A-Z][A-Z0-9.]{0,14})\s*[-–—:]\s*\$?\s*"
+                    r"((?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*$", body):
+                price = float(amount.replace(",", ""))
+                if isfinite(price) and price > 0:
+                    pairs.add((symbol, price))
+            if len({symbol for symbol, _ in pairs}) >= 2:
+                years.add(year)
+                frames[(year, stamp)].update(pairs)
+    # Separate years may describe genuinely different forecasts.
+    if len(years) != 1:
+        return rows
+    year = next(iter(years))
+    sightings = defaultdict(Counter)
+    timestamps = defaultdict(set)
+    for (_, stamp), pairs in frames.items():
+        for symbol, price in pairs:
+            sightings[symbol][price] += 1
+            timestamps[symbol].add(stamp)
+    result = deepcopy(rows)
+    for row in result:
+        symbol = str(row.get("symbol") or "").strip().upper().removesuffix("-USD")
+        if not symbol:
+            identity = known_asset(row.get("asset"), row.get("asset_type")) or {}
+            symbol = identity.get("symbol", "").removesuffix("-USD")
+        readings = sightings.get(symbol)
+        if not readings:
+            continue
+        if (not row.get("deadline") and not row.get("horizon_value")
+                and str(row.get("time_frame") or "").strip().casefold() in {"", "not specified", "unknown"}):
+            row["time_frame"] = year
+        if row.get("target_type") != "price" or len(timestamps[symbol]) < 2:
+            continue
+        ranked = sorted(readings.items(), key=lambda item: (-item[1], item[0]))
+        value, count = ranked[0]
+        stable = count >= 2 and count * 3 >= sum(readings.values()) * 2
+        try:
+            extracted = float(row.get("target_value"))
+        except (ValueError, TypeError):
+            continue
+        mismatch = stable and not isclose(extracted, value, rel_tol=1e-8)
+        ambiguous = not stable and len(readings) > 1
+        if mismatch or ambiguous:
+            row["target_review"] = {"extracted_value": extracted,
+                                    "screen_values": [price for price, _ in ranked],
+                                    "suggested_value": value if stable else None,
+                                    "reason": "source_conflict" if mismatch else "unclear_screen_readings"}
+    return result
 
 
 def recover_visual_tables(rows, text, transcript=""):

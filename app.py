@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-15.9"
+APP_VERSION = "2026-11-15.10"
 tiktok_mode = import_flow(APP_VERSION)
 from market_data import (load_examples, provider_symbol, download_history, get_comparison_histories,
                          comparison_symbols, download_company_description)

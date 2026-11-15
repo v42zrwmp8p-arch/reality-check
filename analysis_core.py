@@ -4,7 +4,7 @@ from math import isfinite, isclose
 from datetime import date
 import json
 
-IMPORT_VERSION = "2026-11-15.9"
+IMPORT_VERSION = "2026-11-15.10"
 
 
 def validated_split_review(value):

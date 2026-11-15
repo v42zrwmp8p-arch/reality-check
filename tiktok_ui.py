@@ -13,7 +13,7 @@ from case_analysis import analyse_comparisons
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case, normalise_timing
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-15.9"
+IMPORT_VERSION = "2026-11-15.10"
 
 
 def service_key():
@@ -32,6 +32,17 @@ def clear_import(clear_link=False):
             del st.session_state[key]
     if clear_link:
         st.session_state["tt_link"] = ""
+
+
+def use_screen_target(prefix, value, original):
+    st.session_state[prefix + "price_value"] = f"{value:g}"
+    # Keep an explicitly chosen correction consistent with the extracted summary.
+    def replace(match):
+        amount = float(match["amount"].replace(",", ""))
+        return match["prefix"] + f"{value:g}" if amount == original else match[0]
+    st.session_state[prefix + "claim"] = re.sub(
+        r"(?P<prefix>\$|USD\s+)(?P<amount>(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)(?![\d,])",
+        replace, st.session_state.get(prefix + "claim", ""))
 
 
 def use_ticker_match(prefix, candidate):
@@ -112,7 +123,7 @@ def import_report(state):
             "provider_error": state.get("provider_error"), "compatibility_mode": state.get("compatibility_mode", False),
             "analysed_at": state.get("analysed_at"), "transcript": state.get("transcript"),
             "extraction_checks": state.get("extraction_checks", []),
-            "post_processing_targets": [{field: row.get(field) for field in ["asset", "symbol", "asset_type", "target_type", "target_value", "target_approximate", "reference_price", "currency", "target_recovered"]} for row in state.get("raw_drafts", [])],
+            "post_processing_targets": [{field: row.get(field) for field in ["asset", "symbol", "asset_type", "target_type", "target_value", "target_approximate", "reference_price", "currency", "target_recovered", "target_review", "time_frame"]} for row in state.get("raw_drafts", [])],
             "extraction_result_count": len(state.get("raw_drafts", [])),
             "review_list_count": len(state.get("drafts", []))}
 
@@ -185,9 +196,23 @@ def review_fields(state):
                               key=prefix + "target_type", persist_state="session")
     target_value, reference_price, reference_type, currency = None, None, None, None
     target_approximate = False
+    target_review = draft.get("target_review") if target_type == "price" else None
     if target_type != "none":
         default_value = draft.get("target_value") if draft.get("target_type") == target_type else None
+        if target_review:
+            if not str(st.session_state.get(prefix + "price_value", "")).strip():
+                st.warning("Conflicting target values. Check the original post, then choose or enter a target.")
+                readings = ", ".join(f"{price:g}" for price in target_review["screen_values"])
+                st.caption(f"Extracted: {target_review['extracted_value']:g} · Screen text: {readings}")
+                suggestions = ([target_review["suggested_value"]] if target_review.get("suggested_value") is not None
+                               else target_review["screen_values"][:4])
+                for index, value in enumerate(suggestions):
+                    st.button(f"Use {value:g}", key=prefix + f"screen_target_{index}",
+                              on_click=use_screen_target, args=(prefix, value, target_review["extracted_value"]))
+            default_value = None
         target_value = st.text_input("Target price (USD)" if target_type == "price" else "Target multiple", value=str(default_value) if default_value is not None else "", key=prefix + target_type + "_value", persist_state="session")
+        if target_review and not target_value.strip():
+            st.caption(":red[Choose or enter a checked target to continue.]")
         target_approximate = st.checkbox("Approximate target", value=bool(draft.get("target_approximate")), key=prefix + "approximate", persist_state="session")
         if target_type == "multiple":
             refs = {"entry": "Simulated entry price", "creator": "Creator reference price"}
@@ -243,6 +268,7 @@ def review_fields(state):
               "source_kind": state.get("source_kind", "video"),
               "creator": creator, "claim": claim, "target_type": target_type, "target_value": target_value,
               "target_approximate": target_approximate,
+              "target_needs_review": bool(target_review and not str(target_value or "").strip()),
               "reference_type": reference_type, "reference_price": reference_price, "currency": currency,
               "time_frame": time_frame, "deadline": deadline.isoformat() if deadline else None,
               "deadline_basis": deadline_basis,
@@ -313,6 +339,8 @@ def tiktok_mode(histories, show_results, show_nikola, track_button=None, show_co
     values, mode, choice = review_fields(state)
     signature = json.dumps({"url": state["url"], "choice": choice, "mode": mode, "values": values}, default=str, sort_keys=True)
     def checked_row():
+        if values["target_needs_review"]:
+            raise ImportProblem("Check the conflicting target before continuing.")
         if mode == "Exact deadline" and not values["deadline"]:
             raise ImportProblem("Enter the forecast deadline or choose Not specified / vague.")
         if mode == "Duration from publication" and not values["horizon_value"]:
@@ -321,7 +349,7 @@ def tiktok_mode(histories, show_results, show_nikola, track_button=None, show_co
     a, b = st.columns(2)
     needs_currency = values["target_type"] == "price" or values["reference_type"] == "creator"
     calculate = a.button("Calculate checked case", type="primary", key="tt_calculate",
-                         disabled=not values["symbol"].strip() or (needs_currency and values["currency"] != "USD"))
+                         disabled=not values["symbol"].strip() or values["target_needs_review"] or (needs_currency and values["currency"] != "USD"))
     if track_button:
         with b:
             track_button(checked_row, key="tt_track")

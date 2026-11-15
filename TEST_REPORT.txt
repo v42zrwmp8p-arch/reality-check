@@ -1,3 +1,30 @@
+REALITY CHECK - SOURCE TARGET CONFLICTS, 15 NOVEMBER 2026
+
+Current release: 2026-11-15.10
+Full suite: 170 tests passed with Python 3.12 in 59.846 seconds.
+- Extraction instructions explicitly compare speech and written amounts,
+  retain quoted/personal forecast attribution and apply clear list-heading years.
+- A local guard checks timestamped/numbered lists with a price-target heading,
+  a single forecast year and at least two ticker/price lines. A supported value
+  needs two independent frames and two-thirds of the parsed readings.
+- Conflicts and unresolved screen readings flag the numeric target for review.
+  Its field starts empty; Calculate is disabled and Track validation blocks
+  until a user chooses/enters a value or removes the numeric target.
+- Screen-choice buttons preserve the other summary wording while replacing
+  the matching dollar amount. Private choices do not change source drafts.
+- A shared heading year fills only missing time frames for matching assets;
+  existing dates/durations and conflicting years remain for review.
+- Recorded user-report replay: SOL 720000 versus written 720, LINK 120000 versus
+  written 120, and inconsistent INJ 2/22/220 are flagged; 2025 is retained for
+  all thirteen matched model rows. These are source observations, not a claim
+  that the actual spoken words have been verified against the original video.
+- Six new tests cover that replay, unseen symbols, duplicate frames, historical
+  and multiple-year guards, video/photo extraction and review/selection flows.
+- No added model/API call. Engine v15 separates older cached analyses.
+  Report files unchanged. Final live-host check follows publication.
+
+Previous validation report follows.
+
 REALITY CHECK - COMPANY DESCRIPTIONS, 15 NOVEMBER 2026
 
 Current release: 2026-11-15.9
