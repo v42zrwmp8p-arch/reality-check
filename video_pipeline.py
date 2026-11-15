@@ -19,14 +19,14 @@ import yt_dlp
 
 from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url
 from asset_resolution import complete_drafts
-from photo_import import read_photo_post
+from photo_import import read_photo_post, read_photo_text
 
-IMPORT_VERSION = "2026-11-15.5"
+IMPORT_VERSION = "2026-11-15.6"
 
 MAX_SECONDS = 180
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_FRAMES = 16
-ENGINE_VERSION = "groq-whisper-ocr-v11"
+ENGINE_VERSION = "groq-whisper-ocr-v12"
 # A release reload must not duplicate the queue or release another semaphore.
 if "_POOL" not in globals():
     _POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="video-import")
@@ -127,19 +127,35 @@ def read_screen_text(video, duration, folder):
     pattern = str(Path(folder) / "frame-%03d.png")
     try:
         _run_command(["ffmpeg", "-nostdin", "-hide_banner", "-loglevel", "error", "-threads", "1", "-y",
-                      "-i", str(video), "-vf", f"fps=1/{step},scale=640:-2", "-frames:v", str(MAX_FRAMES), pattern], 45)
-        seen, lines = set(), []
+                      "-i", str(video), "-vf", f"fps=1/{step},scale=1152:-2", "-frames:v", str(MAX_FRAMES), pattern], 45)
+        seen, lines, unreadable = set(), [], 0
         for i, frame in enumerate(sorted(Path(folder).glob("frame-*.png"))):
-            with Image.open(frame) as original:
-                image = ImageOps.autocontrast(ImageOps.grayscale(original))
-                text = pytesseract.image_to_string(image, lang="eng", config="--psm 11", timeout=4).strip()
+            try:
+                with Image.open(frame) as original:
+                    text = read_photo_text(original, light_text=False, primary_timeout=4)
+            except (RuntimeError, OSError, pytesseract.TesseractError):
+                unreadable += 1
+                continue
             compact = " ".join(text.split())
             if not compact or compact.casefold() in seen:
                 continue
             seen.add(compact.casefold())
             second = int((i + 0.5) * step)
-            lines.append(f"[{second // 60:02d}:{second % 60:02d}] {compact}")
-        return "\n".join(lines)[:6000], "Screen text is sampled from up to 16 frames. Small or briefly shown text may be missed."
+            lines.append(f"[{second // 60:02d}:{second % 60:02d}]\n{text.strip()}")
+        # Share the text budget between frames so a dense early slide cannot
+        # remove every later recommendation. Keep the highlighted reading first.
+        budget = max(1, (6000 - 12 * len(lines)) // max(1, len(lines)))
+        bounded = []
+        for block in lines:
+            stamp, body = block.split("\n", 1)
+            if "[Highlighted text]\n" in body:
+                main, extra = body.split("[Highlighted text]\n", 1)
+                body = "[Highlighted text]\n" + extra + "\n[Other text]\n" + main
+            bounded.append(stamp + "\n" + body[:budget])
+        note = "Screen text is sampled from up to 16 frames. Small or briefly shown text may be missed."
+        if unreadable:
+            note += f" {unreadable} sampled frame(s) could not be read; the other readings were retained."
+        return "\n".join(bounded)[:6000], note
     except (ImportProblem, RuntimeError, OSError, pytesseract.TesseractError):
         return "", "Screen text could not be read. This result uses speech only; check visual-only names and targets against the original video."
 

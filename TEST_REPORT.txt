@@ -1,5 +1,34 @@
 REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
 
+Current release: 2026-11-15.6
+Full suite: 155 tests passed with Python 3.12 in 53.095 seconds.
+Import and interface stability:
+- Local OCR keeps larger video frames, line layout and bright green/yellow text.
+  Later frames retain their text budget; a single OCR failure is not fatal to
+  all other frame readings. The same bounded full screen text reaches rechecks.
+- Literal stock-pick NOW/year price tables can recover missed predictions.
+  The recorded real source OCR replay yields all ten ticker/target pairs.
+  Negative/historical, conflicting and ambiguous examples are rejected.
+  Year-only forecasts keep no invented day; unconfirmed dollar targets require
+  explicit USD selection before calculation. The original model details remain.
+- Clear date/duration text preselects the corresponding review controls. Applied
+  dates are reflected in saved labels. Choosing no precise deadline clears the
+  structured cutoff; a vague year retains an explanatory cue.
+- Manual Entry previously lost MSFT, creator and target type after navigating.
+  Session persistence now covers its ordinary and conditional fields.
+- Fifteen new checks: 8 visual import, 2 timing parser and 5 UI regressions.
+  Existing arithmetic, dates, splits, archives, benchmarks, CSV, tracker and
+  multi-recommendation selection tests continue to pass.
+- Automated checks simulate HTTP/model/storage boundaries and use recorded OCR
+  facts and saved prices; they do not measure live AI accuracy.
+- No new AI model, image API, credentials, dependency or provider limits.
+  Engine v12 separates earlier cached source readings. Report files unchanged.
+- Live deployed user flows are checked separately after publication.
+
+Previous validation report follows.
+
+REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
+
 Current release: 2026-11-15.5
 Full suite: 140 tests passed with Python 3.12 in 47.257 seconds.
 Featured chart identity:

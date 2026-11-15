@@ -3,7 +3,7 @@ import pandas as pd
 from analysis_core import (compare_prices, period_metrics, horizon_table, check_price_target,
                            resolve_target, resolve_deadline, deadline_performance)
 
-IMPORT_VERSION = "2026-11-15.5"
+IMPORT_VERSION = "2026-11-15.6"
 
 
 def comparison_dates(row, histories):

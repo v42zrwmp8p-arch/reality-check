@@ -2,11 +2,74 @@
 from copy import deepcopy
 import re
 
-from asset_resolution import ASSETS
+from asset_resolution import ASSETS, known_asset
 
-IMPORT_VERSION = "2026-11-15.5"
+IMPORT_VERSION = "2026-11-15.6"
 WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
          "seven": 7, "eight": 8, "nine": 9, "ten": 10}
+
+
+def recover_visual_tables(rows, text, transcript=""):
+    """Recover explicit ticker / NOW $price / year $target stock-pick slides.
+
+    A narrow literal-text fallback, with no ticker list and no image inference.
+    Conflicting readings are left for review. A year never becomes an invented
+    day, and a dollar sign alone does not confirm USD for a newly recovered pick.
+    """
+    if not re.search(r"(?:top|best).{0,80}stocks?", text, re.I | re.S):
+        return rows
+    negation = r"\b(?:hypothetical|historical|backtest|avoid|sell|(?:not|never|don't|do\s+not|shouldn't)\s+(?:to\s+)?buy)\b"
+    if re.search(negation, transcript + " " + text[:500], re.I):
+        return rows
+    blocks = re.split(r"\[(\d{2}:\d{2}|Photo \d+)\]\s*", text)
+    found = {}
+    for index in range(1, len(blocks) - 1, 2):
+        stamp, body = blocks[index:index + 2]
+        if re.search(negation, body, re.I):
+            continue
+        full_body = body
+        if "[Highlighted text]\n" in body:
+            body = body.split("[Highlighted text]\n", 1)[1].split("[Other text]", 1)[0]
+        symbols = set(re.findall(r"(?m)^\s*([A-Z]{1,6})\.?\s*$", body))
+        symbols -= {"NOW", "USD", "TOP", "ETF", "BUY", "SELL", "YTD", "ALL", "THE"}
+        if not symbols:
+            other = full_body.split("[Other text]", 1)[-1]
+            symbols = set(re.findall(r"(?m)^\s*([A-Z]{2,6})\.?\s*$", other))
+            symbols -= {"NOW", "USD", "TOP", "ETF", "BUY", "SELL", "YTD", "ALL", "THE"}
+        current = {float(value) for value in re.findall(
+            r"\bNOW[^\n$\d]{0,5}\$\s*(\d+(?:\.\d+)?)", full_body, re.I)}
+        targets = {(year, float(value)) for year, value in re.findall(
+            r"(?m)^\s*(20\d{2})\s*[:;-]?[^\n$]{0,6}\$\s*(\d+(?:\.\d+)?)\s*$", full_body)}
+        if len(symbols) != 1 or len(current) != 1 or len(targets) != 1:
+            continue
+        symbol = next(iter(symbols))
+        year, target = next(iter(targets))
+        reference = next(iter(current))
+        if not 0 < reference < target:
+            continue
+        found.setdefault(symbol, []).append((reference, year, target, stamp, body))
+    result = deepcopy(rows)
+    for symbol, sightings in found.items():
+        if len({item[:3] for item in sightings}) != 1:
+            continue
+        reference, year, target, stamp, body = sightings[0]
+        matches = [row for row in result if row.get("symbol") == symbol or (len(symbol) > 1 and re.search(
+            r"\b" + re.escape(symbol) + r"\b", str(row.get("evidence") or "")))]
+        if not matches:
+            identity = known_asset(symbol, "Equity") or {"asset": symbol, "symbol": symbol, "asset_type": "Equity"}
+            matches = [{**identity, "claim": f"Shown with a ${target:g} price target for {year}.",
+                        "target_type": "none", "currency": None, "deadline": None,
+                        "horizon_value": None, "horizon_unit": None}]
+            result.extend(matches)
+        for row in matches:
+            if row.get("target_type") in (None, "none"):
+                row.update(target_type="price", target_value=target, target_approximate=False,
+                           reference_price=reference)
+            if not row.get("time_frame") and not row.get("deadline") and not row.get("horizon_value"):
+                row["time_frame"] = year
+            if not row.get("evidence"):
+                row.update(evidence=" ".join(body.split()[-20:]), evidence_time=stamp)
+    return result
 MULTIPLE = re.compile(
     r"\b(?:(?P<qualifier>nearly|almost|about|around|roughly|approximately|up\s+to)\s+(?:an?\s+)?)?"
     r"(?P<value>\d+(?:\.\d+)?|two|three|four|five|six|seven|eight|nine|ten)\s*"

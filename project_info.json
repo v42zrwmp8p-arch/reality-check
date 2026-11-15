@@ -54,9 +54,9 @@
     "limits": "Videos: 180 seconds, 50 MB, 16 sampled OCR frames. Photos: 15 images, 8 MB/image, 50 MB total, 12000 text characters. 2 active / 8 total tasks.",
     "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change",
-    "engine_version": "groq-whisper-ocr-v11",
+    "engine_version": "groq-whisper-ocr-v12",
     "identifier_handling": "Known identifiers; spelling and bounded Yahoo-search suggestions require review",
-    "empty_result_handling": "Explicit supported-list recovery; otherwise one additional model check",
+    "empty_result_handling": "Literal buy-list, ETF, featured photo-chart and visual NOW/year price-table recovery; otherwise one bounded model recheck, retaining the full 6000-character screen-text input.",
     "recheck": "Explicit extraction-only recheck with 30-second cooldown; source transcript/OCR reused for video and photo posts",
     "creator": "Canonical video handle preferred; numeric UIDs hidden",
     "screen_text_visible": false,
@@ -68,7 +68,7 @@
     "numeric_target_recovery": "Single named asset/one explicit future multiple; no extra API call; rejects valuation/past/teaching examples and ambiguous/conflicting targets",
     "format_recovery": "One JSON Object Mode attempt after HTTP 400 chat error; same model/source; local schema validation; no retries of other HTTP errors",
     "error_diagnostics": "HTTP status and whitelisted provider details, connection key redacted",
-    "latest_live_failure": "Stockdads report is request_failed with HTTP-400-mapped message; original provider error details absent, exact cause unconfirmed",
+    "latest_live_failure": "Supplied .5 Stockanalyst2 report: only music speech, corrupted OCR and two empty model outputs. Local .6 OCR replay recovers all ten literal ticker/target pairs. End-to-end host check recorded separately after publication.",
     "etf_support": "ETF is an explicit type across extraction/review/manual/CSV/search. Generic literal ETF-ticker source recovery; no per-video ticker list.",
     "photo_import": "Full /photo/ links; gallery-dl 1.32.20 anonymous metadata and supplied CDN image URLs, English OCR of every image plus caption. Same Groq extraction and review; no background audio or image display.",
     "photo_live_media_test": {
@@ -87,8 +87,9 @@
       "streamlit_host_tested": false
     },
     "photo_share_links": "Full /photo/ URLs supported; shortened photo share links not verified.",
-    "photo_ocr": "Full grayscale reading plus optional 1600-pixel light-lettering mask, PSM 6 and six-second timeout; source text retained on optional-pass failure.",
-    "photo_carousel_context": "The cover buy heading applies to featured named assets on following slides; watchlist/navigation tickers and chart-range controls are excluded. Generic unnamed Unknown rows are discarded, with the existing single empty-result recheck retained."
+    "photo_ocr": "Full grayscale reading plus optional light-lettering and bright green/yellow text masks, with bounded local OCR passes. No images are sent to Groq.",
+    "photo_carousel_context": "The cover buy heading applies to featured named assets on following slides; watchlist/navigation tickers and chart-range controls are excluded. Generic unnamed Unknown rows are discarded, with the existing single empty-result recheck retained.",
+    "video_ocr": "Up to 16 frames at width 1152; preserve line layout, highlighted lettering and later frames within a 6000-character budget. One failed frame does not discard other readings."
   },
   "system_dependencies": [
     "ffmpeg",
@@ -103,7 +104,7 @@
     "Case Database"
   ],
   "validation": {
-    "tests_passed": 140,
+    "tests_passed": 155,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -114,7 +115,7 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-15.5",
+    "full_suite_release": "2026-11-15.6",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -247,9 +248,23 @@
       "live_host_verified": false,
       "tests_passed": 140,
       "seconds": 47.257
+    },
+    "app_cleanup": {
+      "release": "2026-11-15.6",
+      "tests_passed": 155,
+      "seconds": 53.095,
+      "new_tests": 15,
+      "scope": "Eight visual OCR/extraction regressions, two date/duration parsing checks, three import UI checks and two manual-entry persistence checks. Existing financial, archive, tracker and selection tests pass.",
+      "visual_source": "test_fixtures/visual_slides_ocr.json",
+      "local_real_ocr_replay": "Ten literal stock/target pairs recovered from the reported music-only slideshow. Year retained without inventing a day; newly recovered dollar-only targets require USD confirmation.",
+      "ai_models_unchanged": true,
+      "image_api_calls": false,
+      "live_groq_in_automated_tests": false,
+      "manual_state_before_fix": "MSFT, Reviewed creator and Price multiple reset to AAPL, empty creator and No target after switching app areas.",
+      "live_host_checked_at_publication": false
     }
   },
-  "app_version": "2026-11-15.5",
+  "app_version": "2026-11-15.6",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -360,15 +375,18 @@
   "post_report_updates": {
     "report_baseline": "Reality_Check_Report_FINAL.docx",
     "report_updates": [
-      "Validation: 132 to 140 automated tests.",
+      "Validation: 132 to 155 automated tests.",
       "Reference [3]: update the release and source link to the latest app revision."
     ],
     "app_updates": [
       "Selected recommendations and per-asset review edits persist across switches and reruns.",
       "Missing ticker fields are highlighted in red with instructions until completed.",
-      "Photo imports add a light-text OCR pass and combine cover buy-list context with featured assets on following slides."
+      "Photo imports add a light-text OCR pass and combine cover buy-list context with featured assets on following slides.",
+      "Music-only slideshow videos use clearer local OCR and literal visual forecast-table recovery; model rechecks retain later sampled frames.",
+      "Explicit dates and durations in extracted time text prefill the calculation controls; year-only text remains for review. Saved time labels match the applied controls.",
+      "Uncertain target currency is visibly flagged for confirmation. Manual Entry values persist across navigation and target-type changes."
     ],
-    "latest_release": "2026-11-15.5",
+    "latest_release": "2026-11-15.6",
     "word_document_modified": false
   }
 }

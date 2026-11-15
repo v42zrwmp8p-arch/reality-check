@@ -1,0 +1,48 @@
+{
+  "text": "[00:01]\n[Highlighted text]\n10 Top\nStocks 2025\nNVDA\nNOW : $134.7\n2025:\n[Other text]\n10 Top nto\n\nSco 3 for 2\n\na\n\nNOW\n\nYD 8\n\n\n[00:03]\n[Highlighted text]\n10 Top\nStocks 2025\nNVDA\nNOW : $134.7\n2025: $220\n[Other text]\n10 Top gs\n\nScod 3s for 2\n\na\n\nNOWESU3 457\n\nDOZD \u00a7 S220\n\n\n[00:05]\n[Highlighted text]\n10 Top\n\nStocks 2025\nAMD\n\nNOW:S$119.21\n\n2025: $180\n[Other text]\net) iGrowth\n\nStocks (a7 2025\n\n2\n\nNOW: $119.21\n\n2025 : $180\n\n\n[00:07]\n[Highlighted text]\n10 Top\n\nStocks 2025\nNOW : $60.73\n2025\n[Other text]\nOe Cy Growth\n\nStocks (ja 2025\n\n3\n\nJI\n\nUBER\n\n2025:\n\nNOW : $60.73\n\n\n[00:09]\n[Highlighted text]\n10 Top\n\nStocks 2025\nNOW : $60.73\n2025: $90\n[Other text]\nOe ty Growth\n\nStocks (ja 2025\n\n3\n\nJ\n\nUBER\n\n2025 : $90\n\nNOW : $60.73\n\n\n[00:11]\n[Highlighted text]\n10 Top\nStocks 2025\nNe )\nAMZN\nNOW : $224.92\n2025: $280\n[Other text]\n10 Top\n\nStocks\n\n2025\n\nNOW*\n\n9224.92\n\n2025 : $280\n\n\n[00:13]\n[Highlighted text]\n10 Top\n\nStocks 2025\nGOOGL\n\nNOW: $191.41\n\n2025:\n[Other text]\nety Growth\n\nStocks (op 2025\n\naAvyYaAy\n\nKONA\n\nSUQe4iy\n\n2025\n\ny\n\n\n[00:15]\n[Highlighted text]\n10 Top\n\nStocks 2025\nGOOGL\n\nNOW: $191.41\n\n2025: $230\n[Other text]\nety Growth\n\nStocks (i 2025\n\nAY AY @\n\nKONA\n\nSUQne4iy\n\n2025\n\n$230\n\n\n[00:17]\n[Highlighted text]\n10 Top\nStocks 2025\nMU\nNOW : $90.12\n2025:$140\n[Other text]\nOnc) iGrowth\n\nStocks (i117 2025\n\n6\n\n=_\u2014\n\n{ Micron r\n\nMU\n\nNOW : $90.12\n\n2025: $140\n\n\n[00:19]\n[Highlighted text]\n10 Top\nStocks 2025\nCZR\nNOW : $32.82\n2025\n[Other text]\nCe ty Growth)\n\nStocks (jp 2025\n\na\n\nYe\n\nry\n\n~\n\nif, X\n\ny\n\n2025 :\n\nIN bal \u201ceee\n\n\n[00:21]\n[Highlighted text]\n10 Top\nStocks 2025\nCZR\nNOW : $32.82\n2025: 558\n[Other text]\nCe ty Growth)\n\nStocks (ja 2025\n\n\u00e9\n\na\n\nNy\n\ny\n\n~\n\ne \u00a5\n\ny\n\nLD\n\ned\n\nA\n\ny\n\n2025 : $58\n\nRout - 32282\n\n\n[00:23]\n[Highlighted text]\n10 Top\n\nStocks 2025\nASML\n\nNOW : $705.68\n\n2025: $800\n[Other text]\nOl ty Growth\n\nStocks (7 2025\n\nron\n\na\n\nNOW : $705.68\n\n2025 : $800\n\n\n[00:25]\n[Highlighted text]\n10 Top\nStocks 2025\nSQ\nNOW : $89.65\n2025:\n[Other text]\nOne) Growth\n\nSOs for 40rd\n\nex\n\nfe)\n\nSP) 65\n\nHONS \u00a2 Sip\n\n\n[00:27]\n[Highlighted text]\n10 Top\nStocks 2025\nSQ\nNOW : $89.65\n2025:$120\n[Other text]\nLone) Growth\n\nStocksii'j)ac025\n\n|\n\nIS89.65\n\n2.025 g\n\nC10\n\n\n[00:29]\n[Highlighted text]\n10 Top\nStocks 2025\nS\nNOW : $22.43\n2025: $50\n[Other text]\n|\n\nNKOMAY 8\n\n22.4\n\n3\n\n(WES\n\n$5)\n\n",
+  "note": "Screen text is sampled from up to 16 frames. Small or briefly shown text may be missed.",
+  "post_url": "https://www.tiktok.com/@stockanalyst2/video/7451545975040036126",
+  "transcript": "[00:00] Music\n[00:30] Thank you.",
+  "expected": [
+    [
+      "NVDA",
+      220
+    ],
+    [
+      "AMD",
+      180
+    ],
+    [
+      "UBER",
+      90
+    ],
+    [
+      "AMZN",
+      280
+    ],
+    [
+      "GOOGL",
+      230
+    ],
+    [
+      "MU",
+      140
+    ],
+    [
+      "CZR",
+      58
+    ],
+    [
+      "ASML",
+      800
+    ],
+    [
+      "SQ",
+      120
+    ],
+    [
+      "S",
+      50
+    ]
+  ]
+}

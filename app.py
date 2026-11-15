@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-15.5"
+APP_VERSION = "2026-11-15.6"
 tiktok_mode = import_flow(APP_VERSION)
 from market_data import load_examples, provider_symbol, download_history, get_comparison_histories, comparison_symbols
 from case_analysis import analyse_comparisons
@@ -269,28 +269,28 @@ def manual_mode():
     st.subheader("Manual Entry")
     st.caption("Enter an investment prediction yourself.")
     left, middle, right = st.columns([2, 1, 2])
-    ticker = left.text_input("Yahoo Finance ticker", value="AAPL", key="manual_ticker", help="USD stocks, ETFs and crypto, for example AAPL, XLE or KDA-USD.")
-    kind = middle.selectbox("Asset type", ["Equity", "Crypto", "ETF"], key="manual_type")
-    published = right.date_input("Publication date", value=date(2023, 6, 26), max_value=date.today(), key="manual_date")
+    ticker = left.text_input("Yahoo Finance ticker", value="AAPL", key="manual_ticker", help="USD stocks, ETFs and crypto, for example AAPL, XLE or KDA-USD.", persist_state="session")
+    kind = middle.selectbox("Asset type", ["Equity", "Crypto", "ETF"], key="manual_type", persist_state="session")
+    published = right.date_input("Publication date", value=date(2023, 6, 26), max_value=date.today(), key="manual_date", persist_state="session")
     value_input, reference_input, reference_type = None, None, None
     target_approximate = False
     with st.expander("Target and time frame (optional)"):
-        target_label = st.selectbox("Target type", ["No target", "Price target (USD)", "Price multiple"], key="manual_target_type")
+        target_label = st.selectbox("Target type", ["No target", "Price target (USD)", "Price multiple"], key="manual_target_type", persist_state="session")
         if target_label == "Price target (USD)":
-            value_input = st.text_input("Upside target price (USD)", placeholder="e.g. 142", key="manual_target_price")
+            value_input = st.text_input("Upside target price (USD)", placeholder="e.g. 142", key="manual_target_price", persist_state="session")
         elif target_label == "Price multiple":
-            value_input = st.number_input("Target multiple", min_value=1.000001, value=2.0, step=1.0, format="%g", key="manual_multiple")
-            reference_label = st.selectbox("Reference price", ["Simulated entry price", "Creator reference price"], key="manual_reference_type")
+            value_input = st.number_input("Target multiple", min_value=1.000001, value=2.0, step=1.0, format="%g", key="manual_multiple", persist_state="session")
+            reference_label = st.selectbox("Reference price", ["Simulated entry price", "Creator reference price"], key="manual_reference_type", persist_state="session")
             reference_type = "entry" if reference_label == "Simulated entry price" else "creator"
             if reference_type == "creator":
-                reference_input = st.text_input("Creator reference price (USD)", placeholder="e.g. 106", key="manual_reference_price")
+                reference_input = st.text_input("Creator reference price (USD)", placeholder="e.g. 106", key="manual_reference_price", persist_state="session")
         if target_label != "No target":
-            target_approximate = st.checkbox("Approximate target", key="manual_approximate")
-        deadline = st.date_input("Forecast deadline (optional)", value=None, key="manual_deadline")
+            target_approximate = st.checkbox("Approximate target", key="manual_approximate", persist_state="session")
+        deadline = st.date_input("Forecast deadline (optional)", value=None, key="manual_deadline", persist_state="session")
     with st.expander("Source (optional)"):
-        creator = st.text_input("Creator", key="manual_creator")
-        source_link = st.text_input("Original post link", key="manual_link")
-        claim = st.text_area("Prediction", key="manual_claim")
+        creator = st.text_input("Creator", key="manual_creator", persist_state="session")
+        source_link = st.text_input("Original post link", key="manual_link", persist_state="session")
+        claim = st.text_area("Prediction", key="manual_claim", persist_state="session")
     current_inputs = (ticker, kind, str(published), target_label, str(value_input), reference_type, str(reference_input), str(deadline), target_approximate, creator, source_link, claim)
     def checked_row():
         symbol = provider_symbol(ticker, kind)

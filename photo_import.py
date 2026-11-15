@@ -15,7 +15,7 @@ import requests
 
 from tiktok_import import ImportProblem, clean_tiktok_url
 
-IMPORT_VERSION = "2026-11-15.5"
+IMPORT_VERSION = "2026-11-15.6"
 MAX_PHOTOS = 15
 MAX_PHOTO_BYTES = 8 * 1024 * 1024
 MAX_TOTAL_BYTES = 50 * 1024 * 1024
@@ -71,7 +71,7 @@ def _download_photo(session, url, path, remaining):
     raise ImportProblem("The image redirected too many times to process safely.")
 
 
-def read_photo_text(original):
+def read_photo_text(original, *, light_text=True, primary_timeout=8):
     """Keep the full reading, plus a bounded pass for light text over photos.
 
     Background texture can overwhelm sparse-text OCR even when an overlay is
@@ -80,7 +80,7 @@ def read_photo_text(original):
     The additional pass is optional: its timeout must not lose readable text.
     """
     image = ImageOps.autocontrast(ImageOps.grayscale(original))
-    text = pytesseract.image_to_string(image, lang="eng", config="--psm 11", timeout=8).strip()
+    text = pytesseract.image_to_string(image, lang="eng", config="--psm 11", timeout=primary_timeout).strip()
     overlay = original.convert("RGB")
     overlay.thumbnail((1600, 1600))
     red, green, blue = overlay.split()
@@ -91,16 +91,35 @@ def read_photo_text(original):
     mask = ImageChops.multiply(bright, neutral)
     coverage = mask.histogram()[255] / (overlay.width * overlay.height)
     # A mostly white page or an image without light lettering needs no such pass.
-    if not 0.001 <= coverage <= 0.35:
-        return text
-    try:
-        extra = pytesseract.image_to_string(
-            ImageOps.invert(mask), lang="eng", config="--psm 6", timeout=6,
-        ).strip()
-    except (RuntimeError, OSError, pytesseract.TesseractError):
-        return text
-    if extra and " ".join(extra.casefold().split()) not in " ".join(text.casefold().split()):
-        return (text + "\n\n[Additional text reading]\n" + extra).strip()
+    masks = []
+    if light_text and 0.001 <= coverage <= 0.35:
+        masks.append(("Additional text reading", mask))
+    # Bright green/yellow lettering is easily lost when a colourful image is
+    # converted to grey. Isolate the lettering, without guessing its content.
+    coloured = original.convert("RGB")
+    coloured.thumbnail((2048, 2048))
+    red, green, blue = coloured.split()
+    green_ink = ImageChops.multiply(ImageChops.multiply(
+        green.point(lambda v: 255 if v >= 220 else 0),
+        red.point(lambda v: 255 if v <= 100 else 0)),
+        blue.point(lambda v: 255 if v <= 100 else 0))
+    yellow_ink = ImageChops.multiply(ImageChops.multiply(
+        red.point(lambda v: 255 if v >= 220 else 0),
+        green.point(lambda v: 255 if v >= 170 else 0)),
+        blue.point(lambda v: 255 if v <= 80 else 0))
+    highlighted = ImageChops.lighter(green_ink, yellow_ink)
+    coverage = highlighted.histogram()[255] / (coloured.width * coloured.height)
+    if 0.001 <= coverage <= 0.2:
+        masks.append(("Highlighted text", highlighted))
+    for label, mask in masks:
+        try:
+            extra = pytesseract.image_to_string(
+                ImageOps.invert(mask), lang="eng", config="--psm 6", timeout=6,
+            ).strip()
+        except (RuntimeError, OSError, pytesseract.TesseractError):
+            continue
+        if extra and " ".join(extra.casefold().split()) not in " ".join(text.casefold().split()):
+            text += f"\n\n[{label}]\n" + extra
     return text
 
 

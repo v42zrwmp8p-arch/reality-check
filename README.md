@@ -66,13 +66,44 @@ is used. This addresses the .4 live result that included Apple and Boeing from
 the watchlist alongside the actual three picks. Engine v11 invalidates it.
 The latest full suite passes 140 automated checks.
 
+## Current stability release
+
+Release `2026-11-15.6` passes 155 automated checks. The app still uses local
+Tesseract OCR, Groq speech recognition and the same text model; no image model,
+new service or paid fallback is added.
+
+Video frames are read at width 1152 with line layout retained. An optional local
+colour mask helps bright green/yellow lettering remain readable. Text budgets
+are shared across sampled frames, and one failed frame does not erase the other
+readings. A model recheck receives all of the bounded screen text rather than
+only its first 2000 characters.
+
+An explicit stock-pick slide containing a literal ticker, NOW dollar price and
+labelled year/price can recover a missed prediction without another API call.
+This has no per-post ticker list, rejects conflicts and negative/historical
+contexts, and does not invent a deadline day or assume that an unknown dollar
+currency is USD. The recorded source replay recovers all ten ticker/target pairs
+in the reported music-only slideshow. This is one example, not a measured
+accuracy rate across arbitrary posts.
+
+Clear full dates and exact durations in extracted time text now prefill the
+review controls. A bare year or vague range remains text with guidance; it does
+not silently become 31 December. Saved time-frame labels reflect the deadline
+or duration actually applied. Uncertain numeric-target currency is flagged for
+USD confirmation before Calculate is enabled.
+
+Manual Entry retains its inputs when switching areas or hiding conditional
+target/reference fields. Existing import selection persistence, ticker guidance,
+tracker privacy and all financial calculations are retained. Engine v12 isolates
+older source caches. The Word/PDF/Notebook report files were not changed.
+
 ## Release consistency
 
-Release `2026-11-15.5` checks that Streamlit's entry script and all twelve
+Release `2026-11-15.6` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v11. The dependency file also changed to request
+results are isolated by engine v12. The dependency file also changed to request
 a fresh Community Cloud deployment. Existing pinned dependencies are retained.
 
 The reported combination of new menu labels and the old no-result message

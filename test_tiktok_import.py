@@ -8,7 +8,7 @@ import unittest
 
 from analysis_core import resolve_deadline
 from tiktok_import import (ImportProblem, GroqClient, clean_tiktok_url, metadata_details,
-                           recommendations, reviewed_case)
+                           recommendations, reviewed_case, normalise_timing)
 
 VIDEO = "https://www.tiktok.com/@fixture/video/7249072169680948526"
 METADATA = {"platform": "tiktok", "type": "video", "createdAt": "2023-06-26T18:00:00Z",
@@ -26,6 +26,28 @@ def response(data, status=200):
 
 
 class ImportChecks(unittest.TestCase):
+    def test_clear_time_text_recovers_dates_and_durations_without_overriding_fields(self):
+        for text, expected in [("by 2027-06-30", "2027-06-30"),
+                               ("by June 30th, 2027", "2027-06-30"),
+                               ("30 June 2027", "2027-06-30"),
+                               ("by the end of 2027", "2027-12-31")]:
+            with self.subTest(text=text):
+                self.assertEqual(normalise_timing(dict(DRAFT, time_frame=text))["deadline"], expected)
+        for text, amount, unit in [("within three months", 3, "months"),
+                                    ("in 2 years", 2, "years"), ("next decade", 10, "years")]:
+            row = normalise_timing(dict(DRAFT, time_frame=text))
+            self.assertEqual((row["horizon_value"], row["horizon_unit"]), (amount, unit))
+        row = normalise_timing(dict(DRAFT, time_frame="in 2 years", deadline="2028-06-30"))
+        self.assertEqual(row["deadline"], "2028-06-30")
+
+    def test_year_only_vague_ranges_and_ambiguous_dates_stay_unresolved(self):
+        for text in ["2025", "by 2030", "soon", "about 2 years", "2 to 3 years",
+                     "by 2026 or 2027", "by 02/03/2028", "before 2027-06-30"]:
+            with self.subTest(text=text):
+                row = normalise_timing(dict(DRAFT, time_frame=text))
+                self.assertIsNone(row["deadline"])
+                self.assertIsNone(row["horizon_value"])
+
     def test_video_links_and_tracking_cleanup(self):
         self.assertEqual(clean_tiktok_url(VIDEO + "?tracking=remove#ignored"), VIDEO)
         photo = "https://www.tiktok.com/@a/photo/12345"

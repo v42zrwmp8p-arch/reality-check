@@ -9,10 +9,10 @@ import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
 from case_analysis import analyse_comparisons
-from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
+from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case, normalise_timing
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-15.5"
+IMPORT_VERSION = "2026-11-15.6"
 
 
 def service_key():
@@ -137,7 +137,7 @@ def review_fields(state):
     choice = st.selectbox("Choose a detected recommendation", range(len(drafts)),
                           format_func=lambda i: str(drafts[i].get("asset") or f"Recommendation {i + 1}"),
                           key="tt_choice", persist_state="session", on_change=recommendation_changed)
-    draft = drafts[choice]
+    draft = normalise_timing(drafts[choice])
     details = metadata_details(state["metadata"])
     prefix = "tt_review_" + str(choice) + "_"
     st.subheader("Review the extracted details")
@@ -195,10 +195,15 @@ def review_fields(state):
             if reference_type == "creator":
                 reference_price = st.text_input("Creator reference price (USD)", value=str(draft.get("reference_price") or ""), key=prefix + "reference_price", persist_state="session")
         if target_type == "price" or reference_type == "creator":
-            currency = st.selectbox("Currency of the stated price", ["Other / unclear", "USD"],
-                                    index=1 if draft.get("currency") == "USD" else 0, key=prefix + "currency", persist_state="session")
+            with st.container(key=prefix + "currency_field"):
+                currency = st.selectbox("Currency of the stated price", ["Other / unclear", "USD"],
+                                        index=1 if draft.get("currency") == "USD" else 0, key=prefix + "currency", persist_state="session")
+                if currency != "USD":
+                    st.markdown(f"<style>.st-key-{prefix}currency_field [role='combobox']"
+                                "{outline:2px solid #c62828;outline-offset:2px;border-radius:0.4rem;}</style>",
+                                unsafe_allow_html=True)
+                    st.caption(":red[Confirm USD to check this target.]")
 
-    time_frame = st.text_input("Stated time frame", value=str(draft.get("time_frame") or ""), key=prefix + "time_frame", persist_state="session")
     deadline_default = None
     try:
         deadline_default = date.fromisoformat(str(draft.get("deadline")))
@@ -212,11 +217,17 @@ def review_fields(state):
     deadline, horizon_value, horizon_unit = None, None, None
     if mode == "Exact deadline":
         deadline = st.date_input("Forecast deadline", value=deadline_default, key=prefix + "deadline", persist_state="session")
+        time_frame = "By " + deadline.isoformat() if deadline else ""
     elif mode == "Duration from publication":
         a, b = st.columns(2)
         horizon_value = a.text_input("Time-frame length", value=str(duration) if duration_valid else "", key=prefix + "duration", persist_state="session")
         units = ["days", "weeks", "months", "years"]
         horizon_unit = b.selectbox("Time-frame unit", units, index=units.index(draft["horizon_unit"]) if duration_valid else 2, key=prefix + "unit", persist_state="session")
+        time_frame = f"{horizon_value} {horizon_unit} after publication" if horizon_value else ""
+    else:
+        time_frame = st.text_input("Stated time frame", value=str(draft.get("time_frame") or ""), key=prefix + "time_frame", persist_state="session")
+        if time_frame.strip():
+            st.caption("Select a deadline or duration to apply a time limit.")
     values = {"asset": asset, "symbol": symbol, "asset_type": kind, "publication_date": published,
               "source_kind": state.get("source_kind", "video"),
               "creator": creator, "claim": claim, "target_type": target_type, "target_value": target_value,
@@ -296,7 +307,9 @@ def tiktok_mode(histories, show_results, show_nikola, track_button=None):
             raise ImportProblem("Enter the stated duration or choose Not specified / vague.")
         return reviewed_case(values, state["url"])
     a, b = st.columns(2)
-    calculate = a.button("Calculate checked case", type="primary", key="tt_calculate", disabled=not values["symbol"].strip())
+    needs_currency = values["target_type"] == "price" or values["reference_type"] == "creator"
+    calculate = a.button("Calculate checked case", type="primary", key="tt_calculate",
+                         disabled=not values["symbol"].strip() or (needs_currency and values["currency"] != "USD"))
     if track_button:
         with b:
             track_button(checked_row, key="tt_track")
