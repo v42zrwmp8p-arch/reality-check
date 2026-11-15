@@ -1,7 +1,7 @@
 REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
 
-Current release: 2026-11-15.7
-Full suite: 159 tests passed with Python 3.12 in 50.742 seconds.
+Current release: 2026-11-15.8
+Full suite: 161 tests passed with Python 3.12 in 49.155 seconds.
 Import and interface stability:
 - Local OCR keeps larger video frames, line layout and bright green/yellow text.
   Later frames retain their text budget; a single OCR failure is not fatal to
@@ -17,19 +17,27 @@ Import and interface stability:
   evaluation convention; a hit after that year is excluded from its target test.
 - Manual Entry previously lost MSFT, creator and target type after navigating.
   Session persistence now covers its ordinary and conditional fields.
-- Nineteen new checks: 10 visual import, 2 timing parser, 6 UI regressions and
+- Twenty-one new checks: 12 visual import, 2 timing parser, 6 UI regressions and
   one equity-only renamed-ticker check.
   Existing arithmetic, dates, splits, archives, benchmarks, CSV, tracker and
   multi-recommendation selection tests continue to pass.
 - Automated checks simulate HTTP/model/storage boundaries and use recorded OCR
   facts and saved prices; they do not measure live AI accuracy.
 - No new AI model, image API, credentials, dependency or provider limits.
-  Engine v13 separates earlier cached source readings. Report files unchanged.
+  Engine v14 separates earlier cached source readings. Report files unchanged.
 - Live .6 import returned ten correct model targets, but literal recovery added
   a duplicate S and year-only targets were evaluated without a cutoff. Both are
   now regression-tested. Manual MSFT/4x persistence and live NVDA prices worked.
 - Old SQ now resolves to current XYZ for the same Block shares (OCC 55886).
   A live XYZ history request covers the original December 2024 publication.
+- The .7 live photo import returned exactly ASML, Vonovia and Alibaba; ASML
+  live chart/calculation worked. A separate ten-stock import hit the model
+  completion cap, spending 2311 of 3072 tokens on reasoning. This did not
+  count as a successful import.
+- Low reasoning effort now leaves more of that same cap for predictions. A
+  truncated/invalid model response can use conservative literal source tables
+  without another API call. No-source errors and provider limits stay visible.
+  Two new tests cover these paths.
 - Final deployed user flows are checked separately after publication.
 
 Previous validation report follows.

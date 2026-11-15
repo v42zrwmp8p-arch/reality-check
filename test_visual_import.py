@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 from photo_import import read_photo_text
 from market_data import provider_symbol
 from target_extraction import recover_visual_tables
-from tiktok_import import GroqClient
+from tiktok_import import GroqClient, ImportProblem
 from test_tiktok_import import DRAFT, response
 import video_pipeline as pipeline
 
@@ -24,6 +24,30 @@ def model_response(rows):
 
 
 class VisualImportChecks(unittest.TestCase):
+    @patch("tiktok_import.requests.post")
+    def test_truncated_model_answer_keeps_literal_source_tables_without_an_extra_call(self, post):
+        post.return_value = response({"choices": [{"finish_reason": "length", "message": {
+            "content": '{"recommendations":['}}]})
+        client = GroqClient("fixture-key")
+        rows = client.extract(SOURCE["transcript"], SOURCE["text"])
+        self.assertEqual(len(rows), 10)
+        self.assertEqual(next(r for r in rows if r["symbol"] == "NVDA")["target_value"], 220)
+        self.assertEqual(post.call_count, 1)
+        self.assertEqual(post.call_args.kwargs["json"]["reasoning_effort"], "low")
+        self.assertEqual(client.extraction_checks[0]["status"], "invalid_response")
+        self.assertTrue(all(r["currency"] is None for r in rows))
+
+    @patch("tiktok_import.requests.post")
+    def test_invalid_response_without_source_facts_and_provider_errors_are_not_hidden(self, post):
+        post.return_value = response({"choices": [{"finish_reason": "length", "message": {
+            "content": '{"recommendations":['}}]})
+        with self.assertRaises(ImportProblem):
+            GroqClient("fixture-key").extract("Pancake recipe", "")
+        post.return_value = response({}, status=429)
+        with self.assertRaises(ImportProblem) as raised:
+            GroqClient("fixture-key").extract(SOURCE["transcript"], SOURCE["text"])
+        self.assertEqual(raised.exception.provider_error["http_status"], 429)
+
     def test_recorded_ocr_recovers_ten_targets_without_inventing_dates_or_currency(self):
         rows = recover_visual_tables([], SOURCE["text"])
         expected = [[provider_symbol(symbol, "Equity"), target] for symbol, target in SOURCE["expected"]]

@@ -54,7 +54,7 @@
     "limits": "Videos: 180 seconds, 50 MB, 16 sampled OCR frames. Photos: 15 images, 8 MB/image, 50 MB total, 12000 text characters. 2 active / 8 total tasks.",
     "storage": "Up to 32 public-source results in server memory for 24h; user edits remain private; media files temporary",
     "expiry": "No automatic expiry; removal is a later code change",
-    "engine_version": "groq-whisper-ocr-v13",
+    "engine_version": "groq-whisper-ocr-v14",
     "identifier_handling": "Known identifiers; spelling and bounded Yahoo-search suggestions require review",
     "empty_result_handling": "Literal buy-list, ETF, featured photo-chart and visual NOW/year price-table recovery; otherwise one bounded model recheck, retaining the full 6000-character screen-text input.",
     "recheck": "Explicit extraction-only recheck with 30-second cooldown; source transcript/OCR reused for video and photo posts",
@@ -89,7 +89,8 @@
     "photo_share_links": "Full /photo/ URLs supported; shortened photo share links not verified.",
     "photo_ocr": "Full grayscale reading plus optional light-lettering and bright green/yellow text masks, with bounded local OCR passes. No images are sent to Groq.",
     "photo_carousel_context": "The cover buy heading applies to featured named assets on following slides; watchlist/navigation tickers and chart-range controls are excluded. Generic unnamed Unknown rows are discarded, with the existing single empty-result recheck retained.",
-    "video_ocr": "Up to 16 frames at width 1152; preserve line layout, highlighted lettering and later frames within a 6000-character budget. One failed frame does not discard other readings."
+    "video_ocr": "Up to 16 frames at width 1152; preserve line layout, highlighted lettering and later frames within a 6000-character budget. One failed frame does not discard other readings.",
+    "extraction_reasoning_effort": "low; same model and unchanged 3072-token completion cap"
   },
   "system_dependencies": [
     "ffmpeg",
@@ -104,7 +105,7 @@
     "Case Database"
   ],
   "validation": {
-    "tests_passed": 159,
+    "tests_passed": 161,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -115,7 +116,7 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-15.7",
+    "full_suite_release": "2026-11-15.8",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -250,11 +251,11 @@
       "seconds": 47.257
     },
     "app_cleanup": {
-      "release": "2026-11-15.7",
-      "tests_passed": 159,
-      "seconds": 50.742,
-      "new_tests": 19,
-      "scope": "Ten visual OCR/extraction checks, two date/duration parser checks, four import UI checks, two manual persistence checks and an equity-only renamed ticker check; existing financial, archive, tracker and selection tests pass.",
+      "release": "2026-11-15.8",
+      "tests_passed": 161,
+      "seconds": 49.155,
+      "new_tests": 21,
+      "scope": "Ten visual OCR/extraction checks, two date/duration parser checks, four import UI checks, two manual persistence checks and an equity-only renamed ticker check; existing financial, archive, tracker and selection tests pass. Two further checks cover truncated model replies, literal-source recovery and unchanged quota errors.",
       "visual_source": "test_fixtures/visual_slides_ocr.json",
       "local_real_ocr_replay": "Ten unique stock/target pairs recovered; source SQ resolves to current XYZ, and a model asset S without symbol merges with literal S. Raw extraction retains the year; the review form applies a labelled, editable year-end evaluation convention.",
       "ai_models_unchanged": true,
@@ -262,11 +263,12 @@
       "live_groq_in_automated_tests": false,
       "manual_state_before_fix": "MSFT, Reviewed creator and Price multiple reset to AAPL, empty creator and No target after switching app areas.",
       "live_host_checked_at_publication": false,
-      "live_host_verified_previous_release": "Release .6 imported ten correct target pairs but appended one duplicate S, and ignored year-only cutoffs. Manual MSFT/4x persistence and NVDA live prices worked. Those two import issues are regression-tested in .7.",
-      "renamed_ticker_live_price_check": "Current XYZ history returned 475 observations covering the original December 2024 source; SQ had failed. Same Block class-A shares, OCC notice 55886."
+      "live_host_verified_previous_release": "Release .6 imported ten correct target pairs but appended one duplicate S, and ignored year-only cutoffs. Manual MSFT/4x persistence and NVDA live prices worked. Those two import issues are regression-tested in .7. Release .7 photo import returned exactly ASML, Vonovia and Alibaba, and ASML live chart/calculation worked. Its ten-stock extraction hit the model reasoning/output budget (finish_reason length, 2311 reasoning tokens out of 3072), exposing a separate error path.",
+      "renamed_ticker_live_price_check": "Current XYZ history returned 475 observations covering the original December 2024 source; SQ had failed. Same Block class-A shares, OCC notice 55886.",
+      "truncated_reply_handling": "Use conservative literal source-table recovery on invalid/truncated model answers, without another API call. Without supported tables the error remains; quota/credential errors are surfaced. Low reasoning effort reserves more of the unchanged cap for predictions."
     }
   },
-  "app_version": "2026-11-15.7",
+  "app_version": "2026-11-15.8",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -377,7 +379,7 @@
   "post_report_updates": {
     "report_baseline": "Reality_Check_Report_FINAL.docx",
     "report_updates": [
-      "Validation: 132 to 159 automated tests.",
+      "Validation: 132 to 161 automated tests.",
       "Reference [3]: update the release and source link to the latest app revision."
     ],
     "app_updates": [
@@ -387,9 +389,10 @@
       "Music-only slideshow videos use clearer local OCR and literal visual forecast-table recovery; model rechecks retain later sampled frames.",
       "Explicit dates and durations in extracted time text prefill the calculation controls; a forecast year selects an editable, labelled year-end evaluation convention. Saved time labels match the applied controls.",
       "Uncertain target currency is visibly flagged for confirmation. Manual Entry values persist across navigation and target-type changes.",
-      "Literal ticker recovery merges existing model names without duplicate picks; former equity ticker SQ resolves to current Block ticker XYZ."
+      "Literal ticker recovery merges existing model names without duplicate picks; former equity ticker SQ resolves to current Block ticker XYZ.",
+      "Truncated model replies no longer discard independently readable stock/target tables. Same text model uses low reasoning effort with the original token cap; service-limit errors remain visible."
     ],
-    "latest_release": "2026-11-15.7",
+    "latest_release": "2026-11-15.8",
     "word_document_modified": false
   }
 }

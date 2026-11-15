@@ -68,7 +68,7 @@ The latest full suite passes 140 automated checks.
 
 ## Current stability release
 
-Release `2026-11-15.7` passes 159 automated checks. The app still uses local
+Release `2026-11-15.8` passes 161 automated checks. The app still uses local
 Tesseract OCR, Groq speech recognition and the same text model; no image model,
 new service or paid fallback is added.
 
@@ -84,7 +84,11 @@ This has no per-post ticker list, rejects conflicts and negative/historical
 contexts, and does not invent a deadline day or assume that an unknown dollar
 currency is USD. The recorded source replay recovers all ten ticker/target pairs
 in the reported music-only slideshow. This is one example, not a measured
-accuracy rate across arbitrary posts.
+accuracy rate across arbitrary posts. A malformed or truncated model response
+can use the same conservative literal-table recovery, without another API
+call. Without those source facts, the error remains visible; quota and
+credential errors are not hidden. The same text model now uses low reasoning
+effort to reserve more of its unchanged output budget for actual predictions.
 
 Clear full dates and exact durations in extracted time text now prefill the
 review controls. A stated forecast year selects a labelled year-end evaluation
@@ -99,16 +103,16 @@ target/reference fields. Existing import selection persistence, ticker guidance,
 tracker privacy and all financial calculations are retained. Literal ticker
 recovery merges an existing named pick rather than adding a duplicate. Block
 uses its current XYZ ticker for the former SQ shares (OCC notice 55886,
-https://infomemo.theocc.com/infomemos?number=55886); this alias is equity-only. Engine v13 isolates
+https://infomemo.theocc.com/infomemos?number=55886); this alias is equity-only. Engine v14 isolates
 older source caches. The Word/PDF/Notebook report files were not changed.
 
 ## Release consistency
 
-Release `2026-11-15.7` checks that Streamlit's entry script and all twelve
+Release `2026-11-15.8` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v13. The dependency file also changed to request
+results are isolated by engine v14. The dependency file also changed to request
 a fresh Community Cloud deployment. Existing pinned dependencies are retained.
 
 The reported combination of new menu labels and the old no-result message

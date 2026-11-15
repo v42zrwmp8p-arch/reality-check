@@ -13,7 +13,7 @@ from case_analysis import analyse_comparisons
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case, normalise_timing
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-15.7"
+IMPORT_VERSION = "2026-11-15.8"
 
 
 def service_key():

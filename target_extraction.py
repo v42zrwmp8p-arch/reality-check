@@ -4,7 +4,7 @@ import re
 
 from asset_resolution import ASSETS, known_asset
 
-IMPORT_VERSION = "2026-11-15.7"
+IMPORT_VERSION = "2026-11-15.8"
 WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
          "seven": 7, "eight": 8, "nine": 9, "ten": 10}
 

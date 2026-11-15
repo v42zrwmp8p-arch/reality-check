@@ -16,7 +16,7 @@ from asset_resolution import (explicit_buy_list_candidates, explicit_etf_candida
                               explicit_photo_chart_candidates, known_asset)
 from target_extraction import recover_multiple, recover_visual_tables
 
-IMPORT_VERSION = "2026-11-15.7"
+IMPORT_VERSION = "2026-11-15.8"
 
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"
@@ -207,7 +207,17 @@ class GroqClient:
             content = {"photo_text": transcript} if source_kind == "photo" else {"transcript": transcript, "sampled_screen_text": screen_text[:ocr_limit]}
             return json.dumps(content, ensure_ascii=False)
         source = encode_source(6000)
-        rows = self._extract_once(source)
+        try:
+            rows = self._extract_once(source)
+        except ImportProblem as error:
+            # A truncated model answer must not erase literal, unambiguous
+            # source tables. Do not hide quota, connection or credential errors.
+            if error.provider_error.get("kind") != "invalid_response":
+                raise
+            rows = recover_visual_tables([], transcript if source_kind == "photo" else screen_text,
+                                         "" if source_kind == "photo" else transcript)
+            if not rows:
+                raise
         rows = recover_visual_tables(rows, transcript if source_kind == "photo" else screen_text,
                                      "" if source_kind == "photo" else transcript)
         chart_picks = explicit_photo_chart_candidates(transcript) if source_kind == "photo" else []
@@ -260,7 +270,7 @@ class GroqClient:
         if compatibility:
             system_prompt += "\nReturn JSON only: one object containing a recommendations array. Match this JSON schema, including every required field: " + json.dumps(EXTRACTION_SCHEMA, separators=(",", ":"))
         payload = {
-            "model": EXTRACTION_MODEL, "temperature": 0, "reasoning_effort": "low" if compatibility else "medium",
+            "model": EXTRACTION_MODEL, "temperature": 0, "reasoning_effort": "low",
             "max_completion_tokens": 3072,
             "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": source}],
             "response_format": {"type": "json_object"} if compatibility else {"type": "json_schema", "json_schema": {
@@ -296,7 +306,8 @@ class GroqClient:
             return rows
         except (KeyError, IndexError, TypeError, ValueError, AttributeError, ValidationError):
             check["status"] = "invalid_response"
-            raise ImportProblem("The recommendation analysis was incomplete or unreadable. Try another post or use Manual Entry.") from None
+            raise ImportProblem("The recommendation analysis was incomplete or unreadable. Try another post or use Manual Entry.",
+                                provider_error={"kind": "invalid_response"}) from None
 
 
 def metadata_details(metadata):
