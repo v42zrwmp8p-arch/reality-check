@@ -24,6 +24,7 @@ BASE = {"asset":"Nvidia", "symbol":"NVDA", "asset_type":"Equity", "publication_d
         "horizon_unit":"years", "time_frame":"one year"}
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class RecordChecks(unittest.TestCase):
     def test_only_prediction_facts_survive_backup_round_trip(self):
         source = dict(BASE, transcript="not saved", api_key="fixture-secret", photo_text="not saved",
@@ -120,6 +121,7 @@ def app():
     return AppTest.from_file(str(ROOT/'app.py'),default_timeout=30).run()
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class TrackerUiChecks(unittest.TestCase):
     @patch('tracker_ui._storage')
     @patch('market_data.download_history')

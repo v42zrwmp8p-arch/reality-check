@@ -117,6 +117,7 @@ class DualMathChecks(unittest.TestCase):
             self.assertIn('SPY_return_pct',pd.read_csv(Path(folder)/'results'/'current_summary.csv'))
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class DualUiChecks(unittest.TestCase):
     @patch('market_data.download_history',side_effect=saved_download)
     def test_manual_altcoin_shows_two_references_six_metrics_and_export_columns(self,download):

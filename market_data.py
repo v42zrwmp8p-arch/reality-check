@@ -6,7 +6,7 @@ import pandas as pd
 from analysis_core import validated_split_review
 
 ROOT = Path(__file__).resolve().parent
-IMPORT_VERSION = "2026-11-15.8"
+IMPORT_VERSION = "2026-11-15.9"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
 # Same Block class-A shares: SQ changed to XYZ on 21 January 2025.
 # OCC notice 55886: https://infomemo.theocc.com/infomemos?number=55886
@@ -72,6 +72,27 @@ def provider_symbol(symbol, asset_type):
     if asset_type == "Crypto":
         return CRYPTO_SYMBOLS.get(symbol, symbol if "-" in symbol else symbol + "-USD")
     return EQUITY_ALIASES.get(symbol, symbol) if asset_type == "Equity" else symbol
+
+
+def download_company_description(symbol):
+    """Optional current company profile; missing profiles never block results."""
+    try:
+        import yfinance as yf
+        symbol = provider_symbol(symbol, "Equity")
+        info = yf.Ticker(symbol).get_info()
+        if not isinstance(info, dict) or info.get("quoteType") != "EQUITY" or info.get("symbol") != symbol:
+            return ""
+        text = info.get("longBusinessSummary")
+        if not isinstance(text, str):
+            return ""
+        text = " ".join(text.split())
+        # Lower-case continuations keep names such as 'Apple Inc. designs' intact.
+        text = " ".join(re.split(r"(?<=[.!?])\s+(?=[A-Z])", text, maxsplit=2)[:2])
+        if len(text) > 420:
+            text = text[:417].rsplit(" ", 1)[0].rstrip(".,;") + "…"
+        return text
+    except Exception:
+        return ""
 
 
 def comparison_symbol(symbol, asset_type):

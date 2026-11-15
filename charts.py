@@ -2,7 +2,7 @@
 import altair as alt
 import pandas as pd
 
-IMPORT_VERSION = "2026-11-15.8"
+IMPORT_VERSION = "2026-11-15.9"
 
 
 def context_price_chart(closes, statement_date):

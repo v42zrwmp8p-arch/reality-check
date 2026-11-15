@@ -21,6 +21,7 @@ def no_network(*args):
     raise AssertionError('saved observations must cover every curated case')
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class SpecialCaseChecks(unittest.TestCase):
     def test_sources_dates_and_saved_histories_are_available(self):
         rows={row['case_id']:row for row in load_examples()}

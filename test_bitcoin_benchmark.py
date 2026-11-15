@@ -58,6 +58,7 @@ class BitcoinBenchmarkChecks(unittest.TestCase):
                 self.assertEqual([call.args[0] for call in fetch.call_args_list],[expected_symbol,expected_comparison])
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class BitcoinBenchmarkUiChecks(unittest.TestCase):
     @patch('market_data.download_history')
     def test_manual_bitcoin_displays_spy_comparison(self,download):

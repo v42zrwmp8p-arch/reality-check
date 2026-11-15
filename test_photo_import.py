@@ -225,6 +225,7 @@ class PhotoPipelineChecks(unittest.TestCase):
         self.assertEqual(explicit_photo_chart_candidates(source.replace("More Data from Yahoo Finance", "")), [])
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class PhotoUiChecks(unittest.TestCase):
     @patch("tiktok_ui.service_key", return_value="fixture-key")
     @patch("tiktok_ui.submit_import")

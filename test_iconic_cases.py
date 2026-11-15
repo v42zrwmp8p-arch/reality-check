@@ -23,6 +23,7 @@ BEAR='cramer-bear-stearns-context-20080311'
 def no_network(*args):raise AssertionError('all active numeric cases should use saved observations')
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class IconicCaseChecks(unittest.TestCase):
     def test_only_iconic_additions_are_active(self):
         rows=load_examples();by_symbol={row['symbol']:row for row in rows}

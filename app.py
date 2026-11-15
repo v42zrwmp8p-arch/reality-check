@@ -7,9 +7,10 @@ import pandas as pd
 import streamlit as st
 from import_runtime import import_flow
 
-APP_VERSION = "2026-11-15.8"
+APP_VERSION = "2026-11-15.9"
 tiktok_mode = import_flow(APP_VERSION)
-from market_data import load_examples, provider_symbol, download_history, get_comparison_histories, comparison_symbols
+from market_data import (load_examples, provider_symbol, download_history, get_comparison_histories,
+                         comparison_symbols, download_company_description)
 from case_analysis import analyse_comparisons
 from analysis_core import positive_number
 from charts import comparison_chart, context_price_chart
@@ -27,6 +28,20 @@ def live_history(symbol, publication_date, end_date):
 
 def histories(row, force_live=False):
     return get_comparison_histories(row, force_live, fetch=live_history)
+
+
+@st.cache_data(ttl=3600, max_entries=256, show_spinner=False)
+def company_description(symbol):
+    return download_company_description(symbol)
+
+
+@st.fragment(parallel=True)
+def show_company_description(row):
+    if row.get("asset_type") != "Equity" or row.get("history_archive") or row.get("case_type") == "context":
+        return
+    description = company_description(row["symbol"])
+    if description:
+        st.caption(description + " · Yahoo Finance")
 
 
 def discard_outdated_comparisons():
@@ -51,6 +66,7 @@ def usd(value):
 
 def show_recommendation(row):
     st.subheader(row["asset"])
+    show_company_description(row)
     if not row.get("curated"):
         st.caption(f"Recommendation date: {row['publication_date']} · {row['symbol']}")
         return
@@ -353,7 +369,7 @@ if mode == "Case Database":
 elif mode == "Manual Entry":
     manual_mode()
 elif mode == "My Tracker":
-    tracker_mode(histories, show_results, show_nikola, live_history.clear)
+    tracker_mode(histories, show_results, show_nikola, live_history.clear, show_company_description)
 else:
-    tiktok_mode(histories, show_results, show_nikola, track_button)
+    tiktok_mode(histories, show_results, show_nikola, track_button, show_company_description)
 show_method()

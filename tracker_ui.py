@@ -8,7 +8,7 @@ import streamlit as st
 from tracker_core import (prediction_record, tracker_records,
                           forecast_status, forecast_label, tracker_comparison)
 
-IMPORT_VERSION = "2026-11-15.8"
+IMPORT_VERSION = "2026-11-15.9"
 # Register once per process; Streamlit reruns mount the same component.
 _storage = st.components.v2.component("reality_check_tracker_storage_v1",
             js=(Path(__file__).with_name("tracker_storage.js")).read_text(encoding="utf-8"))
@@ -75,7 +75,7 @@ def storage_message():
         st.caption("Saving your tracker…")
 
 
-def tracker_mode(histories, show_results, show_nikola, clear_prices):
+def tracker_mode(histories, show_results, show_nikola, clear_prices, show_company_description=None):
     st.subheader("My Tracker")
     st.caption("Saved in this browser.")
     rows = st.session_state.get("tracker_items", [])
@@ -100,6 +100,8 @@ def tracker_mode(histories, show_results, show_nikola, clear_prices):
                     key="tracker_choice")
         row = by_id[selected]
         st.subheader(row["asset"])
+        if show_company_description:
+            show_company_description(row)
         st.caption(f"{row['creator'] or 'Creator not specified'} · Published {row['publication_date']} · {row['symbol']}")
         if row.get("projection"):
             st.text(row["projection"])

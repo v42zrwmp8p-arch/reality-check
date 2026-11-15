@@ -1,3 +1,23 @@
+REALITY CHECK - COMPANY DESCRIPTIONS, 15 NOVEMBER 2026
+
+Current release: 2026-11-15.9
+Full suite: 164 tests passed with Python 3.12 in 55.151 seconds.
+- Optional current-equity profiles use Yahoo/yfinance longBusinessSummary.
+  The first two sentences are shown below the company name, at most 420
+  characters, with source attribution. No AI is used for summaries.
+- A parallel Streamlit fragment loads the profile independently of results.
+  Profiles are cached for one hour, with a maximum of 256 tickers.
+- Missing, failed, mismatched and non-equity profiles are omitted. Historical
+  security archives and context-only cases make no profile request, preventing
+  a modern reused ticker from being described as the original security.
+- Three new tests cover identity/shortening, unavailable profiles and the
+  Manual Entry/import/tracker displays plus archived-case exclusion.
+  Existing UI tests stub the optional profile provider and remain offline.
+- A live standalone NVIDIA profile request returned two real company sentences.
+  Final deployed UI verification follows publication. Report files unchanged.
+
+Previous validation report follows.
+
 REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
 
 Current release: 2026-11-15.8

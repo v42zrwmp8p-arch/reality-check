@@ -24,6 +24,7 @@ def frame(values=(50, 80, 100, 300)):
                          'High': [1.1*x for x in values], 'Stock Splits': 0}, index=dates)
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class TargetGapChecks(unittest.TestCase):
     def test_profitable_investment_can_miss_target_by_50_percent_at_deadline(self):
         asset = frame()

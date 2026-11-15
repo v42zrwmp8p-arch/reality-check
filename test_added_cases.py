@@ -21,6 +21,7 @@ BBBY = 'cohen-bbby-20220307'
 def cases(): return {r['case_id']: r for r in load_examples()}
 
 
+@patch("yfinance.Ticker.get_info", new=lambda self: {})
 class AddedCaseChecks(unittest.TestCase):
     def test_public_dates_and_option_terms_do_not_become_price_forecasts(self):
         rows = cases()

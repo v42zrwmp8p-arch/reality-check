@@ -13,7 +13,7 @@ from case_analysis import analyse_comparisons
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case, normalise_timing
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-15.8"
+IMPORT_VERSION = "2026-11-15.9"
 
 
 def service_key():
@@ -251,7 +251,7 @@ def review_fields(state):
     return values, mode, choice
 
 
-def tiktok_mode(histories, show_results, show_nikola, track_button=None):
+def tiktok_mode(histories, show_results, show_nikola, track_button=None, show_company_description=None):
     st.subheader("Import a TikTok recommendation")
     st.caption("Paste a video or photo link. Videos: up to 3 minutes. Photo posts: up to 15 images.")
     link = st.text_input("TikTok post link", placeholder="https://www.tiktok.com/@creator/…", key="tt_link", persist_state="session")
@@ -346,6 +346,8 @@ def tiktok_mode(histories, show_results, show_nikola, track_button=None):
     elif stored:
         row = stored["row"]
         st.subheader(row["asset"])
+        if show_company_description:
+            show_company_description(row)
         st.caption(f"{row['creator'] or 'Creator not specified'} · Published {row['publication_date']} · {row['symbol']}")
         st.text(row["projection"])
         if stored.get("nikola"):

@@ -66,7 +66,26 @@ is used. This addresses the .4 live result that included Apple and Boeing from
 the watchlist alongside the actual three picks. Engine v11 invalidates it.
 The latest full suite passes 140 automated checks.
 
-## Current stability release
+## Company descriptions
+
+Release `2026-11-15.9` adds an optional current Yahoo Finance company profile
+under the stock name in calculated imports, manual results, tracked predictions
+and ordinary curated equity cases. It keeps the first two sentences, capped at
+420 characters, with Yahoo Finance attribution. No AI summarisation is used.
+
+Profiles load in a parallel Streamlit fragment and are cached for one hour
+(up to 256 tickers), so they do not hold up charts or repeat on every interaction.
+Missing, failed, non-equity or mismatched profiles are omitted. Historical
+security archives and context-only cases skip current profiles to avoid showing
+the description of a different company after a ticker reuse. Company text is
+current context; it is not saved as part of a historical forecast or return.
+
+Three focused regressions cover profile identity/shortening, unavailable data
+and the manual/import/tracker views, including archived-ticker exclusion.
+Existing UI tests stub this new optional provider call so they remain offline.
+The full suite for this release passes 164 checks. Report files are unchanged.
+
+## Previous stability release
 
 Release `2026-11-15.8` passes 161 automated checks. The app still uses local
 Tesseract OCR, Groq speech recognition and the same text model; no image model,

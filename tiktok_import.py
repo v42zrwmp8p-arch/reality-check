@@ -16,7 +16,7 @@ from asset_resolution import (explicit_buy_list_candidates, explicit_etf_candida
                               explicit_photo_chart_candidates, known_asset)
 from target_extraction import recover_multiple, recover_visual_tables
 
-IMPORT_VERSION = "2026-11-15.8"
+IMPORT_VERSION = "2026-11-15.9"
 
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"

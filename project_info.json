@@ -105,7 +105,7 @@
     "Case Database"
   ],
   "validation": {
-    "tests_passed": 161,
+    "tests_passed": 164,
     "python": "3.12",
     "live_groq_responses_in_tests": false,
     "supplied_failed_transcript": "TSM/MU recovered, ten-year horizon, no numerical target or incidental-company picks",
@@ -116,7 +116,7 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-15.8",
+    "full_suite_release": "2026-11-15.9",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -266,9 +266,17 @@
       "live_host_verified_previous_release": "Release .6 imported ten correct target pairs but appended one duplicate S, and ignored year-only cutoffs. Manual MSFT/4x persistence and NVDA live prices worked. Those two import issues are regression-tested in .7. Release .7 photo import returned exactly ASML, Vonovia and Alibaba, and ASML live chart/calculation worked. Its ten-stock extraction hit the model reasoning/output budget (finish_reason length, 2311 reasoning tokens out of 3072), exposing a separate error path.",
       "renamed_ticker_live_price_check": "Current XYZ history returned 475 observations covering the original December 2024 source; SQ had failed. Same Block class-A shares, OCC notice 55886.",
       "truncated_reply_handling": "Use conservative literal source-table recovery on invalid/truncated model answers, without another API call. Without supported tables the error remains; quota/credential errors are surfaced. Low reasoning effort reserves more of the unchanged cap for predictions."
+    },
+    "company_descriptions": {
+      "release": "2026-11-15.9",
+      "tests_passed": 164,
+      "seconds": 55.151,
+      "new_tests": 3,
+      "provider_boundaries": "Simulated in automated tests; live NVIDIA profile request verified separately",
+      "report_files_modified": false
     }
   },
-  "app_version": "2026-11-15.8",
+  "app_version": "2026-11-15.9",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -379,7 +387,7 @@
   "post_report_updates": {
     "report_baseline": "Reality_Check_Report_FINAL.docx",
     "report_updates": [
-      "Validation: 132 to 161 automated tests.",
+      "Validation: 132 to 164 automated tests.",
       "Reference [3]: update the release and source link to the latest app revision."
     ],
     "app_updates": [
@@ -390,9 +398,20 @@
       "Explicit dates and durations in extracted time text prefill the calculation controls; a forecast year selects an editable, labelled year-end evaluation convention. Saved time labels match the applied controls.",
       "Uncertain target currency is visibly flagged for confirmation. Manual Entry values persist across navigation and target-type changes.",
       "Literal ticker recovery merges existing model names without duplicate picks; former equity ticker SQ resolves to current Block ticker XYZ.",
-      "Truncated model replies no longer discard independently readable stock/target tables. Same text model uses low reasoning effort with the original token cap; service-limit errors remain visible."
+      "Truncated model replies no longer discard independently readable stock/target tables. Same text model uses low reasoning effort with the original token cap; service-limit errors remain visible.",
+      "Optional current Yahoo company descriptions below company headings: up to two short sentences, separately loaded and cached; no AI; missing profiles and historical-security archives omitted."
     ],
-    "latest_release": "2026-11-15.8",
+    "latest_release": "2026-11-15.9",
     "word_document_modified": false
+  },
+  "company_descriptions": {
+    "source": "Yahoo Finance via yfinance longBusinessSummary",
+    "display": "First two sentences, at most 420 characters, below company heading; source attributed",
+    "scope": "Calculated imports, Manual Entry, My Tracker and current-equity Case Database views",
+    "cache": "One hour, at most 256 tickers",
+    "loading": "Parallel Streamlit fragment; chart rendering does not wait for profile",
+    "exclusions": "Non-equities, missing or mismatched profiles, historical-security archives and context cases",
+    "ai_used": false,
+    "historical_snapshot": false
   }
 }
