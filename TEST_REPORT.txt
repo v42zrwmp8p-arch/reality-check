@@ -1,5 +1,28 @@
 REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
 
+Current release: 2026-11-15.4
+Full suite: 139 tests passed with Python 3.12 in 48.170 seconds.
+Carousel interpretation after OCR:
+- Live .3 verification confirmed the cover text was recovered, but the model
+  first returned an empty list and then an unnamed Unknown buy recommendation.
+  This was not successful asset identification.
+- Extraction instructions now explicitly combine cover framing and each
+  following featured chart asset, while excluding watchlist tickers, chart
+  range controls and axis years. Foreign names remain reviewable with no
+  inferred USD ticker. Current chart prices are not turned into targets.
+- Generic unnamed stubs are filtered; real uncertain names remain. The existing
+  bounded empty-result recheck is retained without a new provider or model.
+- New regression replays a generic first response followed by named picks and
+  checks that foreign/null tickers are retained. Existing photo OCR, target,
+  calendar, tracker, per-asset review and required-ticker checks all pass.
+- Engine v10 prevents reuse of earlier OCR/extraction results. Live deployed
+  classification is evaluated separately from the mocked-response test suite.
+- Word document unchanged; post-report count is now 139 rather than 132.
+
+Previous validation report follows.
+
+REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
+
 Current release: 2026-11-15.3
 Full suite: 138 tests passed with Python 3.12 in 45.366 seconds.
 Photo overlay OCR:

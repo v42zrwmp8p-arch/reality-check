@@ -44,13 +44,24 @@ Reading the actual cover with the additional pass recovers "You should buy";
 the other slides also gain previously missed explanatory text. This local OCR
 check is separate from end-to-end classification on the deployed app.
 
+Release `2026-11-15.4` also makes carousel framing explicit: a cover buy list
+applies to the featured named asset on each following chart slide. Watchlist
+strips, chart-range controls and axis years do not establish additional picks
+or forecast horizons. Generic unnamed "Unknown" rows are discarded; actual
+uncertain names remain editable. The existing single empty-result recheck is
+retained. Engine v10 separates these extraction results from earlier attempts.
+The current full suite passes 139 automated checks.
+
+The .3 live test recovered the headline but still produced an unnamed model
+response; that result was not treated as successful asset identification.
+
 ## Release consistency
 
-Release `2026-11-15.3` checks that Streamlit's entry script and all twelve
+Release `2026-11-15.4` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v9. The dependency file also changed to request
+results are isolated by engine v10. The dependency file also changed to request
 a fresh Community Cloud deployment. Existing pinned dependencies are retained.
 
 The reported combination of new menu labels and the old no-result message

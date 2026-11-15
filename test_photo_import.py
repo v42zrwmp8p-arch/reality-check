@@ -188,6 +188,23 @@ class PhotoPipelineChecks(unittest.TestCase):
         self.assertEqual(rows[0]["evidence_time"], "Photo 2")
         self.assertEqual(request.call_count, 1)
 
+    @patch("tiktok_import.requests.post")
+    def test_generic_cover_stub_is_rechecked_for_named_carousel_picks(self, request):
+        source = "[Photo 1]\nStocks you should buy right now\n[Photo 2]\nASML Holding N.V.\n[Photo 3]\nVonovia SE\n[Photo 4]\nAlibaba Group"
+        unknown = dict(DRAFT, asset="Unknown", symbol=None, asset_type="Unknown", claim="Buy recommendation")
+        picks = [dict(DRAFT, asset=name, symbol=symbol, target_type="none", target_value=None,
+                      reference_price=None, deadline=None, horizon_value=None, horizon_unit=None)
+                 for name, symbol in [("ASML Holding", "ASML"), ("Vonovia", None), ("Alibaba", "BABA")]]
+        request.side_effect = [response({"choices": [{"finish_reason": "stop", "message": {
+            "content": json.dumps({"recommendations": rows})}}]}) for rows in [[unknown], picks]]
+        client = GroqClient("fixture-key")
+        rows = client.extract(source, "", source_kind="photo")
+        self.assertEqual([row["asset"] for row in rows], ["ASML Holding", "Vonovia", "Alibaba"])
+        self.assertIsNone(rows[1]["symbol"])
+        self.assertEqual(request.call_count, 2)
+        self.assertEqual(client.extraction_checks[0]["detected_assets"], [])
+        self.assertIn("combine the cover", request.call_args.kwargs["json"]["messages"][0]["content"])
+
 
 class PhotoUiChecks(unittest.TestCase):
     @patch("tiktok_ui.service_key", return_value="fixture-key")

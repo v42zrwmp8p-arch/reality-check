@@ -81,6 +81,9 @@ class ImportChecks(unittest.TestCase):
         self.assertIsNone(reviewed["target_value"])
         self.assertIsNone(resolve_deadline(reviewed)[0])
         self.assertEqual(recommendations({"data": {"recommendations": []}}), [])
+        self.assertEqual(recommendations({"data": {"recommendations": [dict(DRAFT, asset="Unknown", symbol=None)]}}), [])
+        uncertain = dict(DRAFT, asset="Marvel", symbol=None)
+        self.assertEqual(recommendations({"data": {"recommendations": [uncertain]}}), [uncertain])
         with self.assertRaises(ImportProblem):
             recommendations({"data": {"recommendations": "not a list"}})
 
