@@ -112,7 +112,7 @@
     "recorded_etf_replay": "Actual source and empty response now recover XLE/SMH/XLV, excluding holdings and historical return targets; no new API call",
     "photo_tests": "Simulated image/API boundaries, complete-carousel and size guards, source checkpoint/cleanup, no audio calls, photo payload, review/calculation/clear and switch back to video.",
     "tracker_tests": "12: 7 record/math/frontend-contract checks and 5 AppTest flows, with simulated browser/provider boundaries.",
-    "full_suite_release": "2026-11-15.1",
+    "full_suite_release": "2026-11-15.2",
     "follow_up": {
       "release": "2026-11-14.9",
       "focused_tests_passed": 15,
@@ -201,9 +201,16 @@
       "before_fix": "Conditional reviewed target reset from 175 to 142 when reopened; a temporarily hidden import lost its widget state.",
       "live_groq_requests_in_tests": false,
       "live_host_verified": false
+    },
+    "required_ticker_guidance": {
+      "release": "2026-11-15.2",
+      "tests_passed": 136,
+      "seconds": 45.706,
+      "scope": "Required label, field-scoped red empty-state outline, contextual hint, match selection, clear-to-whitespace disables Calculate, manual entry restores calculation. Existing selection persistence retained.",
+      "live_groq_requests_in_tests": false
     }
   },
-  "app_version": "2026-11-15.1",
+  "app_version": "2026-11-15.2",
   "interface_cleanup": "Removed requested three method passages and applied approved saved-result wording",
   "supported_asset_types": [
     "Equity",
@@ -310,5 +317,18 @@
       "difference_pct": -55.028,
       "deadline_type": "Explicit year-end project convention for ARK model year"
     }
+  },
+  "post_report_updates": {
+    "report_baseline": "Reality_Check_Report_FINAL.docx",
+    "report_updates": [
+      "Validation: 132 to 136 automated tests.",
+      "Reference [3]: update the release and source link to the latest app revision."
+    ],
+    "app_updates": [
+      "Selected recommendations and per-asset review edits persist across switches and reruns.",
+      "Missing ticker fields are highlighted in red with instructions until completed."
+    ],
+    "latest_release": "2026-11-15.2",
+    "word_document_modified": false
   }
 }

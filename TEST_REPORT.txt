@@ -1,5 +1,24 @@
 REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
 
+Current release: 2026-11-15.2
+Full suite: 136 tests passed with Python 3.12 in 45.706 seconds.
+Required ticker guidance:
+- The TikTok review ticker has a required label and a red field-level outline
+  while empty, with a contextual hint directly below the input.
+- The existing ambiguity/Bitcoin UI regression now also checks the hint,
+  suggested-match recovery, removal of the hint, clearing to whitespace,
+  disabled calculation and manual ticker recovery before calculation.
+- Native required submission blocking is deliberately not used: outside a form
+  it can retain the old committed value after the visible input is cleared.
+  The backend continues to receive the actual empty input and disables Calculate.
+- Existing selection persistence, source isolation and Clear import checks pass.
+- No calculations, source cases, provider limits or model changes. Engine v8.
+- Automated checks use fixture tasks and saved prices, with no live Groq call.
+
+Previous validation report follows.
+
+REALITY CHECK - VALIDATION, 15 NOVEMBER 2026
+
 Current release: 2026-11-15.1
 Full suite: 136 tests passed with Python 3.12 in 54.219 seconds.
 Multiple recommendations and reruns:

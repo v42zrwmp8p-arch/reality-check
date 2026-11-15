@@ -12,7 +12,7 @@ from case_analysis import analyse_comparisons
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-15.1"
+IMPORT_VERSION = "2026-11-15.2"
 
 
 def service_key():
@@ -152,9 +152,25 @@ def review_fields(state):
                 st.caption(str(draft["evidence_time"]))
     a, b = st.columns(2)
     asset = a.text_input("Asset name", value=str(draft.get("asset") or ""), key=prefix + "asset", persist_state="session")
-    symbol = b.text_input("Yahoo Finance ticker", value=str(draft.get("symbol") or ""), key=prefix + "symbol", persist_state="session")
-    if not symbol.strip():
-        st.caption("Choose a suggested match or enter the ticker.")
+    with b.container(key=prefix + "ticker_field"):
+        symbol = st.text_input("Yahoo Finance ticker (required)", value=str(draft.get("symbol") or ""),
+                               placeholder="Select a match above or enter a ticker",
+                               key=prefix + "symbol", persist_state="session")
+        if not symbol.strip():
+            # Keep empty values flowing to Python so Calculate cannot reuse an old ticker.
+            st.markdown(f"""<style>
+.st-key-{prefix}ticker_field [data-baseweb="input"] {{
+    border-color: #c62828 !important;
+}}
+.st-key-{prefix}ticker_field input {{
+    outline: 2px solid #c62828 !important;
+    outline-offset: -2px;
+    border-radius: 0.5rem;
+}}
+</style>""", unsafe_allow_html=True)
+            message = ("Select a suggested match above or enter a ticker to continue."
+                       if draft.get("ticker_suggestions") else "Enter a ticker to continue.")
+            st.caption(":red[" + message + "]")
     a, b, c = st.columns([1, 1, 2])
     kinds = ["Choose asset type", "Equity", "Crypto", "ETF"]
     kind = a.selectbox("Asset type", kinds, index=kinds.index(draft.get("asset_type")) if draft.get("asset_type") in kinds else 0, key=prefix + "kind", persist_state="session")

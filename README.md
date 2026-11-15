@@ -21,9 +21,17 @@ are not changed by private edits. The transcription engine remains v8.
 Four new UI regression checks cover switching/calculating, hidden import views,
 conditional fields and clearing/re-importing. The full suite passes 136 checks.
 
+## Missing ticker guidance
+
+An unresolved or cleared ticker is labelled required and outlined in red in the
+TikTok review form. A short hint directly below it points to the suggested
+matches when available, or asks for manual entry. Filling the ticker removes
+the red state; Calculate stays disabled for empty or whitespace-only values.
+The current input is always sent to Python, including when it is cleared.
+
 ## Release consistency
 
-Release `2026-11-15.1` checks that Streamlit's entry script and all twelve
+Release `2026-11-15.2` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
