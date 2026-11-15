@@ -8,6 +8,7 @@ from asset_resolution import complete_drafts, explicit_buy_list_candidates, sear
 from tiktok_import import GroqClient, metadata_details
 from test_tiktok_import import DRAFT, response
 from video_pipeline import creator_name
+from market_data import provider_symbol
 
 AI_BUY_LIST = """[00:00] Here are the top three AI stocks to buy for the next decade, according to famous AI stock
 [00:04] researcher, ticker symbol U. Although NVIDIA is frequently talked about by his team, these
@@ -30,6 +31,13 @@ AI_BUY_LIST = """[00:00] Here are the top three AI stocks to buy for the next de
 
 
 class ResolutionChecks(unittest.TestCase):
+    def test_old_block_ticker_uses_current_equity_identity_only(self):
+        self.assertEqual(provider_symbol("sq", "Equity"), "XYZ")
+        self.assertEqual(provider_symbol("SQ", "Crypto"), "SQ-USD")
+        self.assertEqual(provider_symbol("SQ", "ETF"), "SQ")
+        row = complete_drafts([dict(DRAFT, asset="Square", symbol=None)])[0]
+        self.assertEqual(row["symbol"], "XYZ")
+
     def test_user_transcript_recovers_only_two_actual_picks(self):
         rows = explicit_buy_list_candidates(AI_BUY_LIST)
         self.assertEqual([row["symbol"] for row in rows], ["TSM", "MU"])

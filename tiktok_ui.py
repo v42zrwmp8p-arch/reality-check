@@ -3,6 +3,7 @@ from datetime import date
 from copy import deepcopy
 import json
 import os
+import re
 import time
 
 import streamlit as st
@@ -12,7 +13,7 @@ from case_analysis import analyse_comparisons
 from tiktok_import import ImportProblem, clean_tiktok_url, metadata_details, reviewed_case, normalise_timing
 from video_pipeline import ENGINE_VERSION, submit_import
 
-IMPORT_VERSION = "2026-11-15.6"
+IMPORT_VERSION = "2026-11-15.7"
 
 
 def service_key():
@@ -211,10 +212,12 @@ def review_fields(state):
         pass
     duration = draft.get("horizon_value")
     duration_valid = isinstance(duration, int) and not isinstance(duration, bool) and duration > 0 and draft.get("horizon_unit") in {"days", "weeks", "months", "years"}
-    window_options = ["Not specified / vague", "Exact deadline", "Duration from publication"]
+    year_text = re.fullmatch(r"\s*(?:(?:by|for|in|during)\s+)?(?:the\s+year\s+)?(20\d{2})\s*",
+                             str(draft.get("time_frame") or ""), re.I)
+    window_options = ["Not specified / vague", "Exact deadline", "Duration from publication", "Forecast year"]
     mode = st.selectbox("Time-frame type", window_options,
-                        index=1 if deadline_default else 2 if duration_valid else 0, key=prefix + "window_type", persist_state="session")
-    deadline, horizon_value, horizon_unit = None, None, None
+                        index=1 if deadline_default else 2 if duration_valid else 3 if year_text else 0, key=prefix + "window_type", persist_state="session")
+    deadline, horizon_value, horizon_unit, deadline_basis = None, None, None, None
     if mode == "Exact deadline":
         deadline = st.date_input("Forecast deadline", value=deadline_default, key=prefix + "deadline", persist_state="session")
         time_frame = "By " + deadline.isoformat() if deadline else ""
@@ -224,6 +227,14 @@ def review_fields(state):
         units = ["days", "weeks", "months", "years"]
         horizon_unit = b.selectbox("Time-frame unit", units, index=units.index(draft["horizon_unit"]) if duration_valid else 2, key=prefix + "unit", persist_state="session")
         time_frame = f"{horizon_value} {horizon_unit} after publication" if horizon_value else ""
+    elif mode == "Forecast year":
+        year = st.number_input("Forecast year", min_value=1900, max_value=2200,
+                               value=int(year_text[1]) if year_text else date.today().year,
+                               step=1, key=prefix + "year", persist_state="session")
+        deadline = date(year, 12, 31)
+        deadline_basis = f"Year-end evaluation for the stated forecast year {year}"
+        time_frame = f"{year} (year-end evaluation)"
+        st.caption("Evaluated on 31 December of the selected year.")
     else:
         time_frame = st.text_input("Stated time frame", value=str(draft.get("time_frame") or ""), key=prefix + "time_frame", persist_state="session")
         if time_frame.strip():
@@ -234,6 +245,7 @@ def review_fields(state):
               "target_approximate": target_approximate,
               "reference_type": reference_type, "reference_price": reference_price, "currency": currency,
               "time_frame": time_frame, "deadline": deadline.isoformat() if deadline else None,
+              "deadline_basis": deadline_basis,
               "horizon_value": horizon_value, "horizon_unit": horizon_unit,
               "evidence": draft.get("evidence"), "evidence_time": draft.get("evidence_time")}
     return values, mode, choice

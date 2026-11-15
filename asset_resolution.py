@@ -5,7 +5,7 @@ import re
 
 from market_data import provider_symbol
 
-IMPORT_VERSION = "2026-11-15.6"
+IMPORT_VERSION = "2026-11-15.7"
 
 # Identifiers only: these mappings contain no video claims, targets or outcomes.
 ASSETS = [
@@ -27,6 +27,7 @@ ASSETS = [
     ("Micron Technology", "MU", "Equity", ["micron", "micron technology", "micron technology inc"]),
     ("Taiwan Semiconductor", "TSM", "Equity", ["taiwan semiconductor", "taiwan semiconductor manufacturing", "taiwan semiconductor manufacturing company", "tsmc"]),
     ("Crocs", "CROX", "Equity", ["crocs", "crocs inc"]),
+    ("Block, Inc.", "XYZ", "Equity", ["block", "block inc", "square", "square inc", "sq", "xyz"]),
 ]
 
 

@@ -16,7 +16,7 @@ from asset_resolution import (explicit_buy_list_candidates, explicit_etf_candida
                               explicit_photo_chart_candidates, known_asset)
 from target_extraction import recover_multiple, recover_visual_tables
 
-IMPORT_VERSION = "2026-11-15.6"
+IMPORT_VERSION = "2026-11-15.7"
 
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"
@@ -401,6 +401,7 @@ def reviewed_case(values, url):
            "target_type": target_type, "target_value": value, "reference_type": reference,
            "target_approximate": bool(values.get("target_approximate")) if target_type != "none" else False,
            "reference_price": reference_price, "deadline": values.get("deadline"),
+           "deadline_basis": values.get("deadline_basis"),
            "horizon_value": values.get("horizon_value"), "horizon_unit": values.get("horizon_unit"),
            "evidence": values.get("evidence"), "evidence_time": values.get("evidence_time"),
            "source_kind": values.get("source_kind", "video"),
@@ -409,7 +410,7 @@ def reviewed_case(values, url):
     resolve_target(row, 1.0)  # Validate configuration; the real entry price is used by analyse_case.
     resolve_deadline(row)
     if row.get("deadline"):
-        row["time_frame"] = "By " + str(row["deadline"])
+        row["time_frame"] = (values.get("time_frame") or "By " + str(row["deadline"])) if row.get("deadline_basis") else "By " + str(row["deadline"])
     elif row.get("horizon_value"):
         amount = int(float(row["horizon_value"]))
         unit = str(row["horizon_unit"]).rstrip("s") + ("s" if amount != 1 else "")

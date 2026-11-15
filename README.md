@@ -68,7 +68,7 @@ The latest full suite passes 140 automated checks.
 
 ## Current stability release
 
-Release `2026-11-15.6` passes 155 automated checks. The app still uses local
+Release `2026-11-15.7` passes 159 automated checks. The app still uses local
 Tesseract OCR, Groq speech recognition and the same text model; no image model,
 new service or paid fallback is added.
 
@@ -87,23 +87,28 @@ in the reported music-only slideshow. This is one example, not a measured
 accuracy rate across arbitrary posts.
 
 Clear full dates and exact durations in extracted time text now prefill the
-review controls. A bare year or vague range remains text with guidance; it does
-not silently become 31 December. Saved time-frame labels reflect the deadline
-or duration actually applied. Uncertain numeric-target currency is flagged for
+review controls. A stated forecast year selects a labelled year-end evaluation
+convention in the review form; it is not attributed to the creator as an exact
+deadline. Users can change or clear it. A later target hit cannot count as a hit
+within that year. Vague ranges stay unresolved. Saved labels reflect the applied
+deadline, duration or year-end convention. Uncertain numeric-target currency is flagged for
 USD confirmation before Calculate is enabled.
 
 Manual Entry retains its inputs when switching areas or hiding conditional
 target/reference fields. Existing import selection persistence, ticker guidance,
-tracker privacy and all financial calculations are retained. Engine v12 isolates
+tracker privacy and all financial calculations are retained. Literal ticker
+recovery merges an existing named pick rather than adding a duplicate. Block
+uses its current XYZ ticker for the former SQ shares (OCC notice 55886,
+https://infomemo.theocc.com/infomemos?number=55886); this alias is equity-only. Engine v13 isolates
 older source caches. The Word/PDF/Notebook report files were not changed.
 
 ## Release consistency
 
-Release `2026-11-15.6` checks that Streamlit's entry script and all twelve
+Release `2026-11-15.7` checks that Streamlit's entry script and all twelve
 helpers use the same release. A mismatch reloads the helpers in dependency
 order once; ordinary widget reruns keep the shared queue and cache. An
 incomplete deployment is not silently treated as a current import. Old source
-results are isolated by engine v12. The dependency file also changed to request
+results are isolated by engine v13. The dependency file also changed to request
 a fresh Community Cloud deployment. Existing pinned dependencies are retained.
 
 The reported combination of new menu labels and the old no-result message

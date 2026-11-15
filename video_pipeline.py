@@ -21,12 +21,12 @@ from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url
 from asset_resolution import complete_drafts
 from photo_import import read_photo_post, read_photo_text
 
-IMPORT_VERSION = "2026-11-15.6"
+IMPORT_VERSION = "2026-11-15.7"
 
 MAX_SECONDS = 180
 MAX_VIDEO_BYTES = 50 * 1024 * 1024
 MAX_FRAMES = 16
-ENGINE_VERSION = "groq-whisper-ocr-v12"
+ENGINE_VERSION = "groq-whisper-ocr-v13"
 # A release reload must not duplicate the queue or release another semaphore.
 if "_POOL" not in globals():
     _POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="video-import")

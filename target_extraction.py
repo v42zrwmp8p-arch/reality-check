@@ -4,7 +4,7 @@ import re
 
 from asset_resolution import ASSETS, known_asset
 
-IMPORT_VERSION = "2026-11-15.6"
+IMPORT_VERSION = "2026-11-15.7"
 WORDS = {"two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
          "seven": 7, "eight": 8, "nine": 9, "ten": 10}
 
@@ -53,15 +53,21 @@ def recover_visual_tables(rows, text, transcript=""):
         if len({item[:3] for item in sightings}) != 1:
             continue
         reference, year, target, stamp, body = sightings[0]
-        matches = [row for row in result if row.get("symbol") == symbol or (len(symbol) > 1 and re.search(
+        identity = known_asset(symbol, "Equity") or {"asset": symbol, "symbol": symbol, "asset_type": "Equity"}
+        canonical = identity["symbol"]
+        matches = [row for row in result if row.get("symbol") in {symbol, canonical}
+                   or str(row.get("asset") or "").strip().upper() == symbol
+                   or (known_asset(row.get("asset"), "Equity") or {}).get("symbol") == canonical
+                   or (len(symbol) > 1 and re.search(
             r"\b" + re.escape(symbol) + r"\b", str(row.get("evidence") or "")))]
         if not matches:
-            identity = known_asset(symbol, "Equity") or {"asset": symbol, "symbol": symbol, "asset_type": "Equity"}
             matches = [{**identity, "claim": f"Shown with a ${target:g} price target for {year}.",
                         "target_type": "none", "currency": None, "deadline": None,
                         "horizon_value": None, "horizon_unit": None}]
             result.extend(matches)
         for row in matches:
+            if not row.get("symbol"):
+                row["symbol"] = canonical
             if row.get("target_type") in (None, "none"):
                 row.update(target_type="price", target_value=target, target_approximate=False,
                            reference_price=reference)

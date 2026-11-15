@@ -6,8 +6,11 @@ import pandas as pd
 from analysis_core import validated_split_review
 
 ROOT = Path(__file__).resolve().parent
-IMPORT_VERSION = "2026-11-15.6"
+IMPORT_VERSION = "2026-11-15.7"
 CRYPTO_SYMBOLS = {"HERO": "HERO10778-USD", "KDA": "KDA-USD", "MTV": "MTV-USD"}
+# Same Block class-A shares: SQ changed to XYZ on 21 January 2025.
+# OCC notice 55886: https://infomemo.theocc.com/infomemos?number=55886
+EQUITY_ALIASES = {"SQ": "XYZ"}
 HISTORY_ARCHIVES = {
     "safemoon-v1": {
         "symbol": "SAFEMOON-USD", "asset_type": "Crypto", "file_symbol": "SAFEMOON-V1",
@@ -68,7 +71,7 @@ def provider_symbol(symbol, asset_type):
         raise ValueError("Enter a valid Yahoo Finance ticker, such as AAPL or KDA-USD.")
     if asset_type == "Crypto":
         return CRYPTO_SYMBOLS.get(symbol, symbol if "-" in symbol else symbol + "-USD")
-    return symbol
+    return EQUITY_ALIASES.get(symbol, symbol) if asset_type == "Equity" else symbol
 
 
 def comparison_symbol(symbol, asset_type):
