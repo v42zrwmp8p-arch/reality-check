@@ -17,7 +17,7 @@ import pytesseract
 from PIL import Image, ImageOps
 import yt_dlp
 
-from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url, SCREEN_TEXT_LIMIT
+from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url, SCREEN_TEXT_LIMIT, clean_screen_text
 from asset_resolution import complete_drafts
 from photo_import import read_photo_post, read_photo_text
 
@@ -136,6 +136,7 @@ def read_screen_text(video, duration, folder):
             except (RuntimeError, OSError, pytesseract.TesseractError):
                 unreadable += 1
                 continue
+            text = clean_screen_text(text)
             compact = " ".join(text.split())
             if not compact or compact.casefold() in seen:
                 continue

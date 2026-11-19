@@ -2,6 +2,7 @@
 from datetime import date, datetime
 from hashlib import sha256
 from math import isfinite
+import time
 import re
 import json
 from pathlib import Path
@@ -25,6 +26,21 @@ EXTRACTION_MODEL = "openai/gpt-oss-20b"
 # per-minute token limit, so keep both numbers modest on the free tier.
 MAX_COMPLETION_TOKENS = 1536
 SCREEN_TEXT_LIMIT = 3500
+
+
+def clean_screen_text(text):
+    """Remove OCR noise from one video frame before it is sent to the model.
+
+    Video backgrounds often produce dozens of one- or two-character fragments
+    (stray letters, symbols) that cost tokens but carry no names, prices or
+    forecasts. Keep a line only if it has a run of three letters or a number
+    with two digits; drop a frame that is long and almost all noise.
+    """
+    lines = [line.strip() for line in str(text).splitlines() if line.strip()]
+    kept = [line for line in lines if re.search(r"[^\W\d_]{3,}", line) or re.search(r"\d{2,}", line)]
+    if len(lines) >= 40 and len(kept) < 0.3 * len(lines):
+        return ""
+    return "\n".join(kept)
 
 
 class ImportProblem(ValueError):
@@ -224,7 +240,7 @@ class GroqClient:
             return json.dumps(content, ensure_ascii=False)
         source = encode_source(SCREEN_TEXT_LIMIT)
         try:
-            rows = self._extract_once(source)
+            rows = self._extract_patiently(source)
         except ImportProblem as error:
             # A truncated model answer must not erase literal, unambiguous
             # source tables. Do not hide quota, connection or credential errors.
@@ -258,7 +274,7 @@ class GroqClient:
         if not rows and not recovered_rows:
             # One bounded check, not a retry loop. A 429 is surfaced normally.
             speech_source = encode_source(SCREEN_TEXT_LIMIT)
-            rows = self._extract_once(speech_source, review=True)
+            rows = self._extract_patiently(speech_source, review=True)
         # An explicit name+ticker pair in a clearly introduced buy list can
         # recover a missed known asset; ordinary company mentions cannot.
         for recovered in recovered_rows:
@@ -281,6 +297,18 @@ class GroqClient:
         rows = recover_multiple(rows[:20], transcript, screen_text)
         rows = review_screen_targets(rows, transcript if source_kind == "photo" else screen_text)
         return [normalise_timing(row) for row in rows]
+
+    def _extract_patiently(self, source, review=False):
+        # A short per-minute 429 (the provider asks for at most 30 seconds) is
+        # waited out once; daily limits and longer waits are surfaced normally.
+        try:
+            return self._extract_once(source, review=review)
+        except ImportProblem as error:
+            wait = error.retry_after
+            if error.provider_error.get("http_status") != 429 or wait is None or wait > 30:
+                raise
+            time.sleep(wait + 1)
+            return self._extract_once(source, review=review)
 
     def _extract_once(self, source, review=False):
         compatibility = self.compatibility_mode
