@@ -21,6 +21,10 @@ IMPORT_VERSION = "2026-11-15.10"
 API_ROOT = "https://api.groq.com/openai/v1"
 SPEECH_MODEL = "whisper-large-v3-turbo"
 EXTRACTION_MODEL = "openai/gpt-oss-20b"
+# Token budget per request. Groq reserves max_completion_tokens against the
+# per-minute token limit, so keep both numbers modest on the free tier.
+MAX_COMPLETION_TOKENS = 1536
+SCREEN_TEXT_LIMIT = 3500
 
 
 class ImportProblem(ValueError):
@@ -142,10 +146,20 @@ class GroqClient:
                     wait = seconds
             except (TypeError, ValueError):
                 pass
-            message = "The shared Groq usage limit was reached. Please try again later."
+            detail = ""
+            try:
+                detail = str(response.json().get("error", {}).get("message", ""))
+            except (ValueError, AttributeError):
+                pass
+            if "per day" in detail:
+                message = "The daily Groq usage limit was reached. It resets within 24 hours; a paid Groq plan raises it."
+            elif "per minute" in detail:
+                message = "The per-minute Groq usage limit was reached. Wait a minute before the next import."
+            else:
+                message = "The shared Groq usage limit was reached. Please try again later."
             if wait is not None:
                 message += f" The service suggests waiting {max(1, round(wait))} seconds."
-            raise ImportProblem(message, retry_after=wait, provider_error={"http_status": 429})
+            raise ImportProblem(message, retry_after=wait, provider_error={"http_status": 429, "limit_detail": detail[:300]})
         messages = {
             400: "Groq rejected the analysis request. Open Import details for the error information.",
             401: "The Groq key was not accepted. The app owner needs to check the connection.",
@@ -208,7 +222,7 @@ class GroqClient:
         def encode_source(ocr_limit):
             content = {"photo_text": transcript} if source_kind == "photo" else {"transcript": transcript, "sampled_screen_text": screen_text[:ocr_limit]}
             return json.dumps(content, ensure_ascii=False)
-        source = encode_source(6000)
+        source = encode_source(SCREEN_TEXT_LIMIT)
         try:
             rows = self._extract_once(source)
         except ImportProblem as error:
@@ -243,7 +257,7 @@ class GroqClient:
         recovered_rows = explicit_buy_list_candidates(transcript) + explicit_etf_candidates(transcript)
         if not rows and not recovered_rows:
             # One bounded check, not a retry loop. A 429 is surfaced normally.
-            speech_source = encode_source(6000)
+            speech_source = encode_source(SCREEN_TEXT_LIMIT)
             rows = self._extract_once(speech_source, review=True)
         # An explicit name+ticker pair in a clearly introduced buy list can
         # recover a missed known asset; ordinary company mentions cannot.
@@ -275,7 +289,7 @@ class GroqClient:
             system_prompt += "\nReturn JSON only: one object containing a recommendations array. Match this JSON schema, including every required field: " + json.dumps(EXTRACTION_SCHEMA, separators=(",", ":"))
         payload = {
             "model": EXTRACTION_MODEL, "temperature": 0, "reasoning_effort": "low",
-            "max_completion_tokens": 3072,
+            "max_completion_tokens": MAX_COMPLETION_TOKENS,
             "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": source}],
             "response_format": {"type": "json_object"} if compatibility else {"type": "json_schema", "json_schema": {
                 "name": "investment_predictions", "strict": True, "schema": EXTRACTION_SCHEMA}},

@@ -17,7 +17,7 @@ import pytesseract
 from PIL import Image, ImageOps
 import yt_dlp
 
-from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url
+from tiktok_import import GroqClient, ImportProblem, clean_tiktok_url, SCREEN_TEXT_LIMIT
 from asset_resolution import complete_drafts
 from photo_import import read_photo_post, read_photo_text
 
@@ -144,7 +144,7 @@ def read_screen_text(video, duration, folder):
             lines.append(f"[{second // 60:02d}:{second % 60:02d}]\n{text.strip()}")
         # Share the text budget between frames so a dense early slide cannot
         # remove every later recommendation. Keep the highlighted reading first.
-        budget = max(1, (6000 - 12 * len(lines)) // max(1, len(lines)))
+        budget = max(1, (SCREEN_TEXT_LIMIT - 12 * len(lines)) // max(1, len(lines)))
         bounded = []
         for block in lines:
             stamp, body = block.split("\n", 1)
@@ -155,7 +155,7 @@ def read_screen_text(video, duration, folder):
         note = "Screen text is sampled from up to 16 frames. Small or briefly shown text may be missed."
         if unreadable:
             note += f" {unreadable} sampled frame(s) could not be read; the other readings were retained."
-        return "\n".join(bounded)[:6000], note
+        return "\n".join(bounded)[:SCREEN_TEXT_LIMIT], note
     except (ImportProblem, RuntimeError, OSError, pytesseract.TesseractError):
         return "", "Screen text could not be read. This result uses speech only; check visual-only names and targets against the original video."
 
