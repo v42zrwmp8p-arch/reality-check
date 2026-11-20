@@ -31,15 +31,17 @@ SCREEN_TEXT_LIMIT = 3500
 def clean_screen_text(text):
     """Remove OCR noise from one video frame before it is sent to the model.
 
-    Video backgrounds often produce dozens of one- or two-character fragments
-    (stray letters, symbols) that cost tokens but carry no names, prices or
-    forecasts. Keep a line only if it has a run of three letters or a number
-    with two digits; drop a frame that is long and almost all noise.
+    Busy video backgrounds can produce a hundred one- or two-character
+    fragments (stray letters, symbols) that cost tokens but carry no names,
+    prices or forecasts. Frames under twenty lines are clean slides and are
+    returned exactly as read. In longer frames, keep every line that has a run
+    of three letters or a number with two digits. A frame is never dropped
+    as a whole, so a name shown over a busy background is kept.
     """
     lines = [line.strip() for line in str(text).splitlines() if line.strip()]
+    if len(lines) < 20:
+        return str(text)
     kept = [line for line in lines if re.search(r"[^\W\d_]{3,}", line) or re.search(r"\d{2,}", line)]
-    if len(lines) >= 40 and len(kept) < 0.3 * len(lines):
-        return ""
     return "\n".join(kept)
 
 
