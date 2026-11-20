@@ -189,6 +189,28 @@ class ImportUiChecks(unittest.TestCase):
 
     @patch("tiktok_ui.service_key", return_value="fixture-key")
     @patch("tiktok_ui.submit_import")
+    @patch("market_data.download_history")
+    def test_ticker_match_on_later_recommendation_keeps_that_recommendation(self, download, submit, key):
+        download.side_effect = lambda symbol, *args: (
+            pd.read_csv(ROOT / "prices" / f"{symbol}.csv", index_col="Date", parse_dates=True), symbol)
+        rows = complete_drafts([dict(DRAFT, asset="Crocs", symbol="CROX"), dict(DRAFT, asset="Marvel", symbol=None)])
+        submit.return_value = (completed(rows), False)
+        at = app(); at.text_input(key="tt_link").set_value(VIDEO).run()
+        at.button(key="tt_analyse").click().run()
+        at.selectbox(key="tt_choice").select_index(1).run()
+        at.button(key="tt_review_1_match_0").click().run()
+        self.assertEqual(at.selectbox(key="tt_choice").value, 1)
+        self.assertEqual(at.text_input(key="tt_review_1_symbol").value, "MRVL")
+        at.button(key="tt_calculate").click().run()
+        self.assertFalse(at.exception)
+        self.assertEqual(at.selectbox(key="tt_choice").value, 1)
+        self.assertEqual(at.text_input(key="tt_review_1_symbol").value, "MRVL")
+        self.assertEqual(at.session_state["tt_result"]["row"]["symbol"], "MRVL")
+        at.selectbox(key="tt_choice").select_index(0).run()
+        self.assertEqual(at.text_input(key="tt_review_0_symbol").value, "CROX")
+
+    @patch("tiktok_ui.service_key", return_value="fixture-key")
+    @patch("tiktok_ui.submit_import")
     def test_selected_recommendation_survives_temporarily_hidden_import(self, submit, key):
         submit.return_value = (completed([dict(DRAFT), dict(DRAFT, asset="Crocs", symbol="CROX")]), False)
         at = app(); at.text_input(key="tt_link").set_value(VIDEO).run()

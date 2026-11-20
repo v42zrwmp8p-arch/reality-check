@@ -45,13 +45,15 @@ def use_screen_target(prefix, value, original):
         replace, st.session_state.get(prefix + "claim", ""))
 
 
-def use_ticker_match(prefix, candidate):
+def use_ticker_match(prefix, candidate, index):
     st.session_state[prefix + "asset"] = candidate["asset"]
     st.session_state[prefix + "symbol"] = candidate["symbol"]
     st.session_state[prefix + "kind"] = candidate["asset_type"]
+    # Keep the recommendation that owns this button selected.
+    st.session_state["tt_choice"] = index
     state = st.session_state.get("tt_import")
     if state:
-        state["drafts"][st.session_state.get("tt_choice", 0)].update(candidate)
+        state["drafts"][index].update(candidate)
 
 
 def add_recommendation():
@@ -146,8 +148,13 @@ def review_fields(state):
     drafts = state["drafts"]
     # Keep selection and per-asset edits when other recommendations hide their widgets.
     # clear_import still removes this session state before a different source is loaded.
+    # Fixed labels: a chosen ticker match renames the draft, and a changed
+    # option label would make Streamlit treat the selector as a new widget and
+    # fall back to the first recommendation on the next click.
+    labels = state.setdefault("choice_labels", [])
+    labels.extend(str(drafts[i].get("asset") or f"Recommendation {i + 1}") for i in range(len(labels), len(drafts)))
     choice = st.selectbox("Choose a detected recommendation", range(len(drafts)),
-                          format_func=lambda i: str(drafts[i].get("asset") or f"Recommendation {i + 1}"),
+                          format_func=lambda i: labels[i],
                           key="tt_choice", persist_state="session", on_change=recommendation_changed)
     draft = normalise_timing(drafts[choice])
     details = metadata_details(state["metadata"])
@@ -156,7 +163,7 @@ def review_fields(state):
     st.caption("Check the details before calculating.")
     for index, candidate in enumerate(draft.get("ticker_suggestions", [])):
         st.button(f"Use {candidate['asset']} ({candidate['symbol']})", key=prefix + f"match_{index}",
-                  on_click=use_ticker_match, args=(prefix, candidate))
+                  on_click=use_ticker_match, args=(prefix, candidate, choice))
     if draft.get("evidence"):
         with st.expander("Source excerpt"):
             st.text(str(draft["evidence"]))
